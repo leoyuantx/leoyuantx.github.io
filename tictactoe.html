@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tictactoe</title>
+    <style>
+        .names {
+            font-size: 26pt;
+            text-align: center;
+            background-color: aqua;
+            margin-left: 50pt;
+            margin-right: 50pt;
+            border-radius: 20pt;
+            border-style: solid;
+        }
+        .row div{
+            padding: 10px;
+            border: 2px solid black;
+            height: 50px;
+            width: 50px;
+            float: left;
+            text-align: center;
+            font-size: 45px;
+        }
+        .row {
+            clear: both;
+        }
+        .board{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -100px;
+            margin-left: -100px;
+        }
+        
+    </style>
+</head>
+<body>
+    <script>
+        var currentPlayer = "X"
+        function placeXO(id) {
+            if (document.getElementById(id).innerHTML == "") {
+                if (currentPlayer == "O") {
+                    document.getElementById(id).innerHTML="O";
+                } else {
+                    document.getElementById(id).innerHTML="X";
+                }
+                checkWinner();
+                switchPlayer();
+            } else {
+                // do nothing
+            }
+
+        }
+
+        function switchPlayer() {
+            if (currentPlayer == "X") {
+                currentPlayer = "O"
+            } else {
+                currentPlayer = "X"
+            }
+        }
+
+        function g(id) {
+            return document.getElementById(id).innerHTML;
+        }
+
+        function checkWinner() {
+            // first row
+            if ( g("b1") != "" && g("b1") == g("b2") && g("b3")== g("b2") ) {
+                alert("we have a winner!!!")
+            }
+            // second row
+            if ( g("b4") !="" && g("b5") == g("b6") && g("b4") == g("b5")) {
+                alert("we have a winner!!!")
+            }
+            // third row
+            if ( g("b7") !="" && g("b8") == g("b9") && g("b7") == g("b8")) {
+                alert("we have a winner!!!")
+            }
+            // first col
+            if ( g("b1") !="" && g("b4") == g("b7") && g("b1") == g("b4")) {
+                alert("we have a winner!!!")
+            }
+            // second col
+            if ( g("b2") !="" && g("b5") == g("b8") && g("b2") == g("b5")) {
+                alert("we have a winner!!!")
+            }
+            // third col
+            if ( g("b3") !="" && g("b6") == g("b9") && g("b3") == g("b6")) {
+                alert("we have a winner!!!")
+            }
+            // first diag
+            if ( g("b1") !="" && g("b5") == g("b9") && g("b1") == g("b5")) {
+                alert("we have a winner!!!")
+            }
+            // second diag
+            if ( g("b3") !="" && g("b5") == g("b7") && g("b3") == g("b5")) {
+                alert("we have a winner!!!")
+            }
+        }
+    </script>
+
+    <p>Do you want to play tictactoe</p>
+    click here to play! <br>
+    <div class="names">
+        <p>scratch</p>
+        <p>ruby</p>
+    </div>
+    <br>
+    <br>
+    <div class="board">
+        <div class="row">
+            <div id="b1"  onclick="placeXO('b1')"></div>
+            <div id="b2"  onclick="placeXO('b2')"></div>
+            <div id="b3"  onclick="placeXO('b3')"></div>
+        </div>
+        <div class="row">
+            <div id="b4"  onclick="placeXO('b4')"></div>
+            <div id="b5"  onclick="placeXO('b5')"></div>
+            <div id="b6"  onclick="placeXO('b6')"></div>
+        </div>
+        <div class="row">
+            <div id="b7"  onclick="placeXO('b7')"></div>
+            <div id="b8"  onclick="placeXO('b8')"></div>
+            <div id="b9"  onclick="placeXO('b9')"></div>
+        </div>
+    </div>
+</body>
+</html>
