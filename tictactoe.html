@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="text_style.css">
     <title>tictactoe</title>
     <style>
         .names {
             font-size: 26pt;
             text-align: center;
-            background-color: aqua;
+            background-color: rgb(0, 136, 255);
             margin-left: 50pt;
             margin-right: 50pt;
             border-radius: 20pt;
@@ -17,11 +18,12 @@
         .row div{
             padding: 10px;
             border: 2px solid black;
-            height: 50px;
-            width: 50px;
+            height: 100px;
+            width: 100px;
             float: left;
             text-align: center;
-            font-size: 45px;
+            font-size: 75px;
+            font-family: cursive;
         }
         .row {
             clear: both;
@@ -30,16 +32,48 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            margin-top: -100px;
-            margin-left: -100px;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
         }
-        
+        #final_message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-family: cursive;
+            color: gold;
+        }
+        #btRestart {
+            font-family: 'Calligraffitti', cursive;
+            font-weight: 700;
+            font-size: 6rem;
+            position: absolute;
+            text-shadow: -5px 5px 5px #ced0d3;
+            top: 85%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            letter-spacing: 0.02em;
+            text-align: center;
+            color: #F9f1cc;
+            text-shadow: 5px 5px 0px #FFB650, 
+                10px 10px 0px #FFD662, 
+                15px 15px 0px  #FF80BF, 
+                20px 20px 0px #EF5097, 
+                30px 30px 0px #90B1E0;
+        }
     </style>
 </head>
-<body>
+<body bgcolor="#00FFFF">
+    
     <script>
-        var currentPlayer = "X"
+        var currentPlayer = "X";
+        var isGameDone = false;
         function placeXO(id) {
+            if (isGameDone == true) {
+                return;
+            }
             if (document.getElementById(id).innerHTML == "") {
                 if (currentPlayer == "O") {
                     document.getElementById(id).innerHTML="O";
@@ -66,51 +100,61 @@
             return document.getElementById(id).innerHTML;
         }
 
+        function alertWinner() {
+            isGameDone = true;
+            document.getElementById("final_message").innerHTML = "The winner is " + currentPlayer + " !!!";
+            document.getElementById("board").style.display= "none";
+            document.getElementById("names").style.display= "none";
+            document.getElementById("btRefresh").style.visibility = "visible"
+        }
+        function restart() {
+            window.location.reload(); 
+        }
+
+
         function checkWinner() {
             // first row
             if ( g("b1") != "" && g("b1") == g("b2") && g("b3")== g("b2") ) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // second row
             if ( g("b4") !="" && g("b5") == g("b6") && g("b4") == g("b5")) {
-                alert("we have a winner!!!")
+               alertWinner();
             }
             // third row
             if ( g("b7") !="" && g("b8") == g("b9") && g("b7") == g("b8")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // first col
             if ( g("b1") !="" && g("b4") == g("b7") && g("b1") == g("b4")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // second col
             if ( g("b2") !="" && g("b5") == g("b8") && g("b2") == g("b5")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // third col
             if ( g("b3") !="" && g("b6") == g("b9") && g("b3") == g("b6")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // first diag
             if ( g("b1") !="" && g("b5") == g("b9") && g("b1") == g("b5")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
             // second diag
             if ( g("b3") !="" && g("b5") == g("b7") && g("b3") == g("b5")) {
-                alert("we have a winner!!!")
+                alertWinner();
             }
         }
     </script>
 
-    <p>Do you want to play tictactoe</p>
-    click here to play! <br>
-    <div class="names">
+    <div class="names" id="names">
         <p>scratch</p>
         <p>ruby</p>
     </div>
     <br>
     <br>
-    <div class="board">
+    <div class="board" id="board">
         <div class="row">
             <div id="b1"  onclick="placeXO('b1')"></div>
             <div id="b2"  onclick="placeXO('b2')"></div>
@@ -127,5 +171,8 @@
             <div id="b9"  onclick="placeXO('b9')"></div>
         </div>
     </div>
+
+    <div id="final_message"></div>
+    <div id="btRestart" style="visibility: visible;" onclick="restart()">Restart</div>
 </body>
 </html>
