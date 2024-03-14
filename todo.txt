@@ -1,10 +1,11 @@
 leo wants to give players option to type their real name, instead of Scratch
 
-show X/O first, then alert
 
-when someone wins/loses win/lose screen shows up
-with restart button
+draw game
+    - detect draw game
+    - show draw game final message
 
+not now:
 when win screen shows up a replay of
 the player playing shows and animates
 
@@ -18,3 +19,8 @@ Alert winner with the name
 typograph and font for "X" and "O"
 
 After someone wins, game stops
+
+when someone wins/loses win/lose screen shows up
+with restart button
+
+show X/O first, then alert

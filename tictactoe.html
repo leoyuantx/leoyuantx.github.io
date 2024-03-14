@@ -62,6 +62,7 @@
                 10px 10px 0px #FFD662, 
                 15px 15px 0px  #FF80BF, 
                 20px 20px 0px #EF5097, 
+                25px 25px 0px #ff1bc2,
                 30px 30px 0px #90B1E0;
         }
     </style>
@@ -114,6 +115,15 @@
             
             showRestart()
         }
+        function alertDrawGame() {
+            isGameDone = true;
+            document.getElementById("final_message").innerHTML = "Draw";
+            document.getElementById("board").style.display= "none";
+            document.getElementById("names").style.display= "none";
+            showRestart()
+
+        }
+
         function restart() {
             window.location.reload(); 
         }
@@ -151,6 +161,12 @@
             // second diag
             if ( g("b3") !="" && g("b5") == g("b7") && g("b3") == g("b5")) {
                 alertWinner();
+            }
+            // b1 not empty, b2 not empty,..., b9 not empty
+            if ( g("b1") !="" && g("b2") !="" && g("b3") !="" 
+                && g("b4") !="" && g("b5") !="" && g("b6") !="" 
+                && g("b7") !="" && g("b8") !="" && g("b9") !="") {
+                alertDrawGame();
             }
         }
     </script>
