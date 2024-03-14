@@ -23,7 +23,7 @@
             float: left;
             text-align: center;
             font-size: 75px;
-            font-family: cursive;
+            font-family: Bradley Hand;
         }
         .row {
             clear: both;
@@ -57,6 +57,7 @@
             letter-spacing: 0.02em;
             text-align: center;
             color: #F9f1cc;
+            display: none;
             text-shadow: 5px 5px 0px #FFB650, 
                 10px 10px 0px #FFD662, 
                 15px 15px 0px  #FF80BF, 
@@ -68,6 +69,11 @@
 <body bgcolor="#00FFFF">
     
     <script>
+        function showRestart() {
+            var x = document.getElementById("btRestart");
+            x.style.display = "block";
+            
+        }
         var currentPlayer = "X";
         var isGameDone = false;
         function placeXO(id) {
@@ -105,7 +111,8 @@
             document.getElementById("final_message").innerHTML = "The winner is " + currentPlayer + " !!!";
             document.getElementById("board").style.display= "none";
             document.getElementById("names").style.display= "none";
-            document.getElementById("btRefresh").style.visibility = "visible"
+            
+            showRestart()
         }
         function restart() {
             window.location.reload(); 
@@ -173,6 +180,7 @@
     </div>
 
     <div id="final_message"></div>
-    <div id="btRestart" style="visibility: visible;" onclick="restart()">Restart</div>
+    <div id="btRestart" onclick="restart()">Restart</div>
+   
 </body>
 </html>
