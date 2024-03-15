@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="text_style.css">
-    <title>tictactoe</title>
+    <title>tictac4</title>
     <style>
 
         .row div{
@@ -68,6 +68,9 @@
 <body bgcolor="#00FFFF" background="./flower_image.jpg">
     
     <script>
+        var oWinScore = 0;
+        var xWinScore = 0;
+
         function showRestart() {
             var x = document.getElementById("btRestart");
             x.style.display = "block";
@@ -107,6 +110,13 @@
 
         function alertWinner() {
             isGameDone = true;
+            if (currentPlayer == "X" ) {
+                xWinScore++;
+                document.getElementById("xWin").innerHTML = "X win:"+ xWinScore;
+            }else {
+                oWinScore++;
+                document.getElementById("oWin").innerHTML = "O win:"+ oWinScore;
+            }
             document.getElementById("final_message").innerHTML = "The winner is " + currentPlayer + " !!!";
             document.getElementById("board").style.display= "none";
             
@@ -120,8 +130,28 @@
 
         }
 
+        function clearAllBoxes() {
+            for (let index = 1; index < 17; index++) {
+                console.log(index);
+                let boxId = "b" + index;
+                document.getElementById(boxId).innerHTML = "";
+            }
+        }
         function restart() {
-            window.location.reload(); 
+            // solution 1 : reload entire page
+            // window.location.reload(); 
+
+            // solution 2:
+            // a. hide final message
+            // b. show the board
+            // c. clear every div inside the board
+            // d. hide restart button
+            document.getElementById("final_message").style.display= "none";
+            document.getElementById("board").style.display= "block";
+            document.getElementById("btRestart").style.display= "none";
+            currentPlayer = "X";
+            clearAllBoxes();
+            isGameDone = false;
         }
 
 
@@ -218,5 +248,7 @@
             type="audio/mpeg" 
              >
     </audio>
+    <div id="xWin"></div>
+    <div id="oWin"></div>
 </body>
 </html>
