@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock,Paper,Scissor</title>
+    <style>
+        .cloud{
+            width: 40%;
+        }
+        #cloud1{
+            position: absolute;
+            top: 20%;
+        }
+        #cloud2{
+            position: absolute;
+            top: 20%;
+            left: 55%;
+        }
+        h1{
+            font-size: 50px;
+            
+        }
+        #p1{
+            position: absolute;
+            left: 10%;
+        }
+        #p2{
+            position: absolute;
+            left: 65%;
+        }
+        #leftOption{
+            width: 15%;
+            position: absolute;
+            top: 24%;
+            left: 14%;
+        }
+        #rightOption{
+            width: 15%;
+            position: absolute;
+            top: 24%;
+            left: 68%;
+        }
+    </style>
+    <script>
+        var leftChoice = "";
+        var rightChoice = "";
+        function checkWinner() {
+            document.getElementById("cloud1").style.display="none";
+            document.getElementById("cloud2").style.display="none";    
+            setTimeout(() => {
+            
+            if (leftChoice == "rock" && rightChoice == "rock") {
+                alert("draw")
+            }
+            if (leftChoice == "paper" && rightChoice == "paper") {
+                alert("draw")
+            }
+            if (leftChoice == "scissor" && rightChoice == "scissor") {
+                alert("draw")
+            }
+            if (leftChoice == "rock" && rightChoice == "paper") {
+                alert("player2 wins!")
+            }
+            if (leftChoice == "rock" && rightChoice == "scissor") {
+                alert("player1 wins!")
+            }
+            if (leftChoice == "paper" && rightChoice == "rock") {
+                alert("player1 wins!")
+            }
+            if (leftChoice == "paper" && rightChoice == "scissor") {
+                alert("draw")
+            }
+            if (leftChoice == "scissor" && rightChoice == "rock") {
+                alert("player2 wins!")
+            }
+            if (leftChoice == "scissor" && rightChoice == "paper") {
+                alert("player1 wins!")
+            }
+            leftChoice = ""; 
+            rightChoice = "";
+            
+        }, "100");
+            
+        }
+        document.addEventListener("keyup",
+            (event) => {
+                const keyName = event.key;
+                if (keyName == "q") {
+                    leftChoice = "rock";
+                }else if (keyName == "w") {
+                    leftChoice = "paper"
+                }else if (keyName == "e") {
+                    leftChoice = "scissor"
+                }else if (keyName == "i") {
+                    rightChoice = "rock"
+                }else if (keyName == "o") {
+                    rightChoice = "paper"
+                }else if (keyName == "p") {
+                    rightChoice = "scissor"
+                }
+
+                if (rightChoice != "" && leftChoice != "") {
+                    checkWinner();
+                }
+            },
+            false,
+        );
+    </script>
+</head>
+<body>
+    <img id="leftOption" src="rock-stone-boulders-cartoon-isometric-vector-35351659.jpg" alt="">
+    <img id="rightOption" src="paper.jpg" alt="">
+
+    <img class="cloud" id="cloud1" src="cloud.jpg" alt="">
+    <img class="cloud" id="cloud2" src="cloud.jpg" alt="">
+    <h1 id="p1">player 1</h1>
+    <h1 id="p2">player 2</h1>
+   
+</body></html>

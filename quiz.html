@@ -4,16 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>leo's quizes</title>
+    <style>
+         body {
+          background-size: cover;
+          background-image: url("./quizBG.jpg");
+          color: rgb(89, 209, 209)
+        }
+        .answer {
+            font-size: 20px;
+            font-family: 'Brush Script MT', cursive;
+            margin-left: 350px;
+        }
+        h2 {
+            margin-left: 250px;
+        }
+    </style>
+    <script>
+        var goodMessages = new Array("great job", "Hello your name is smart","Congratulations! Keep it up!");
+        var badMessages = new Array("Grrrrrr", "NO","bad idea");
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function checkAnswer(isRight) {
+            if (isRight) {
+                var index = getRandomInt(3);
+                var selectedMessage = goodMessages[index];
+                alert(selectedMessage);
+            } else {
+                var index = getRandomInt(3); 
+                var selectedMessage = badMessages[index];
+                alert(selectedMessage);
+            }
+        }
+    </script>
 </head>
 <body>
-    A.which is the biggest
-    a = sun
-    B.the red car must win
-    a = pressing the timer
-    C.help this flower grow 
-    a = move the clouds away
-    D.Help feed the cat, tom
-    a = give the fish to the word cat
-    E.
+    <h2> Which school did I go to for 2nd grade?</h2>
+    <br>
+    <div class="answer" onclick="checkAnswer(true)">Hightower Elementry</div>
+    <div class="answer" onclick="checkAnswer(false)">Daffron Elementry</div>  
+    <div class="answer" onclick="checkAnswer(false)">Clark College</div>
+    <div class="answer" onclick="checkAnswer(false)">Haun Elementry</div>
+    
+    <hr>
+    <h2>What language do I speak other than english?</h2>
+
+    <div class="answer" onclick="checkAnswer(true)">Chinese</div>
+    <div class="answer" onclick="checkAnswer(false)">Italian </div>
+    <div class="answer" onclick="checkAnswer(false)">Arabic</div>
+    <div class="answer" onclick="checkAnswer(false)">Korean</div>
+    <hr>
+    <h2>    Which school did I go to for 1st grade?
+    </h2>
+
+    <div class="answer" onclick="checkAnswer(false)">Hightower Elementry</div>
+    <div class="answer" onclick="checkAnswer(true)">Daffron Elementry    </div>
+    <div class="answer" onclick="checkAnswer(false)">Clark College</div>
+    <div class="answer" onclick="checkAnswer(false)">Haun Elementry    </div>
+    <hr>
+    <h2>    HARD QUESTION
+        <br>
+        Who is my best friend?</h2>
+    <div class="answer" onclick="checkAnswer(true)">Jatin</div>
+    <div class="answer" onclick="checkAnswer(false)">Isaac</div>
+    <div class="answer" onclick="checkAnswer(false)">Fredrick</div>
+    <div class="answer" onclick="checkAnswer(false)">Eric</div>
+    <hr>
+    <h2>    HARD QUESTION
+        <br>
+        What is my favorite game?
+    </h2>
+    <div class="answer" onclick="checkAnswer(false)">Legend of Zelda Breath of The Wild</div>
+    <div class="answer" onclick="checkAnswer(true)">Battlefield 1</div>
+    <div class="answer" onclick="checkAnswer(false)">Poppy Playtime 4</div>
+    <div class="answer" onclick="checkAnswer(false)">Minecraft</div>
 </body>
 </html>
