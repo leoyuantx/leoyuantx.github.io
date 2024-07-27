@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind,Water,Earth,Fire,Lightning</title>
+    <style>
+        body{
+            background-image: url("elementalWWEFLBG.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color:rgb(0, 242, 255) ;
+        }
+        .cloud{
+            width: 40%;
+        }
+        #cloud1{
+            position: absolute;
+            top: 20%;
+        }
+        #cloud2{
+            position: absolute;
+            top: 20%;
+            left: 55%;
+        }
+        h1{
+            font-size: 50px;
+            
+        }
+        #p1{
+            position: absolute;
+            left: 10%;
+        }
+        #p2{
+            position: absolute;
+            left: 65%;
+        }
+        #leftOption{
+            width: 15%;
+            position: absolute;
+            top: 24%;
+            left: 14%;
+        }
+        #rightOption{
+            width: 15%;
+            position: absolute;
+            top: 24%;
+            left: 68%;
+        }
+        
+
+        #intro_container {
+            width: 100%;
+            position: absolute;
+            top: 70%;
+            display: flex;
+        }
+        #introWWEFL{
+            width: 300px;
+            height: 200px;
+            margin: auto;
+        }
+        
+    </style>
+    <script>
+        var leftChoice = "";
+        var rightChoice = "";
+        function checkWinner() {
+            document.getElementById("cloud1").style.display="none";
+            document.getElementById("cloud2").style.display="none";    
+            setTimeout(() => {
+            
+            if (leftChoice == "water") {
+                if (rightChoice == "water") {
+                    alert("draw")
+                }
+                if (rightChoice == "wind") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "fire") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "lightning") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "earth") {
+                    alert("player1 wins!")
+                }
+
+            }
+            if (leftChoice == "wind") {
+                if (rightChoice == "water") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "wind") {
+                    alert("draw")
+                }
+                if (rightChoice == "fire") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "lightning") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "earth") {
+                    alert("player1 wins!")
+                }
+
+            }
+            if (leftChoice == "fire") {
+                if (rightChoice == "water") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "wind") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "fire") {
+                    alert("draw")
+                }
+                if (rightChoice == "lightning") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "earth") {
+                    alert("player2 wins!")
+                }
+            }
+            if (leftChoice == "lightning") {
+                if (rightChoice == "water") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "wind") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "fire") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "lightning") {
+                    alert("draw")
+                }
+                if (rightChoice == "earth") {
+                    alert("player2 wins!")
+                }
+
+            }
+            if (leftChoice == "earth") {
+                if (rightChoice == "water") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "wind") {
+                    alert("player2 wins!")
+                }
+                if (rightChoice == "fire") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "lightning") {
+                    alert("player1 wins!")
+                }
+                if (rightChoice == "earth") {
+                    alert("draw")
+                }
+
+            }
+            leftChoice = ""; 
+            rightChoice = "";
+            
+        }, "300");
+            
+        }
+        document.addEventListener("keyup",
+            (event) => {
+                const keyName = event.key;
+                if (keyName == "q") {
+                    leftChoice = "wind";
+                    document.getElementById("leftOption").src="wind.png";
+                }else if (keyName == "w") {
+                    leftChoice = "water"
+                    document.getElementById("leftOption").src="water.png";
+                }else if (keyName == "e") {
+                    leftChoice = "earth"
+                    document.getElementById("leftOption").src="earthElement.png";
+                }else if (keyName == "a") {
+                    leftChoice = "fire"
+                    document.getElementById("leftOption").src="fire.png"
+                }else if (keyName == "s") {
+                   leftChoice = "lightning"
+                   document.getElementById("leftOption").src="lightning.png"
+                }else if (keyName == "i") {
+                    rightChoice = "wind"
+                    document.getElementById("rightOption").src="wind.png"
+                }else if (keyName == "o") {
+                    rightChoice = "water"
+                    document.getElementById("rightOption").src="water.png"
+                }else if (keyName == "p") {
+                    rightChoice = "earth"
+                    document.getElementById("rightOption").src="earthElement.png"
+                }else if (keyName == "k") {
+                    rightChoice = "fire"
+                    document.getElementById("rightOption").src="fire.png"
+                }else if (keyName == "l") {
+                    rightChoice = "lightning"
+                    document.getElementById("rightOption").src="lightning.png"
+                }   
+
+                if (rightChoice != "" && leftChoice != "") {
+                    checkWinner();
+                }
+            },
+            false,
+        );
+    </script>
+</head>
+<body>
+    <img id="leftOption" src="wind.png" alt="">
+    <img id="rightOption" src="water.png" alt="">
+
+    <img class="cloud" id="cloud1" src="cloud.png" alt="">
+    <img class="cloud" id="cloud2" src="cloud.png" alt="">
+    <h1 id="p1">player 1</h1>
+    <h1 id="p2">player 2</h1>
+    <div id="intro_container">
+        <img id="introWWEFL" src="./intro_wwefl.png" alt="">
+    </div>
+    
+   
+</body></html>

@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rock,Paper,Scissor</title>
     <style>
+        body{
+            background-image: url("rpsBG.jpg");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color:rgb(65, 178, 223) ;
+        }
         .cloud{
             width: 40%;
         }
@@ -69,7 +75,7 @@
                 alert("player1 wins!")
             }
             if (leftChoice == "paper" && rightChoice == "scissor") {
-                alert("draw")
+                alert("player2 wins!")
             }
             if (leftChoice == "scissor" && rightChoice == "rock") {
                 alert("player2 wins!")
@@ -88,16 +94,22 @@
                 const keyName = event.key;
                 if (keyName == "q") {
                     leftChoice = "rock";
+                    document.getElementById("leftOption").src="rock.png";
                 }else if (keyName == "w") {
                     leftChoice = "paper"
+                    document.getElementById("leftOption").src="paper.png";
                 }else if (keyName == "e") {
                     leftChoice = "scissor"
+                    document.getElementById("leftOption").src="scissors.png";
                 }else if (keyName == "i") {
                     rightChoice = "rock"
+                    document.getElementById("rightOption").src="rock.png"
                 }else if (keyName == "o") {
                     rightChoice = "paper"
+                    document.getElementById("rightOption").src="paper.png"
                 }else if (keyName == "p") {
                     rightChoice = "scissor"
+                    document.getElementById("rightOption").src="scissors.png"
                 }
 
                 if (rightChoice != "" && leftChoice != "") {
@@ -109,11 +121,11 @@
     </script>
 </head>
 <body>
-    <img id="leftOption" src="rock-stone-boulders-cartoon-isometric-vector-35351659.jpg" alt="">
+    <img id="leftOption" src="rock.jpg" alt="">
     <img id="rightOption" src="paper.jpg" alt="">
 
-    <img class="cloud" id="cloud1" src="cloud.jpg" alt="">
-    <img class="cloud" id="cloud2" src="cloud.jpg" alt="">
+    <img class="cloud" id="cloud1" src="cloud.png" alt="">
+    <img class="cloud" id="cloud2" src="cloud.png" alt="">
     <h1 id="p1">player 1</h1>
     <h1 id="p2">player 2</h1>
    
