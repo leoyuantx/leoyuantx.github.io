@@ -50,15 +50,26 @@
         
 
         #intro_container {
-            width: 100%;
+            width: 350px;
             position: absolute;
-            top: 70%;
-            display: flex;
+            top: 51%;
+            left: 37%;
+            background-color: aliceblue;
+            text-align: center;
+            display: none;
         }
         #introWWEFL{
             width: 300px;
             height: 200px;
             margin: auto;
+        }
+        #help{
+            width: 80px;
+            position: absolute;
+            top: 90%;
+        }
+        #closebox{
+            width: 50px;
         }
         
     </style>
@@ -206,6 +217,12 @@
             },
             false,
         );
+        function openHelp() {
+            document.getElementById("intro_container").style.display="block"
+        }
+        function closeHelp() {
+            document.getElementById("intro_container").style.display="none"
+        }
     </script>
 </head>
 <body>
@@ -217,8 +234,35 @@
     <h1 id="p1">player 1</h1>
     <h1 id="p2">player 2</h1>
     <div id="intro_container">
+        <div>
+            controls for player1
+            q is wind
+            <br>
+            w is water
+            <br> 
+            e is earth
+            <br>
+            a is fire
+            <br>
+            s is lightning
+            <br>
+            controls for player2
+            <br>
+            i is wind
+            <br>
+            o is water
+            <br>
+            p is earth
+            <br>
+            k is fire
+            <br>
+            l is lighning
+        </div>
+        <br>
         <img id="introWWEFL" src="./intro_wwefl.png" alt="">
+        <img id="closebox" onclick="closeHelp()" src="./close.png" alt="">
     </div>
-    
+    <div id="instruction">asdfjioafdsj</div>
+    <img id="help" onclick="openHelp()" src="./questionmark.jpeg" alt="">
    
 </body></html>
