@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./text_style.css"> 
+    <title>tictac4</title>
+    <style>
+
+        .row div{
+            padding: 10px;
+            border: 3px solid black;
+            height: 100px;
+            width: 100px;
+            float: left;
+            text-align: center;
+            font-size: 75px;
+            font-family: Bradley Hand;
+        }
+        .row {
+            clear: both;
+        }
+        .board{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            border: 3px solid black;
+            transform: translate(-50%, -50%);
+        }
+        #final_message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-family: Impact;
+            color: gold;
+        }
+        #btRestart {
+            font-family: 'Calligraffitti', cursive;
+            font-weight: 700;
+            font-size: 6rem;
+            position: absolute;
+            text-shadow: -5px 5px 5px #ced0d3;
+            top: 85%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            letter-spacing: 0.02em;
+            text-align: center;
+            color: #F9f1cc;
+            display: none;
+            text-shadow: 5px 5px 0px #FFB650, 
+                10px 10px 0px #FFD662, 
+                15px 15px 0px  #FF80BF, 
+                20px 20px 0px #EF5097, 
+                25px 25px 0px #ff1bc2,
+                30px 30px 0px #90B1E0;
+        }
+        #bgm {
+            position: absolute;
+            top: 94%;
+
+        }
+    </style>
+</head>
+<body bgcolor="#00FFFF" background="./flower_image.jpg">
+    
+    <script>
+        var oWinScore = 0;
+        var xWinScore = 0;
+
+        function showRestart() {
+            var x = document.getElementById("btRestart");
+            x.style.display = "block";
+            
+        }
+        var currentPlayer = "X";
+        var isGameDone = false;
+        function placeXO(id) {
+            console.log("which box id did i click? " + id);
+            if (isGameDone == true) {
+                return;
+            }
+            if (document.getElementById(id).innerHTML == "") {
+                if (currentPlayer == "O") {
+                    document.getElementById(id).innerHTML="O";
+                } else {
+                    document.getElementById(id).innerHTML="X";
+                }
+                checkWinner();
+                switchPlayer();
+            } else {
+                // This box was filled before, so do nothing
+            }
+
+        }
+
+        function switchPlayer() {
+            if (currentPlayer == "X") {
+                currentPlayer = "O"
+            } else {
+                currentPlayer = "X"
+            }
+        }
+
+        function g(id) {
+            return document.getElementById(id).innerHTML;
+        }
+
+        function alertWinner() {
+            isGameDone = true;
+            if (currentPlayer == "X" ) {
+                xWinScore++;
+                document.getElementById("xWin").innerHTML = "X win:"+ xWinScore;
+            }else {
+                oWinScore++;
+                document.getElementById("oWin").innerHTML = "O win:"+ oWinScore;
+            }
+            document.getElementById("final_message").innerHTML = "The winner is " + currentPlayer + " !!!";
+            document.getElementById("board").style.display= "none";
+            
+            showRestart()
+        }
+        function alertDrawGame() {
+            isGameDone = true;
+            document.getElementById("final_message").innerHTML = "Draw";
+            document.getElementById("board").style.display= "none";
+            showRestart()
+
+        }
+
+        function clearAllBoxes() {
+            for (let index = 0; index < 16; index++) {
+                console.log(index);
+                let boxId = "b" + index;
+                document.getElementById(boxId).innerHTML = "";
+            }
+        }
+        function restart() {
+            // solution 1 : reload entire page
+            // window.location.reload(); 
+
+            // solution 2:
+            // a. hide final message
+            // b. show the board
+            // c. clear every div inside the board
+            // d. hide restart button
+            document.getElementById("final_message").style.display= "none";
+            document.getElementById("board").style.display= "block";
+            document.getElementById("btRestart").style.display= "none";
+            currentPlayer = "X";
+            clearAllBoxes();
+            isGameDone = false;
+        }
+
+        function checkRow(rowNumber) {
+           
+            console.log(rowNumber)
+            var startingBoxId = rowNumber * 4;
+            var endingBoxId = startingBoxId + 3;
+            for (let index = startingBoxId; index <= endingBoxId; index++) {
+                var leftBoxId = "b"+index;
+                var rightBoxId = "b" + (index + 1)
+                
+            }
+        }   
+
+        function checkCol(colNumber) {
+            // ....
+        }
+
+        function check2Diag() {
+            // ....
+        }
+
+        function checkWinner() {
+            
+            for (let index = 0; index <= 3; index++) {
+                checkRow(index)
+                checkCol(index)
+            }
+
+
+
+            check2Diag();
+        }
+
+        
+    </script>
+
+    
+    <br>
+    <br>
+    <div class="board" id="board">
+        <div class="row">
+            <div id="b0"  onclick="placeXO(id)"></div>
+            <div id="b1"  onclick="placeXO(id)"></div>
+            <div id="b2"  onclick="placeXO(id)"></div>
+            <div id="b3"  onclick="placeXO(id)"></div>
+
+        </div>
+        <div class="row">
+            <div id="b4"  onclick="placeXO(id)"></div>
+            <div id="b5"  onclick="placeXO(id)"></div>
+            <div id="b6"  onclick="placeXO(id)"></div>
+            <div id="b7"  onclick="placeXO(id)"></div>
+        </div>
+        <div class="row">
+            <div id="b8"  onclick="placeXO(id)"></div>
+            <div id="b9"  onclick="placeXO(id)"></div>
+            <div id="b10"  onclick="placeXO(id)"></div>
+            <div id="b11"  onclick="placeXO(id)"></div>
+        </div>
+        <div class="row">
+            <div id="b12"  onclick="placeXO(id)"></div>
+            <div id="b13"  onclick="placeXO(id)"></div>
+            <div id="b14"  onclick="placeXO(id)"></div>
+            <div id="b15"  onclick="placeXO(id)"></div>
+        </div>
+    </div>
+
+    <div id="final_message"></div>
+    <div id="btRestart" onclick="restart()">Restart</div>
+    <audio controls id="bgm">
+        <source 
+            src="castle_in_the_sky.mp3" 
+            type="audio/mpeg" 
+             >
+    </audio>
+    <div id="xWin"></div>
+    <div id="oWin"></div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>ghost click game</title>
+	<style>
+	#BGM{
+    width: 100px;
+	height: 40px;
+    position: absolute;
+    left: 20px;
+     bottom: 20px;
+	}
+	</style>
+</head>
+
+<body style="background-color:rgb(0, 221, 255);">
+	<img id="ghost" 
+		style="position: absolute; -webkit-transition: all 0.3s;"
+		onclick="caughtMe()"
+		src="./red_ghost.png" width="200">   
+	
+	<p id="score_number">Score: 0</p>
+	<button id="BGM" onclick="playBGM()">
+        Music
+    </button>
+</body>
+
+<script>	
+	var totalRounds
+    var musicIsPlaying = false
+	var score=0;
+	var sec=0;
+	var diffi
+	diffi = prompt("Type 1 or 2 or 3 or 4 for The imposible")
+	if (diffi == "1") {
+		interval = 1000
+		totalRounds = 10
+	} else if (diffi == "2") {
+		interval = 700
+		totalRounds = 15
+	} else if (diffi == "3") {
+		interval = 500
+		totalRounds = 20
+	} else if (diffi == "4") {
+		interval = 300
+		totalRounds = 25
+	} else if (diffi == "Killing level") {
+		interval = 100
+		totalRounds = 99
+	} else {
+		interval = 1000
+		totalRounds = 10
+	}
+	function playBGM() {
+            if (!musicIsPlaying) {
+                musicIsPlaying = true
+                var audio = new Audio('../music/Marshmello_Stars.mp3');
+                audio.play();
+            }
+        }
+	console.log(diffi);
+	
+	var timer=window.setInterval(moveEverything, interval);
+	function moveEverything(){
+		sec++;
+		document.getElementById("ghost").style.left=Math.random()*900+"px";
+		document.getElementById("ghost").style.top=Math.random()*600+"px";
+		if(sec>totalRounds){
+			clearInterval(timer)
+			alert("You scored " + score);
+			location.reload();
+		}
+	}
+	function caughtMe() {
+		score++;
+		document.getElementById("score_number").innerText="Score: "+score;
+	}
+
+</script>
+</html>

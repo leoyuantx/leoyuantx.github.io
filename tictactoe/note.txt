@@ -1,0 +1,39 @@
+ if (rowNumber==1) {
+                if (g("b1")!="" && g("b1")==g("b2") && g("b3")==g("b4") && g("b2")==g("b3")) {
+                    return true
+                }else{
+                    return false
+                }
+            }
+            if (rowNumber==2) {
+                if (g("b5")!="" && g("b5")==g("b6") && g("b6")==g("b7") && g("b7")==g("b8")) {
+                    return true
+                }else{
+                    return false
+                }
+            }
+            if (rowNumber==3) {
+                if (g("b9")!="" && g("b9")==g("b10") && g("b10")==g("b11") && g("b11")==g("b12")) {
+                    return true
+                }else{
+                    return false
+                }
+            }
+            if (rowNumber==4) {
+                if (g("b13")!="" && g("b13")==g("b14") && g("b14")==g("b15") && g("b15")==g("b16")) {
+                    return true
+                }else{
+                    return false
+                }
+            }
+
+var fruit = "apple"
+function eatFood(String) {
+    // ....
+}
+
+eatFood(fruit)
+eatFood(false)
+eatFood(123)
+
+Leo is a Student, a boy, a Chinese

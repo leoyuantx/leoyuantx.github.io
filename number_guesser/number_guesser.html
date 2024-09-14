@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess The Number</title>
+    <style>
+        #title{
+            font-size: 30px;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            margin: 20px auto;
+            width: 600px;
+        }
+        #inputArea{
+            font-size: 30px;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            margin: 20px auto;
+            width: 229px;
+        }
+        body{
+            background-image: url(./rainbow.gif);
+        }
+        #BGM{
+            width: 100px;
+            height: 40px;
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+        }
+    </style>
+    <script>
+        var musicIsPlaying = false
+        var tries = 0
+        var result = getRandomInt(100,500)
+        console.log(result);
+        function guess() {
+            if (document.getElementById("answer").value == "") {
+                alert("You don't have a number")
+            }
+            else if (document.getElementById("answer").value > result) {
+                alert("too big")
+                tries++
+            } else if (document.getElementById("answer").value < result) {
+                alert("too small")
+                tries++
+            } else {
+                alert("you got it right In " + tries + " steps!")
+                location.reload()
+            }
+        }
+        function getRandomInt(min,max) {
+	        return Math.floor(Math.random() * (max-min)) + min;
+	    }
+        function playBGM() {
+            if (!musicIsPlaying) {
+                musicIsPlaying = true
+                var audio = new Audio('../music/popcorn.mp3');
+                audio.play();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="title">
+        Im thinking of a number between 100 and 500
+    </div>
+    <div id="inputArea">
+        <input id="answer" type="number">
+        <button onclick="guess()">enter</button>
+    </div>
+    <button id="BGM" onclick="playBGM()">
+        Music
+    </button>
+</body>
+</html>
