@@ -21,16 +21,86 @@
             background-image: url(./rainbow.gif);
         }
         #BGM{
-            width: 100px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             position: absolute;
             left: 20px;
             bottom: 20px;
+        }
+        #musicBoard{
+            width: 500px;
+            height: 400px;
+            background-color: #ffffffbd;
+            margin: 20px auto;
+            position: relative;
+            display: none;
+        }
+        #M1{
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+        #M2{
+            position: absolute;
+            left: 220px;
+            top: 10px;
+        }
+        #M3{
+            position: absolute;
+            left: 380px;
+            top: 10px;
+        }
+        #M4{
+            position: absolute;
+            left: 10px;
+            top: 100px;
+        }
+        #M5{
+            position: absolute;
+            left: 190px;
+            top: 100px;
+        }
+        #M6{
+            position: absolute;
+            left: 380px;
+            top: 100px;
+        }
+        #M7{
+            position: absolute;
+            left: 10px;
+            top: 200px;
+        }
+        #M8{
+            position: absolute;
+            left: 190px;
+            top: 200px;
+        }
+        #M9{
+            position: absolute;
+            left: 380px;
+            top: 200px;
+        }
+        #close{
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
+        #clearSong{
+            position: absolute;
+            width: 110px;
+            left: 200px;
+            bottom: 20px;
+        }
+        #info{
+            position: absolute;
+            left: 150px;
+            bottom: 80px;
         }
     </style>
     <script>
         var musicIsPlaying = false
         var tries = 0
+        var audio 
         var result = getRandomInt(100,500)
         console.log(result);
         function guess() {
@@ -51,12 +121,56 @@
         function getRandomInt(min,max) {
 	        return Math.floor(Math.random() * (max-min)) + min;
 	    }
-        function playBGM() {
+        function playBGM(Number) {
             if (!musicIsPlaying) {
                 musicIsPlaying = true
-                var audio = new Audio('../music/popcorn.mp3');
+            } else {
+                // change to new music
+                audio.pause()  
+            }
+            var audioName
+            if (Number == 1) {
+                audioName = "../music/murder_drone_animated.mp3"
+            }else if (Number == 2) {
+                audioName = "../music/bite_me.mp3"
+            }else if (Number == 3) {
+                audioName = "../music/uptown_funk.mp3"
+            }else if (Number == 4) {
+                audioName = "../music/popcorn.mp3"
+            }else if (Number == 5) {
+                audioName = "../music/Marshmello_Stars.mp3"
+            }else if (Number == 6) {
+                audioName = "../music/counting_stars.mp3"
+            }else if (Number == 7) {
+                audioName = "../music/pokemon.mp3"
+            }else if (Number == 8) {
+                audioName = "../music/Marshmello_Alone.mp3"
+            }else if (Number == 9) {
+                audioName = "../music/murder_drone_forever.mp3"
+            }
+            if (audioName == undefined) {
+                
+            } else {
+                audio = new Audio(audioName);
                 audio.play();
             }
+
+        }
+        document.addEventListener("keyup",
+            (event) => {
+                const keyName = event.key;
+                console.log(keyName);
+                if (keyName == "Enter") {
+                    guess()
+                }
+            },
+            false,
+        );
+        function showBoard() {
+            document.getElementById("musicBoard").style.display="block"
+        }
+        function hideBoard() {
+            document.getElementById("musicBoard").style.display="none"
         }
     </script>
 </head>
@@ -68,8 +182,21 @@
         <input id="answer" type="number">
         <button onclick="guess()">enter</button>
     </div>
-    <button id="BGM" onclick="playBGM()">
-        Music
-    </button>
+    <img src="./musicIcon.png" id="BGM" onclick="showBoard()">
+
+    <div id="musicBoard">
+        <div id="M1" onclick="playBGM(1)">Murder drones (wait a few sec)</div>
+        <div id="M2" onclick="playBGM(2)">Bite Me</div>
+        <div id="M3" onclick="playBGM(3)">Uptown funk</div>
+        <div id="M4" onclick="playBGM(4)">popcorn</div>
+        <div id="M5" onclick="playBGM(5)">marshmello Stars</div>
+        <div id="M6" onclick="playBGM(6)">counting Stars</div>
+        <div id="M7" onclick="playBGM(7)">pokemon (wait a few sec)</div>
+        <div id="M8" onclick="playBGM(8)">marshmello alone</div>
+        <div id="M9" onclick="playBGM(9)">Forever murder drones</div>
+        <div id="close" onclick="hideBoard()">X</div>
+        <div id="clearSong" onclick="playBGM(0)">Stop music/song</div>
+        <div id="info">click the music/song name to play</div>
+    </div>
 </body>
 </html>
