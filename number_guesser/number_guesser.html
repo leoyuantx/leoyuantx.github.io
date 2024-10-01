@@ -26,6 +26,14 @@
             position: absolute;
             left: 20px;
             bottom: 20px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        #BGM:hover {
+            width: 80px;
+            height: 80px;
+            bottom: 10px;
+            left: 10px;
         }
         #musicBoard{
             width: 500px;
@@ -96,6 +104,89 @@
             left: 150px;
             bottom: 80px;
         }
+        #BGI{
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 100px;
+            bottom: 20px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        #BGI:hover {
+            width: 80px;
+            height: 80px;
+            bottom: 10px;
+            left: 90px;
+        }
+        #BGBoard {
+            width: 700px;
+            height: 800px;
+            background-color: #ffffffbd;
+            margin: 20px auto;
+            position: relative;
+            display: none;
+        } 
+        #BG1{
+            position: absolute;
+            left: 0px;
+            top: 0px;
+        }
+        #BG2{
+            position: absolute;
+            left: 250px;
+            top: 0px;
+        }
+        #BG3{
+            position: absolute;
+            left: 500px;
+            top: 0px;
+        }
+        #BG4{
+            position: absolute;
+            left: 0px;
+            top: 210px;
+        }
+        #BG5{
+            position: absolute;
+            left: 250px;
+            top: 210px;
+        }
+        #BG6{
+            position: absolute;
+            left: 500px;
+            top: 210px;
+        }
+        #BG7{
+            position: absolute;
+            left: 0px;
+            top: 420px;
+        }
+        #BG8{
+            position: absolute;
+            left: 250px;
+            top: 400px;
+        }
+        #BG9{
+            position: absolute;
+            left: 500px;
+            top: 420px;
+        }
+        #BG10{
+            position: absolute;
+            left: 250px;
+            top: 600px;
+        }
+        #BGinfo{
+            position: absolute;
+            left: 120px;
+            top: 730px;
+        }
+        #BGclose{
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
     </style>
     <script>
         var musicIsPlaying = false
@@ -121,6 +212,33 @@
         function getRandomInt(min,max) {
 	        return Math.floor(Math.random() * (max-min)) + min;
 	    }
+        function changeBGI(i) {
+            if (i == 1) {
+                document.body.style.backgroundImage = "url('cat-loop.webp')";
+
+            }else if (i == 2) {
+                document.body.style.backgroundImage = "url('catComputer.gif')";
+            }else if (i == 3) {
+                document.body.style.backgroundImage = "url('catToasting.gif')";
+            }else if (i == 4) {
+                document.body.style.backgroundImage = "url('Cat-Sleeping.webp')";
+            }else if (i == 5) {
+                document.body.style.backgroundImage = "url('murderDronesAllCharacter.jpg')";
+            }else if (i == 6) {
+                document.body.style.backgroundImage = "url('GamerImage.jpg')";
+            }else if (i == 7) {
+                document.body.style.backgroundImage = "url('Galaxy.jfif')";
+            }else if (i == 8) {
+                document.body.style.backgroundImage = "url('KawaiiCat.gif')";
+            }else if (i == 9) {
+                document.body.style.backgroundImage = "url('computerBreak.gif')";
+            }else if (i == 10) {
+                document.body.style.backgroundImage = "url('murderDronesImage.jpg')";
+            }
+
+            document.body.style.backgroundRepeat = "no-repeat";
+            document.body.style.backgroundSize = "cover";
+        }
         function playBGM(Number) {
             if (!musicIsPlaying) {
                 musicIsPlaying = true
@@ -172,6 +290,12 @@
         function hideBoard() {
             document.getElementById("musicBoard").style.display="none"
         }
+        function showBGBoard() {
+            document.getElementById("BGBoard").style.display="block"
+        }
+        function hideBGBoard() {
+            document.getElementById("BGBoard").style.display="none"
+        }
     </script>
 </head>
 <body>
@@ -198,5 +322,22 @@
         <div id="clearSong" onclick="playBGM(0)">Stop music/song</div>
         <div id="info">click the music/song name to play</div>
     </div>
+
+    <img src="BG_Icon.webp" id="BGI" onclick="showBGBoard()">
+    <div id= "BGBoard">
+        <div id="BG1" onclick="changeBGI(1)"><img src="cat-loop.webp" width="200" height="200"></div>
+        <div id="BG2" onclick="changeBGI(2)"><img src="catComputer.gif" width="200" height="200"></div>
+        <div id="BG3" onclick="changeBGI(3)"><img src="catToasting.gif" width="200" ></div>
+        <div id="BG4" onclick="changeBGI(4)"><img src="Cat-Sleeping.webp" width="200" height="200"></div>
+        <div id="BG5" onclick="changeBGI(5)"><img src="murderDronesAllCharacter.jpg" height="200"></div>
+        <div id="BG6" onclick="changeBGI(6)"><img src="GamerImage.jpg"  height="130"></div>
+        <div id="BG7" onclick="changeBGI(7)"><img src="Galaxy.jfif" width="200"></div>
+        <div id="BG8" onclick="changeBGI(8)"><img src="KawaiiCat.gif" width="200" ></div>
+        <div id="BG9" onclick="changeBGI(9)"><img src="computerBreak.gif" width="200"></div>
+        <div id="BG10" onclick="changeBGI(10)"><img src="murderDronesImage.jpg" width="200" ></div>
+        <div id="BGclose" onclick="hideBGBoard()">X</div>
+        <div id="BGinfo">click the background to choose. some might not work for entire screen.</div>
+    </div>
+    
 </body>
 </html>
