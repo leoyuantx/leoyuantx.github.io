@@ -1,0 +1,882 @@
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#out {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    
+}
+
+#in {
+    width: 60vmin;
+    height: 60vmin;
+    background-color: aqua;
+    position: relative;
+}
+
+/* below are boxes */
+
+#b00{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 10vmin;
+    top: 10vmin;
+}
+
+#b01{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 15vmin;
+    top: 10vmin;
+}
+#b02{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 20vmin;
+    top: 10vmin;
+}
+#b03{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 25vmin;
+    top: 10vmin;
+}
+#b04{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 30vmin;
+    top: 10vmin;
+}
+#b05{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 35vmin;
+    top: 10vmin;
+}
+#b06{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 40vmin;
+    top: 10vmin;
+}
+#b07{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 45vmin;
+    top: 10vmin;
+}
+
+#b10{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 10vmin;
+    top: 15vmin;
+}
+
+#b11{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 15vmin;
+    top: 15vmin;
+}
+#b12{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 20vmin;
+    top: 15vmin;
+}
+#b13{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 25vmin;
+    top: 15vmin;
+}
+#b14{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 30vmin;
+    top: 15vmin;
+}
+#b15{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 35vmin;
+    top: 15vmin;
+}
+#b16{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 40vmin;
+    top: 15vmin;
+}
+#b17{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 45vmin;
+    top: 15vmin;
+}
+
+#b20{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 10vmin;
+    top: 20vmin;
+}
+
+#b21{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 15vmin;
+    top: 20vmin;
+}
+#b22{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 20vmin;
+    top: 20vmin;
+}
+#b23{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 25vmin;
+    top: 20vmin;
+}
+#b24{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 30vmin;
+    top: 20vmin;
+}
+#b25{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 35vmin;
+    top: 20vmin;
+}
+#b26{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 40vmin;
+    top: 20vmin;
+}
+#b27{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 45vmin;
+    top: 20vmin;
+}
+
+#b30{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 10vmin;
+    top: 25vmin;
+}
+
+#b31{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 15vmin;
+    top: 25vmin;
+}
+#b32{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 20vmin;
+    top: 25vmin;
+}
+#b33{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 25vmin;
+    top: 25vmin;
+}
+#b34{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 30vmin;
+    top: 25vmin;
+}
+#b35{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 35vmin;
+    top: 25vmin;
+}
+#b36{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 40vmin;
+    top: 25vmin;
+}
+#b37{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 45vmin;
+    top: 25vmin;
+}
+
+
+#b40{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 10vmin;
+    top: 30vmin;
+}
+
+#b41{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 15vmin;
+    top: 30vmin;
+}
+#b42{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 20vmin;
+    top: 30vmin;
+}
+#b43{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 25vmin;
+    top: 30vmin;
+}
+#b44{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 30vmin;
+    top: 30vmin;
+}
+#b45{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 35vmin;
+    top: 30vmin;
+}
+#b46{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 40vmin;
+    top: 30vmin;
+}
+#b47{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 45vmin;
+    top: 30vmin;
+}
+
+#b50{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 10vmin;
+    top: 35vmin;
+}
+
+#b51{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 15vmin;
+    top: 35vmin;
+}
+#b52{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 20vmin;
+    top: 35vmin;
+}
+#b53{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 25vmin;
+    top: 35vmin;
+}
+#b54{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 30vmin;
+    top: 35vmin;
+}
+#b55{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 35vmin;
+    top: 35vmin;
+}
+#b56{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 40vmin;
+    top: 35vmin;
+}
+#b57{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 45vmin;
+    top: 35vmin;
+}
+
+
+#b60{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 10vmin;
+    top: 40vmin;
+}
+
+#b61{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 15vmin;
+    top: 40vmin;
+}
+#b62{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 20vmin;
+    top: 40vmin;
+}
+#b63{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 25vmin;
+    top: 40vmin;
+}
+#b64{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 30vmin;
+    top: 40vmin;
+}
+#b65{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 35vmin;
+    top: 40vmin;
+}
+#b66{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 40vmin;
+    top: 40vmin;
+}
+#b67{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 45vmin;
+    top: 40vmin;
+}
+
+#b70{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 10vmin;
+    top: 45vmin;
+}
+
+#b71{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 15vmin;
+    top: 45vmin;
+}
+#b72{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 20vmin;
+    top: 45vmin;
+}
+#b73{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 25vmin;
+    top: 45vmin;
+}
+#b74{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 30vmin;
+    top: 45vmin;
+}
+#b75{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 35vmin;
+    top: 45vmin;
+}
+#b76{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(55, 202, 255);
+    position: absolute;
+    left: 40vmin;
+    top: 45vmin;
+}
+#b77{
+    width: 5vmin;
+    height: 5vmin;
+    background-color: rgb(255, 197, 146);
+    position: absolute;
+    left: 45vmin;
+    top: 45vmin;
+}
+
+/* below are black pieces */
+
+#Brook1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 10vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+}
+
+#Brook2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 45vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+
+}
+
+#Bknight1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 15vmin;
+    top: 10vmin;
+        transition: all 0.7s;
+
+}
+
+#Bknight2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 40vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+
+}
+
+#Bbishop1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 20vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+
+}
+
+#Bbishop2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 35vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+
+}
+
+#Bqueen {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 25vmin;
+    top: 10vmin;    
+    transition: all 0.7s;
+}
+
+#Bking {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 30vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+
+}
+
+#Bpawn1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 10vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+
+#Bpawn2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 15vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn3 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 20vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn4 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 25vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn5 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 30vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn6 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 35vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn7 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 40vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+#Bpawn8 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 45vmin;
+    top: 15vmin;
+    transition: all 0.7s;
+
+}
+
+
+/* below are white pieces */
+
+#Wrook1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 10vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wrook2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 45vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wknight1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 15vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wknight2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 40vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wbishop1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 20vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wbishop2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 35vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wqueen {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 25vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wking {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 30vmin;
+    top: 45vmin;
+    transition: all 0.7s;
+
+}
+
+#Wpawn1 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 10vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+
+#Wpawn2 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 15vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+    
+}
+#Wpawn3 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 20vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+#Wpawn4 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 25vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+#Wpawn5 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 30vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+#Wpawn6 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 35vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+#Wpawn7 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 40vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+#Wpawn8 {
+    width: 5vmin;
+    height: 5vmin;
+    position: absolute;
+    left: 45vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+
+}
+/* under are special pieces */
+#Wship{
+    height: 10vmin;
+    width: 5vmin;
+    position: absolute;
+    left: 5vmin;
+    top: 40vmin;
+    transition: all 0.7s;
+}
+#Bship{
+    height: 10vmin;
+    width: 5vmin;
+    position: absolute;
+    left: 50vmin;
+    top: 10vmin;
+    transition: all 0.7s;
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./pieces.css">
+    <title>beach chess</title>
+    <style>
+        body {
+            background-image: url("./images/ocean.webp");
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div id="out">
+        <div id="in">
+            <div id="b00" onclick="move(id)"></div>
+            <div id="b01" onclick="move(id)"></div>
+            <div id="b02" onclick="move(id)"></div>
+            <div id="b03" onclick="move(id)"></div>
+            <div id="b04" onclick="move(id)"></div>
+            <div id="b05" onclick="move(id)"></div>
+            <div id="b06" onclick="move(id)"></div>
+            <div id="b07" onclick="move(id)"></div>
+            <div id="b10" onclick="move(id)"></div>
+            <div id="b11" onclick="move(id)"></div>
+            <div id="b12" onclick="move(id)"></div>
+            <div id="b13" onclick="move(id)"></div>
+            <div id="b14" onclick="move(id)"></div>
+            <div id="b15" onclick="move(id)"></div>
+            <div id="b16" onclick="move(id)"></div>
+            <div id="b17" onclick="move(id)"></div>
+            <div id="b20" onclick="move(id)"></div>
+            <div id="b21" onclick="move(id)"></div>
+            <div id="b22" onclick="move(id)"></div>
+            <div id="b23" onclick="move(id)"></div>
+            <div id="b24" onclick="move(id)"></div>
+            <div id="b25" onclick="move(id)"></div>
+            <div id="b26" onclick="move(id)"></div>
+            <div id="b27" onclick="move(id)"></div>
+            <div id="b30" onclick="move(id)"></div>
+            <div id="b31" onclick="move(id)"></div>
+            <div id="b32" onclick="move(id)"></div>
+            <div id="b33" onclick="move(id)"></div>
+            <div id="b34" onclick="move(id)"></div>
+            <div id="b35" onclick="move(id)"></div>
+            <div id="b36" onclick="move(id)"></div>
+            <div id="b37" onclick="move(id)"></div>
+            <div id="b40" onclick="move(id)"></div>
+            <div id="b41" onclick="move(id)"></div>
+            <div id="b42" onclick="move(id)"></div>
+            <div id="b43" onclick="move(id)"></div>
+            <div id="b44" onclick="move(id)"></div>
+            <div id="b45" onclick="move(id)"></div>
+            <div id="b46" onclick="move(id)"></div>
+            <div id="b47" onclick="move(id)"></div>
+            <div id="b50" onclick="move(id)"></div>
+            <div id="b51" onclick="move(id)"></div>
+            <div id="b52" onclick="move(id)"></div>
+            <div id="b53" onclick="move(id)"></div>
+            <div id="b54" onclick="move(id)"></div>
+            <div id="b55" onclick="move(id)"></div>
+            <div id="b56" onclick="move(id)"></div>
+            <div id="b57" onclick="move(id)"></div>
+            <div id="b60" onclick="move(id)"></div>
+            <div id="b61" onclick="move(id)"></div>
+            <div id="b62" onclick="move(id)"></div>
+            <div id="b63" onclick="move(id)"></div>
+            <div id="b64" onclick="move(id)"></div>
+            <div id="b65" onclick="move(id)"></div>
+            <div id="b66" onclick="move(id)"></div>
+            <div id="b67" onclick="move(id)"></div>
+            <div id="b70" onclick="move(id)"></div>
+            <div id="b71" onclick="move(id)"></div>
+            <div id="b72" onclick="move(id)"></div>
+            <div id="b73" onclick="move(id)"></div>
+            <div id="b74" onclick="move(id)"></div>
+            <div id="b75" onclick="move(id)"></div>
+            <div id="b76" onclick="move(id)"></div>
+            <div id="b77" onclick="move(id)"></div>
+            <img src="./images/Brook.png" alt="" id="Brook1" onclick="selectPiece(id)">
+            <img src="./images/Brook.png" alt="" id="Brook2" onclick="selectPiece(id)">
+            <img src="./images/Bknight.png" alt="" id="Bknight1" onclick="selectPiece(id)">
+            <img src="./images/Bknight.png" alt="" id="Bknight2" onclick="selectPiece(id)">
+            <img src="./images/Bbishop.png" alt="" id="Bbishop1" onclick="selectPiece(id)">
+            <img src="./images/Bbishop.png" alt="" id="Bbishop2" onclick="selectPiece(id)">
+            <img src="./images/Bqueen.png" alt="" id="Bqueen" onclick="selectPiece(id)">
+            <img src="./images/Bking.png" alt="" id="Bking" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn1" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn2" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn3" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn4" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn5" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn6" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn7" onclick="selectPiece(id)">
+            <img src="./images/Bpawn.png" alt="" id="Bpawn8" onclick="selectPiece(id)">
+            <img src="./images/Bship.PNG" alt="" id="Bship" onclick="selectPiece(id)">
+
+            <img src="./images/Wrook.png" alt="" id="Wrook1" onclick="selectPiece(id)">
+            <img src="./images/Wrook.png" alt="" id="Wrook2" onclick="selectPiece(id)">
+            <img src="./images/Wknight.png" alt="" id="Wknight1" onclick="selectPiece(id)">
+            <img src="./images/Wknight.png" alt="" id="Wknight2" onclick="selectPiece(id)">
+            <img src="./images/Wbishop.png" alt="" id="Wbishop1" onclick="selectPiece(id)">
+            <img src="./images/Wbishop.png" alt="" id="Wbishop2" onclick="selectPiece(id)">
+            <img src="./images/Wqueen.png" alt="" id="Wqueen" onclick="selectPiece(id)">
+            <img src="./images/Wking.png" alt="" id="Wking" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn1" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn2" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn3" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn4" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn5" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn6" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn7" onclick="selectPiece(id)">
+            <img src="./images/Wpawn.png" alt="" id="Wpawn8" onclick="selectPiece(id)">
+            <img src="./images/Wship.PNG" alt="" id="Wship" onclick="selectPiece(id)">
+        </div>
+    </div>
+
+    <script>
+        var turn = "w"
+        var selectedPiece = undefined
+        function g(id) {
+            return document.getElementById(id)
+        }
+        function selectPiece(id) {
+            console.log(id)
+            if (turn == "w") {
+              if (id.charAt(0) == "W") {
+                selectedPiece = id 
+              }else {
+                console.log("its w turn but you selected black");
+
+              }
+            }else {
+                if (id.charAt(0) == "B") {
+                    selectedPiece = id 
+                }else {
+                    console.log("its b turn but you selected white");
+                    
+                }
+            }
+
+        }
+        function move(boxId) {
+            if (selectedPiece) {
+                console.log("selectedPiece");
+                
+                
+                // TODO: after all pieces are selectable and move-able, 
+                // we need to check the chess rule
+                
+
+                g(selectedPiece).style.left = g(boxId).offsetLeft + "px"
+                g(selectedPiece).style.top = g(boxId).offsetTop + "px"
+                selectedPiece = undefined 
+                if (turn == "w") {
+                    turn = "b"
+                }else {
+                    turn = "w"
+                }
+            }else {
+                console.log("no selecetdPiece");
+                
+            }
+        }
+    </script>
+    
+</body>
+
+</html>

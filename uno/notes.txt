@@ -1,0 +1,12 @@
+types of cards:
+    number + color
+    wild card:
+        write your own rule
+        +2
+        +4
+        reverse
+        no
+        normal
+        2 no's
+        bullet +2
+    reverse

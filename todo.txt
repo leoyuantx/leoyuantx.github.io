@@ -24,3 +24,15 @@ when someone wins/loses win/lose screen shows up
 with restart button
 
 show X/O first, then alert
+
+
+ideas:
+checker
+battleship
+chess
+monopoly
+Rummikub
+mancala
+exploding kittens
+uno
+taco cat goat cheese pizza

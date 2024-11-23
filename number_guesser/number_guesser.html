@@ -15,7 +15,15 @@
             font-size: 30px;
             font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
             margin: 20px auto;
-            width: 229px;
+            width: 260px;
+
+        }
+        input{
+            font-size: 40px;
+            width: 160px;
+        }
+        button{
+            font-size: 20px;
         }
         body{
             background-image: url(./rainbow.gif);
@@ -90,8 +98,10 @@
         }
         #close{
             position: absolute;
+            font-size: 20px;
             right: 10px;
             bottom: 10px;
+            color: red;
         }
         #clearSong{
             position: absolute;
@@ -184,15 +194,83 @@
         }
         #BGclose{
             position: absolute;
+            font-size: 20px;
             right: 10px;
             bottom: 10px;
+            color: red;
         }
     </style>
+
+</head>
+<body>
+    <div id="title">
+        Im thinking of a number between 
+    </div>
+    <div id="inputArea">
+        <input id="answer" type="number">
+        <button onclick="guess()">enter</button>
+    </div>
+    <img src="./musicIcon.png" id="BGM" onclick="showBoard()">
+
+    <div id="musicBoard">
+        <div id="M1" onclick="playBGM(1)">Murder drones (wait a few sec)</div>
+        <div id="M2" onclick="playBGM(2)">Bite Me</div>
+        <div id="M3" onclick="playBGM(3)">Uptown funk</div>
+        <div id="M4" onclick="playBGM(4)">popcorn</div>
+        <div id="M5" onclick="playBGM(5)">marshmello Stars</div>
+        <div id="M6" onclick="playBGM(6)">counting Stars</div>
+        <div id="M7" onclick="playBGM(7)">pokemon (wait a few sec)</div>
+        <div id="M8" onclick="playBGM(8)">marshmello alone</div>
+        <div id="M9" onclick="playBGM(9)">Forever murder drones</div>
+        <div id="close" onclick="hideBoard()">X</div>
+        <div id="clearSong" onclick="playBGM(0)">Stop music/song</div>
+        <div id="info">click the music/song name to play</div>
+    </div>
+
+    <img src="BG_Icon.webp" id="BGI" onclick="showBGBoard()">
+    <div id= "BGBoard">
+        <div id="BG1" onclick="changeBGI(1)"><img src="cat-loop.webp" width="200" height="200"></div>
+        <div id="BG2" onclick="changeBGI(2)"><img src="catComputer.gif" width="200" height="200"></div>
+        <div id="BG3" onclick="changeBGI(3)"><img src="catToasting.gif" width="200" ></div>
+        <div id="BG4" onclick="changeBGI(4)"><img src="Cat-Sleeping.webp" width="200" height="200"></div>
+        <div id="BG5" onclick="changeBGI(5)"><img src="murderDronesAllCharacter.jpg" height="200"></div>
+        <div id="BG6" onclick="changeBGI(6)"><img src="GamerImage.jpg"  height="130"></div>
+        <div id="BG7" onclick="changeBGI(7)"><img src="Galaxy.jfif" width="200"></div>
+        <div id="BG8" onclick="changeBGI(8)"><img src="KawaiiCat.gif" width="200" ></div>
+        <div id="BG9" onclick="changeBGI(9)"><img src="computerBreak.gif" width="200"></div>
+        <div id="BG10" onclick="changeBGI(10)"><img src="murderDronesImage.jpg" width="200" ></div>
+        <div id="BGclose" onclick="hideBGBoard()">X</div>
+        <div id="BGinfo">click the background to choose. some might not work for entire screen.</div>
+    </div>
     <script>
+        function isNumber(value) {
+            if (isNaN(value)) {
+                return false;
+            }
+            
+              return typeof value === 'number';
+        }
+        var lowNumber = +prompt("give me a low number (1/2)")
+        var highNumber = +prompt("give me a highter number than the first one (2/2)")
+        console.log(lowNumber, highNumber)
+        if (isNumber(lowNumber) && isNumber(highNumber)) {
+            
+            if (lowNumber > highNumber) {
+                alert("Wrong order of number")
+                location.reload()
+            }
+
+        } else {
+            alert("wrong input")
+            location.reload()
+        }
+
+        document.getElementById("title").innerHTML=`im thinking of a number between ${lowNumber} and ${highNumber}`
+        var isThereABoard = false
         var musicIsPlaying = false
         var tries = 0
         var audio 
-        var result = getRandomInt(100,500)
+        var result = getRandomInt(lowNumber,highNumber)
         console.log(result);
         function guess() {
             if (document.getElementById("answer").value == "") {
@@ -210,7 +288,12 @@
             }
         }
         function getRandomInt(min,max) {
-	        return Math.floor(Math.random() * (max-min)) + min;
+            let minInt = +min
+            let maxInt = +max
+            let result = Math.floor(Math.random() * (maxInt-minInt)) + minInt;
+            console.log(min, max, result);
+            
+	        return result
 	    }
         function changeBGI(i) {
             if (i == 1) {
@@ -285,59 +368,26 @@
             false,
         );
         function showBoard() {
-            document.getElementById("musicBoard").style.display="block"
+            if (isThereABoard == false) {
+                document.getElementById("musicBoard").style.display="block"
+                isThereABoard = true
+            }
         }
         function hideBoard() {
             document.getElementById("musicBoard").style.display="none"
+            isThereABoard = false
         }
         function showBGBoard() {
-            document.getElementById("BGBoard").style.display="block"
+            if (isThereABoard == false) {
+                document.getElementById("BGBoard").style.display="block"
+                isThereABoard = true
+            }
+
         }
         function hideBGBoard() {
             document.getElementById("BGBoard").style.display="none"
+            isThereABoard = false
         }
     </script>
-</head>
-<body>
-    <div id="title">
-        Im thinking of a number between 100 and 500
-    </div>
-    <div id="inputArea">
-        <input id="answer" type="number">
-        <button onclick="guess()">enter</button>
-    </div>
-    <img src="./musicIcon.png" id="BGM" onclick="showBoard()">
-
-    <div id="musicBoard">
-        <div id="M1" onclick="playBGM(1)">Murder drones (wait a few sec)</div>
-        <div id="M2" onclick="playBGM(2)">Bite Me</div>
-        <div id="M3" onclick="playBGM(3)">Uptown funk</div>
-        <div id="M4" onclick="playBGM(4)">popcorn</div>
-        <div id="M5" onclick="playBGM(5)">marshmello Stars</div>
-        <div id="M6" onclick="playBGM(6)">counting Stars</div>
-        <div id="M7" onclick="playBGM(7)">pokemon (wait a few sec)</div>
-        <div id="M8" onclick="playBGM(8)">marshmello alone</div>
-        <div id="M9" onclick="playBGM(9)">Forever murder drones</div>
-        <div id="close" onclick="hideBoard()">X</div>
-        <div id="clearSong" onclick="playBGM(0)">Stop music/song</div>
-        <div id="info">click the music/song name to play</div>
-    </div>
-
-    <img src="BG_Icon.webp" id="BGI" onclick="showBGBoard()">
-    <div id= "BGBoard">
-        <div id="BG1" onclick="changeBGI(1)"><img src="cat-loop.webp" width="200" height="200"></div>
-        <div id="BG2" onclick="changeBGI(2)"><img src="catComputer.gif" width="200" height="200"></div>
-        <div id="BG3" onclick="changeBGI(3)"><img src="catToasting.gif" width="200" ></div>
-        <div id="BG4" onclick="changeBGI(4)"><img src="Cat-Sleeping.webp" width="200" height="200"></div>
-        <div id="BG5" onclick="changeBGI(5)"><img src="murderDronesAllCharacter.jpg" height="200"></div>
-        <div id="BG6" onclick="changeBGI(6)"><img src="GamerImage.jpg"  height="130"></div>
-        <div id="BG7" onclick="changeBGI(7)"><img src="Galaxy.jfif" width="200"></div>
-        <div id="BG8" onclick="changeBGI(8)"><img src="KawaiiCat.gif" width="200" ></div>
-        <div id="BG9" onclick="changeBGI(9)"><img src="computerBreak.gif" width="200"></div>
-        <div id="BG10" onclick="changeBGI(10)"><img src="murderDronesImage.jpg" width="200" ></div>
-        <div id="BGclose" onclick="hideBGBoard()">X</div>
-        <div id="BGinfo">click the background to choose. some might not work for entire screen.</div>
-    </div>
-    
 </body>
 </html>

@@ -1,0 +1,23 @@
+ideas:
+    - idea 1
+    2 battleship on the sides
+    moves 3 blocks max
+    horizontal shoot 5 blocks max 
+    forward shoot 6 blocks max
+
+    - idea 2
+    king's sniper in the pawn's row
+    sniper shoot: vertical and horizontal, 5 blocks max
+    moves like king
+
+    - idea 3
+    queen's mirror in the pawn's row
+    opponent's mirror has to move too
+
+    - idea 4
+    archer and swordman in an island
+
+------
+    - other ideas
+    upgradable
+
