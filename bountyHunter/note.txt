@@ -1,0 +1,36 @@
+
+
+
+add player's shield
+
+images for weapons
+
+minion
+    default 1 pet
+    player can buy more slots
+    stats
+        name
+        damage
+        shooting speed
+        health
+        scarcity 
+            common to rare:
+            dog and cat(common)
+            neons(rare)
+            crystals(epic)
+            angels(legendary)
+            king cat(mythic)
+            atomic corgi(mythic)
+        ability
+    
+    
+random crate
+
+secret
+
+daily streak
+
+animations
+    big pet image animates to slot
+    egg shake
+    unlock animation

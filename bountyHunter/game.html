@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="./game.js"></script>
+    <title>Bounty Hunter</title>
+</head>
+
+<body onload="initGame()">
+    
+    <img onclick="hitRagdoll()" id="ragdoll" src="./images/ragdoll.png">
+    <div onclick="train()" id="training">training</div>
+    <div id="shopboard">
+        shop<hr>
+        <span class="buyable" onclick="buyPistol()">pistol $500<br></span> 
+        <span class="buyable" onclick="buyAk47()">ak-47 $1000<br></span> 
+        <span class="buyable" onclick="buyRL()">rocket launcher $10000<br></span>
+        <span class="buyable" onclick="buyArmy()">army $100000<br></span>
+        <span class="buyable" onclick="buyTank()">tank $1000000<br></span>
+        <span class="buyable" onclick="buyJet()">jet $5000000<br></span>
+        <span class="buyable" onclick="buyNuke()">nuke $10000000<br></span>
+        <hr>
+        <span class="buyable" onclick="heal()">heal $500</span><br>
+        <span class="buyable" onclick="incHealth()">more HP $<span id="mrHPPrice">1000</span></span>
+    </div>
+
+    <div id="weaponry">
+        weaponry<hr>
+        <span class="buyable selectedWeapon" id="knifeOption" onclick="useKnife()">knife x infinite<br></span> 
+        <span class="buyable" id="pistolOption" onclick="usePistol()">pistol x<span id="pistolCount">0</span><br></span> 
+        <span class="buyable" id="ak47Option" onclick="useAk47()">ak-47 x<span id="ak47Count">0</span><br></span> 
+        <span class="buyable" id="rlOption" onclick="useRL()">rocket launcher x<span id="rlCount">0</span><br></span>
+        <span class="buyable" id="armyOption" onclick="useArmy()">army x<span id="armyCount">0</span><br></span>
+        <span class="buyable" id="tankOption" onclick="useTank()">tank x<span id="tankCount">0</span><br></span>
+        <span class="buyable" id="jetOption" onclick="useJet()">jet x<span id="jetCount">0</span><br></span>
+        <span class="buyable" id="nukeOption" onclick="useNuke()">nuke x<span id="nukeCount">0</span><br></span>
+    </div>
+
+    <div id="bigCircle" onclick="hitBigCircle()"></div>
+    <div id="midCircle" onclick="hitMidCircle()"></div>
+    <div id="smallCircle" onclick="hitSmallCircle()"></div>
+    <div id="tinyCircle" onclick="hitTinyCircle()"> </div>
+    <div id="saveButton" onclick="saveGame()" >save</div>
+    <div id="money">
+        <img id="coinImg" src="images/coin.gif">
+        <span id="coinCount">0</span>
+    </div>
+    <div id="findButton" onclick="findCriminal()">find <br> criminal</div>
+    <div id="criminalMessage">didn't find any criminals</div>
+    <div id="foundTrack">found criminal's track complete this to follow track</div>
+    <div id="found_bar">
+        <span class="not_found">bad</span>
+        <span id="found" class="found">good</span>
+        <span class="not_found">bad</span>
+    </div>
+    <img src="./images/pointer.png" id="pointer">
+    <button id="stopButton" onclick="stopPointer()">stop</button>
+    <div id="myHealthBar">HP <span id="myHealth">100 / 100</span></div>
+    <div id="superCharge" onclick="superCharge()">SUPERCHARGE</div>
+    <div id="superChargeBlocker"></div>
+    <div id="gameOverBoard">Game Over</div>
+    <div id="cHealthBar">HP <span id="cHealth">500</span></div>
+    <div class="slot" id="slot1">
+        <img id="info" onclick="showStats1()" src="./images/info.png" width="20px" alt="">
+    </div>
+    <div class="slot" id="slot2"></div>
+    <div class="slot" id="slot3"></div>
+    <img src="./images/eggNormal.png" class="eggStyle" id="egg1" onclick="buyEgg1()"></img>
+    <div id="egg1Price">$10000</div>
+    <div id="egg2Price">$50000</div>
+    <img src="./images/eggPro.png" class="eggStyle" id="egg2" onclick="buyEgg2()"></img>
+    <img src="./images/eggHoliday.webp" class="eggStyle" id="egg3" onclick="buyEgg3()"></img>
+    <img src="./images/eggNormal.png" id="centerEgg" onclick="openEgg()">
+</body>
+</html>

@@ -4,6 +4,7 @@ ideas:
     moves 3 blocks max
     horizontal shoot 5 blocks max 
     forward shoot 6 blocks max
+    waits until after 6 rounds then is able to move
 
     - idea 2
     king's sniper in the pawn's row
@@ -14,10 +15,11 @@ ideas:
     queen's mirror in the pawn's row
     opponent's mirror has to move too
 
-    - idea 4
-    archer and swordman in an island
 
-------
-    - other ideas
-    upgradable
+
+    - idea 4
+    items you can use in-game
+    sidebar on the left that shows what and how many
+    items you can use
+    (items include: save king ...)
 

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./pieces.css">
+    <script src="./game.js"></script>
     <title>beach chess</title>
     <style>
         body {
@@ -17,7 +18,7 @@
     </style>
 </head>
 
-<body>
+<body onload="initGame()">
     <div id="out">
         <div id="in">
             <div id="b00" onclick="move(id)"></div>
@@ -135,18 +136,66 @@
                 selectedPiece = id 
               }else {
                 console.log("its w turn but you selected black");
-
+                const sound = new Audio('./sounds/wrong.mp3'); 
+                sound.play(); 
               }
             }else {
                 if (id.charAt(0) == "B") {
                     selectedPiece = id 
                 }else {
                     console.log("its b turn but you selected white");
-                    
+                    const sound = new Audio('./sounds/wrong.mp3'); 
+                    sound.play();  
                 }
             }
 
         }
+        function checkAllMoveRules(targetPosition) {
+            return checkPawnMoveRules(targetPosition)
+            // checkRookMoveRules()
+            // checkBishopMoveRules()
+            // checkKnightMoveRules()
+            // checkQueenMoveRules()
+            // checkKingMoveRules()
+        }
+
+        function checkPawnMoveRules(targetPosition) {
+            if (selectedPiece.charAt(0) == 'W') {
+                //selected a white piece
+                console.log(`${selectedPiece} is at ${g(selectedPiece).position}, and wants to move to ${targetPosition}`);
+                
+                //1. make sure last digit charAt(2) is same
+                //2. make sure charAt(1), one is 1 less the other
+                if (g(selectedPiece).position.charAt(2) == targetPosition.charAt(2)
+                    && g(selectedPiece).position.charAt(1) - targetPosition.charAt(1) == 1) {
+                    console.log("it's valid move for white pawn, set its new position");
+                    g(selectedPiece).position = targetPosition
+                    console.log(`new position: ${g(selectedPiece).position}`);
+                    
+                    return true
+                } else {
+                    console.log("it's a invalid move for white pawn");
+                    return false
+                }
+                
+            } else {
+                //selected a black piece
+                console.log(`${selectedPiece} is at ${g(selectedPiece).position}, and wants to move to ${targetPosition}`);
+
+                if (g(selectedPiece).position.charAt(2) == targetPosition.charAt(2)
+                    && g(selectedPiece).position.charAt(1) - targetPosition.charAt(1) == -1) {
+                    console.log("it's valid move for black pawn, set its new position");
+                    g(selectedPiece).position = targetPosition
+                    console.log(`new position: ${g(selectedPiece).position}`);
+
+                    return true
+                } else {
+                    console.log("it's a invalid move for black pawn");
+                    return false
+                }
+            }
+        }
+
         function move(boxId) {
             if (selectedPiece) {
                 console.log("selectedPiece");
@@ -154,7 +203,10 @@
                 
                 // TODO: after all pieces are selectable and move-able, 
                 // we need to check the chess rule
-                
+                var isValid = checkAllMoveRules(boxId)
+                if(!isValid) {
+                    return
+                }
 
                 g(selectedPiece).style.left = g(boxId).offsetLeft + "px"
                 g(selectedPiece).style.top = g(boxId).offsetTop + "px"

@@ -1,0 +1,354 @@
+#training{
+    border: thick double #32a1ce;
+    width: 155px;
+    font-size: 50px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    text-align: center;
+    background-color: rgba(0, 255, 255, 0.492);
+    user-select: none;
+}
+#shopboard{
+    position: absolute;
+    font-size: 30px;
+    width: 300px;
+    text-align: center;
+    background-color: #767676c6;
+}
+body{
+    
+    background-image: url(images/forest.webp);
+    /* background-attachment: fixed; */
+    background-position: top;
+    background-size: cover;
+}
+#ragdoll{
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+}
+#bigCircle {
+    border-radius: 50%;
+    background-color: rgb(255, 0, 0);
+    height: 70px;
+    width: 70px;
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+
+}
+#midCircle {
+    border-radius: 50%;
+    background-color: rgb(255, 255, 255);
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    bottom: 160px;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+
+}
+#smallCircle {
+    border-radius: 50%;
+    background-color: rgb(255, 0, 0);
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    bottom: 170px;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+}
+#tinyCircle{
+    border-radius: 50%;
+    background-color: white;
+    height: 10px;
+    width: 10px;
+    position: absolute;
+    bottom: 180px;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+}
+.buyable {
+    border: 1px solid aqua;
+    border-radius: 5px;
+    background-color: #00d5ff95;
+    cursor: pointer;
+    user-select: none;
+
+}
+.selectedWeapon{
+    background-color: #ff000057;
+    border: 1px solid rgb(128, 0, 0);
+
+}
+#saveButton{
+    font-size: 50px;
+    border: 1px solid aqua;
+    border-radius: 5px;
+    background-color: #00d5ff95;
+    cursor: pointer;
+    user-select: none;
+    width: 90px;
+    position: absolute;
+    bottom: 10px;
+}
+#coinImg{
+    width: 60px;
+    height: 60px;
+
+}
+#coinCount{
+    font-size: 60px;
+    vertical-align: top;
+}
+#money{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background-color: #767676c6;
+    border-radius: 5px;
+}
+#weaponry{
+    position: absolute;
+    margin-top: 30px;
+    font-size: 25px;
+    width: 300px;
+    top: 395px;
+    text-align: center;
+    background-color: #767676c6;
+}
+#findButton{
+    font-size: 27px;
+    text-align: center;
+    padding-top: 20px;
+    border: 1px solid rgb(255, 0, 0);
+    border-radius: 50%;
+    background-color: #ff000095;
+    cursor: pointer;
+    user-select: none;
+    width: 110px;
+    height: 90px;
+    position: absolute;
+    bottom: 100px;
+    box-shadow: 0px 10px 5px rgba(0, 183, 255, 0.616);
+    transition: all 0.3s;
+}
+
+#findButton:active {
+    bottom: 90px;
+    box-shadow: 0px 0px 0px rgba(0, 183, 255, 0.616);
+
+}
+#criminalMessage{
+    display: none;
+    font-size: 45px;
+    position: absolute;
+    bottom: 33%;
+    left: 50%;
+    transform: translate(-50%);
+    color: white;
+}
+#foundTrack{
+    display: none;
+    font-size: 40px;
+    position: absolute;
+    bottom: 33%;
+    left: 50%;
+    transform: translate(-50%);
+    color: white;
+}
+.not_found {
+    background-color: red;
+    width: 100px;
+    display: inline-block;
+    padding: 0;
+    margin-right: -4px;
+    text-align: center;
+}
+.found {
+    background-color: green;
+    width: 70px;
+    text-align: center;
+    display: inline-block;
+    margin-right: -4px;
+}
+
+#found_bar {
+    display: none;
+    position: absolute;
+    bottom: 25%;
+    left: 50%;
+    transform: translate(-50%);
+}
+#pointer{
+    display: none;
+    width: 50px;
+    position: absolute;
+    bottom: 26%;
+    left: 50%;
+    transform: translate(-50%);
+    animation: movingPointer 2.2s linear 1s forwards infinite;
+
+}
+#stopButton{
+    font-size: 25px;
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+}
+#myHealth{
+    line-height: 30px;
+
+}
+#myHealthBar{
+    font-size: 25px;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%);
+    width: 300px;
+    height: 30px;
+    background-color: rgb(86, 255, 86);
+    border-radius: 5px;
+    text-align: center;
+    user-select: none;
+}
+#superCharge{
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: 40px;
+    background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet, red);
+    width: 250px;
+    text-align: center;
+    position: absolute;
+    right: 10px;
+    top: 90px;
+    border-radius: 10px;
+    border: 2px;
+    border-style: double;
+    cursor: pointer;
+    user-select: none;
+}
+#superChargeBlocker{
+    display: none;
+    width: 250px;
+    height: 50px;
+    position: absolute;
+    right: 10px;
+    top: 90px;
+    border-radius: 10px;
+    border: 2px;
+    border-style: double;
+    user-select: none;
+    background-color: #00000086;
+}
+#gameOverBoard{
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #818181eb;
+    font-size: 200px;
+    text-align: center;
+    line-height: 800px;
+}
+#cHealth{
+    line-height: 30px;
+
+}
+#cHealthBar{
+    display: none;
+    font-size: 25px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translate(-50%);
+    width: 300px;
+    height: 30px;
+    background-color: rgb(86, 255, 86);
+    border-radius: 5px;
+    text-align: center;
+    user-select: none;
+}
+.slot{
+    width: 70px;
+    height: 70px;
+    background-color: rgba(255, 255, 255, 0.563);
+    background-size:100% 100%;
+    background-repeat: no-repeat;
+    background-image: url(./images/lock.png);
+    position: absolute;
+    top: 150px;
+    right: 10px;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+#slot1{
+    background-image: none;
+    right: 200px;
+}
+
+#slot2{
+    right: 100px;
+}
+.eggStyle{
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    top: 240px;
+}
+#egg1{
+    right: 130px;
+}
+#egg1Price{
+    background-color: #8e8e8ed4;
+    position: absolute;
+    top: 345px;
+    right: 161px;
+    border-radius: 2px;
+}
+#egg2{
+    right: 30px;
+}
+#egg2Price{
+    background-color: #8e8e8ed4;
+    position: absolute;
+    top: 345px;
+    right: 60px;
+    border-radius: 2px;
+}
+#egg3{
+    display: none;
+    top: 340px;
+    right: 75px;
+}
+#centerEgg{
+    display: none;
+    width: 550px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transition: all 0.05s;
+    transform: translate(-50%, -50%);
+}
+@keyframes movingPointer {
+    25% {
+        translate: 130px;
+    }
+    
+    75% {
+        translate: -130px;
+    }
+    100% {
+        translate: 0px;
+    }
+}
