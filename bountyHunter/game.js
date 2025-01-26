@@ -1,4 +1,3 @@
-var isTrainingMode = false
 var coins =9999999
 var pistolCount = 0
 var ak47Count = 0
@@ -9,15 +8,22 @@ var jetCount = 0
 var nukeCount = 0
 var myHealth = 100
 var fullHealth = 100
-var isSuperMode = false
-var currentCriminalHealth
-var currentDMG = 1
-var currentLevel = 1
-var currentSelection = "knife"
 var incHealthPrice = 1000
 var scrollCount = 0
 var clickedCount = 0
+var currentDMG = 1
+var currentLevel = 1
+
+var isSuperMode = false
+var isScreenPetMoving = false
 var isSlot1Empty = true
+var hasPet1 = false
+var isTrainingMode = false
+var currentCriminalHealth
+var petImage
+
+var currentSelection = "knife"
+
 
 const egg1Price = 10000
 const egg2Price = 50000
@@ -71,21 +77,21 @@ function train() {
 
 }
 function hitBigCircle(params) {
-    coins++
+    coins+=5
     document.getElementById("coinCount").innerHTML=coins
 }
 function hitMidCircle(params) {
-    coins+=5
-    document.getElementById("coinCount").innerHTML=coins
-
-}
-function hitSmallCircle(params) {
     coins+=10
     document.getElementById("coinCount").innerHTML=coins
 
 }
+function hitSmallCircle(params) {
+    coins+=30
+    document.getElementById("coinCount").innerHTML=coins
+
+}
 function hitTinyCircle(params) {
-    coins+=15
+    coins+=50
     document.getElementById("coinCount").innerHTML=coins
 
 }
@@ -219,29 +225,51 @@ function saveGame(params) {
 }
 
 function initGame(params) {
-    coins = +localStorage.getItem('coins');
-    document.getElementById("coinCount").innerHTML=coins
+    if (localStorage.getItem('coins') != null) {
+        coins = +localStorage.getItem('coins');
+        document.getElementById("coinCount").innerHTML=coins    
+    } else {
+        document.getElementById("coinCount").innerHTML=coins  
+    }
+    
+    if (localStorage.getItem('pistolCount') == null) {
+        // this block means pistolCount was not saved before
+    } else {
+        pistolCount = localStorage.getItem('pistolCount');
+        document.getElementById("pistolCount").innerHTML=pistolCount     
+    }
+    
+    if (localStorage.getItem("ak47Count") != null) {
+        ak47Count = localStorage.getItem('ak47Count');
+        document.getElementById("ak47Count").innerHTML=ak47Count  
+    }
 
-    pistolCount = localStorage.getItem('pistolCount');
-    document.getElementById("pistolCount").innerHTML=pistolCount 
+    if (localStorage.getItem("rlCount") != null) {
+        rlCount = localStorage.getItem('rlCount');
+        document.getElementById("rlCount").innerHTML=rlCount  
+    }
 
-    ak47Count = localStorage.getItem('ak47Count');
-    document.getElementById("ak47Count").innerHTML=ak47Count  
+    if (localStorage.getItem("armyCount") != null) {
+        armyCount = localStorage.getItem('armyCount');
+        document.getElementById("armyCount").innerHTML=armyCount  
+    }
 
-    rlCount = localStorage.getItem('rlCount');
-    document.getElementById("rlCount").innerHTML=rlCount  
+     if (localStorage.getItem("tankCount") != null) {
+        tankCount = localStorage.getItem('tankCount');
+        document.getElementById("tankCount").innerHTML=tankCount  
+    
+     }
 
-    armyCount = localStorage.getItem('armyCount');
-    document.getElementById("armyCount").innerHTML=armyCount  
-     
-    tankCount = localStorage.getItem('tankCount');
-    document.getElementById("tankCount").innerHTML=tankCount  
+     if (localStorage.getItem("tankCount") != null) {
+        jetCount = localStorage.getItem('jetCount');
+        document.getElementById("jetCount").innerHTML=jetCount
+     }
 
-    jetCount = localStorage.getItem('jetCount');
-    document.getElementById("jetCount").innerHTML=jetCount
+     if (localStorage.getItem("nukeCount") != null) {
+        nukeCount = localStorage.getItem('nukeCount');
+        document.getElementById("nukeCount").innerHTML=nukeCount
+     }
 
-    nukeCount = localStorage.getItem('nukeCount');
-    document.getElementById("nukeCount").innerHTML=nukeCount
 }
 
     function genInt(max) {
@@ -443,33 +471,41 @@ function incHealth(params) {
     
 // }
 function selectRandomPet(params) {
-    let n = genInt(13)
+    let n = genInt(19)
+    console.log(`n is ${n}`);
+    
     switch (n) {
         case 0:
         case 1:
         case 2:
-            return "./images/pet_Dog.webp"
-            break;
         case 3:
         case 4:
-        case 5:
-            return "./images/pet_Cat.png"
+            return "./images/pet_Dog.webp"
             break;
+        case 5:
         case 6:
         case 7:
-            return "./images/pet_Neon_Cat.webp"
-            break;
         case 8:
         case 9:
-            return "./images/pet_Neon_Dog.webp"
+            return "./images/pet_Cat.png"
             break;
         case 10:
+        case 11:
+        case 12:
+            return "./images/pet_Neon_Cat.webp"
+            break;
+        case 13:
+        case 14:
+        case 15:
+            return "./images/pet_Neon_Dog.webp"
+            break;
+        case 16:
             return "./images/pet_Diamond_Cat.webp"
             break;
-        case 11:
+        case 17:
             return "./images/pet_Diamond_Dog.webp"
             break;
-        case 12:
+        case 18:
             return "./images/pet_Crystal_Deer.webp"
             break;        
         default:
@@ -479,7 +515,8 @@ function selectRandomPet(params) {
 function buyEgg1(params) {
     if (coins>=egg1Price) {
         coins-=egg1Price
-        document.getElementById("coinCount").innerHTML = coins   
+        document.getElementById("coinCount").innerHTML = coins
+        g("centerEgg").src = "./images/eggNormal.png" 
         g("centerEgg").style.display = "block"
         openEgg()
     }
@@ -492,17 +529,90 @@ function buyEgg3(params) {
 }
 function openEgg(params) {
     clickedCount++
-    if (clickedCount == 3) {
-        let petImage = selectRandomPet()
-        document.getElementById("centerEgg").src = petImage 
-        setTimeout(() => {
-            document.getElementById("centerEgg").style.display = "none"
-            if (isSlot1Empty == true) {
+    if (clickedCount == 4) {
+        petImage = selectRandomPet()
+        if (hasPet1 == false) {
+            hasPet1 = true
+            document.getElementById("centerEgg").src = petImage 
+            setTimeout(() => {
+                document.getElementById("centerEgg").style.display = "none"
+                clickedCount = 0
                 g("slot1").style.backgroundImage = `url(${petImage})`
-            }else{
+                g("screenPet").style.display = "block"
+                g("screenPet").src=petImage
+                if(isScreenPetMoving == false) {
+                    moveScreenPet()
+                }
                 
-            }
-        }, 5000);
+            }, 2000);
+        } else {
+            // show compare board
+            g("comparePetBoard").style.display = "block"
+            //old pet
+            console.log(g("slot1").style.backgroundImage);
+            let oldDesc = ""
+            if (g("slot1").style.backgroundImage.includes("pet_Cat")) {
+                oldDesc = "attack: 5 <br> attack speed: 4s <br> ability: none"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Dog")) {
+                oldDesc = "attack: 4 <br> attack speed: 3.8s <br> ability: none"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Neon_Cat")) {
+                oldDesc = "attack: 7 <br> attack speed: 3s <br> ability: none"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Neon_Dog")) {
+                oldDesc = "attack: 6 <br> attack speed: 3s <br> ability: none"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Diamond_Dog")) {
+                oldDesc = "attack: 15 <br> attack speed: 2s <br> ability: diamond shards <br> 20 damage <br> ability happens every 10 hits"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Diamond_Cat")) {
+                oldDesc = "attack: 10 <br> attack speed: 1s <br> ability: diamond shards <br> 20 damage <br> ability happens every 10 hits"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Crystal_Deer")) {
+                oldDesc = "attack: 10 <br> attack speed: 2s <br> ability: diamond shards <br> 15 damage <br> ability happens every 7 hits"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Angel_Cat")) {
+                oldDesc = "This is description for pet_Angel_Cat"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Angel_Dog")) {
+                oldDesc = "This is description for pet_Angel_Dog"
+            } else if (g("slot1").style.backgroundImage.includes("pet_King_Cat")) {
+                oldDesc = "This is description for pet_King_Cat"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Atomic_Corgi")) {
+                oldDesc = "This is description for pet_Atomic_Corgi"
+            } else if (g("slot1").style.backgroundImage.includes("pet_Doge")) {
+                oldDesc = "This is description for pet_Doge"
+            } 
+                
+            g("oldPetDesc").innerHTML = oldDesc
+            //new pet
+            console.log(petImage);
+            let newDesc = ""
+            if (petImage.includes("pet_Cat")) {
+                newDesc = "attack: 5 <br> attack speed: 4s <br> ability: none"
+            } else if (petImage.includes("pet_Dog")) {
+                newDesc = "attack: 4 <br> attack speed: 3.8s <br> ability: none"
+            } else if (petImage.includes("pet_Neon_Cat")) {
+                newDesc = "attack: 7 <br> attack speed: 3s <br> ability: none"
+            } else if (petImage.includes("pet_Neon_Dog")) {
+                newDesc = "attack: 6 <br> attack speed: 3s <br> ability: none"
+            } else if (petImage.includes("pet_Diamond_Dog")) {
+                newDesc = "attack: 15 <br> attack speed: 2s <br> ability: diamond shards <br> 20 damage <br> happens every 10 hits"
+            } else if (petImage.includes("pet_Diamond_Cat")) {
+                newDesc = "attack: 10 <br> attack speed: 1s <br> ability: diamond shards <br> 20 damage <br> ability happens every 10 hits"
+            } else if (petImage.includes("pet_Crystal_Deer")) {
+                newDesc = "attack: 10 <br> attack speed: 2s <br> ability: diamond shards <br> 15 damage <br> ability happens every 7 hits"
+            } else if (petImage.includes("pet_Angel_Cat")) {
+                newDesc = "attack: 5 <br> attack speed: 1s"
+            } else if (petImage.includes("pet_Angel_Dog")) {
+                newDesc = "attack: 5 <br> attack speed: 1s"
+            } else if (petImage.includes("pet_King_Cat")) {
+                newDesc = "This is description for pet_King_Cat"
+            } else if (petImage.includes("pet_Atomic_Corgi")) {
+                newDesc = "attack: 5 <br> attack speed: 1s"
+            } else if (petImage.includes("pet_Doge")) {
+                newDesc = "attack: 5 <br> attack speed: 1s"
+            } 
+            
+            g("newPetDesc").innerHTML = newDesc
+
+            
+            
+        }
+        
 
     }
     zoomIn()
@@ -510,6 +620,17 @@ function openEgg(params) {
         zoomOut()
     }, 100);
 }
+
+function moveScreenPet(params) {
+    isScreenPetMoving = true
+    setTimeout(() => {
+        g("screenPet").style.left=Math.random()*900+"px";
+        g("screenPet").style.top=Math.random()*600+"px";
+        moveScreenPet()
+    }, genInt(2000));
+    
+}
+
 let zoomLevel = 1;
 
 function zoomIn() {
@@ -522,4 +643,24 @@ function zoomOut() {
     zoomLevel -= 0.1;
     document.getElementById("centerEgg").style.transform = ` translate(-50%, -50%) scale(${zoomLevel})`;
   }
+}
+function keep(params) {
+    g("comparePetBoard").style.display = "none"
+    g("centerEgg").style.display = "none"
+    clickedCount = 0
+}
+function select(params) {
+    g("comparePetBoard").style.display = "none"
+    g("centerEgg").src = petImage 
+    setTimeout(() => {
+        document.getElementById("centerEgg").style.display = "none"
+        clickedCount = 0
+        g("slot1").style.backgroundImage = `url(${petImage})`
+        g("screenPet").style.display = "block"
+        g("screenPet").src=petImage
+        if(isScreenPetMoving == false) {
+            moveScreenPet()
+        }
+        
+    }, 2000);
 }

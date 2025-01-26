@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
-    <script type="text/javascript" src="./game.js"></script>
+    <link rel="stylesheet" href="compareBoardStyle.css">
+    <script  src="./game.js"></script>
+    
     <title>Bounty Hunter</title>
 </head>
 
@@ -73,5 +75,23 @@
     <img src="./images/eggPro.png" class="eggStyle" id="egg2" onclick="buyEgg2()"></img>
     <img src="./images/eggHoliday.webp" class="eggStyle" id="egg3" onclick="buyEgg3()"></img>
     <img src="./images/eggNormal.png" id="centerEgg" onclick="openEgg()">
+    <img id="screenPet">
+    <div id="comparePetBoard">
+        <div id="compareTitle">Which pet do you want?</div>
+        <div id="compareOld">
+            old
+            <div id="oldPetDesc" class="petDesc">uygliojkiku</div>
+            <div onclick="keep()" class="compareButton">keep</div>
+        </div>
+        <div id="compareNew">
+            new
+            <div id="newPetDesc" class="petDesc">uygliojkiku</div>
+            <div onclick="select()" class="compareButton">select</div>
+        </div>
+    </div>
+    <div class="secretButton" id="b1" onclick="button1Click()">1</div>
+    <div class="secretButton" id="b2" onclick="button2Click()">2</div>
+    <div class="secretButton" id="b3" onclick="secret()">3</div>
+
 </body>
 </html>

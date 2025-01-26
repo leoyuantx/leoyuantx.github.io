@@ -1,0 +1,44 @@
+#comparePetBoard{
+    display: none;
+    background-color: rgb(231, 154, 63);
+    width: 600px;
+    height: 500px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    font-family: 'Brush Script MT', cursive;
+    text-align: center;
+}
+#compareOld{
+    background-color: rgb(0, 255, 0);
+    position: absolute;
+    left: 0px;
+    width: 300px;
+    height: 430px;
+    text-align: center;
+}
+#compareNew{
+    background-color: red;
+    position: absolute;
+    right: 0px;
+    width: 300px;
+    height: 430px;
+    text-align: center;
+}
+.compareButton{
+    position: absolute;
+    font-size: 25px;
+    line-height: 70px;
+    color: rgb(255, 255, 255);
+    bottom: 0;
+    left: 50px;
+    width: 200px;
+    height: 70px;
+    background-size:100% 100%;
+    background-repeat: no-repeat;
+    background-image: url(./images/button_bg.webp);}
+.petDesc{
+    font-size: 25px;
+}

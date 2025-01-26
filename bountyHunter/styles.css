@@ -17,11 +17,10 @@
     background-color: #767676c6;
 }
 body{
-    
     background-image: url(images/forest.webp);
     /* background-attachment: fixed; */
-    background-position: top;
-    background-size: cover;
+    background-size: cover; /* Ensures the image covers the entire background without stretching */
+    background-position: top; /* Centers the image */
 }
 #ragdoll{
     position: absolute;
@@ -29,6 +28,7 @@ body{
     left: 50%;
     transform: translate(-50%);
     display: none;
+    animation: movingPointer 9s linear 1s forwards infinite;
 }
 #bigCircle {
     border-radius: 50%;
@@ -40,6 +40,7 @@ body{
     left: 50%;
     transform: translate(-50%);
     display: none;
+    animation: movingPointer 9s linear 1s forwards infinite;
 
 }
 #midCircle {
@@ -52,7 +53,7 @@ body{
     left: 50%;
     transform: translate(-50%);
     display: none;
-
+    animation: movingPointer 9s linear 1s forwards infinite;
 }
 #smallCircle {
     border-radius: 50%;
@@ -64,6 +65,7 @@ body{
     left: 50%;
     transform: translate(-50%);
     display: none;
+    animation: movingPointer 9s linear 1s forwards infinite;
 }
 #tinyCircle{
     border-radius: 50%;
@@ -75,6 +77,7 @@ body{
     left: 50%;
     transform: translate(-50%);
     display: none;
+    animation: movingPointer 9s linear 1s forwards infinite;
 }
 .buyable {
     border: 1px solid aqua;
@@ -339,6 +342,34 @@ body{
     left: 50%;
     transition: all 0.05s;
     transform: translate(-50%, -50%);
+}
+#screenPet{
+    display: none;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    bottom: 50px;
+    transition: all 1s;
+}
+.secretButton{
+    user-select: none;
+    font-size: 13px;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    position: absolute;
+    top: 230px;
+    right: 10px;
+}
+#b2{
+    top: 0;
+    left: 0;
+}
+#b3{
+    top: 99%;
+    left: 50%;
 }
 @keyframes movingPointer {
     25% {
