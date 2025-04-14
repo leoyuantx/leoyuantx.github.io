@@ -85,7 +85,8 @@ body{
     background-color: #00d5ff95;
     cursor: pointer;
     user-select: none;
-
+    margin-bottom: 3px;
+    font-size: 20px;
 }
 .selectedWeapon{
     background-color: #ff000057;
@@ -124,9 +125,10 @@ body{
     margin-top: 30px;
     font-size: 25px;
     width: 300px;
-    top: 395px;
+    top: 350px;
     text-align: center;
     background-color: #767676c6;
+    font-size: 20px;
 }
 #findButton{
     font-size: 27px;
@@ -382,4 +384,27 @@ body{
     100% {
         translate: 0px;
     }
+}
+
+#weaponInfo {
+    width: 150px;
+    height: 43px;
+    position: absolute;
+    top: 90px;
+    left: 60px;
+    padding-top: 25px;
+    padding-left: 30px;
+    background-image: url(./images/info_bg.png);
+    background-size: cover;
+    display: none;
+}
+#amongUs{
+    display: none;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    bottom: 50%;
+
 }

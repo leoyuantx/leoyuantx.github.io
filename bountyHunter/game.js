@@ -34,6 +34,7 @@ const rlDamage = 100
 const armyDamage = 200
 const tankDamage = 500
 const jetDamage = 1000
+const amongUsDamage = 1000
 const nukeDamage = 100000
 const criminal1Health = 500
 const criminal2Health = 1000
@@ -77,21 +78,21 @@ function train() {
 
 }
 function hitBigCircle(params) {
-    coins+=5
+    coins+=10
     document.getElementById("coinCount").innerHTML=coins
 }
 function hitMidCircle(params) {
-    coins+=10
+    coins+=50
     document.getElementById("coinCount").innerHTML=coins
 
 }
 function hitSmallCircle(params) {
-    coins+=30
+    coins+=100
     document.getElementById("coinCount").innerHTML=coins
 
 }
 function hitTinyCircle(params) {
-    coins+=50
+    coins+=250
     document.getElementById("coinCount").innerHTML=coins
 
 }
@@ -154,7 +155,7 @@ function buyNuke(params) {
     }
 }
 function resetSelection(params) {
-    document.getElementById("knifeOption").classList.remove("selectedWeapon")
+    document.getElementById("knifeOption").classList.remove("selectedWeapon")   //0.1 ms
     document.getElementById("pistolOption").classList.remove("selectedWeapon")
     document.getElementById("ak47Option").classList.remove("selectedWeapon")
     document.getElementById("rlOption").classList.remove("selectedWeapon")
@@ -164,7 +165,12 @@ function resetSelection(params) {
     document.getElementById("nukeOption").classList.remove("selectedWeapon")
 }
 function useKnife(params) {
-    currentDMG = knifeDamage
+    if (g("knifeOption").innerHTML.includes("knife")) {
+        currentDMG = knifeDamage
+    } else {
+        currentDMG = amongUsDamage
+    }
+    
     currentSelection = "knife"
     resetSelection()
     document.getElementById("knifeOption").classList.toggle("selectedWeapon")
@@ -361,7 +367,11 @@ function stopPointer() {
                     document.getElementById("nukeCount").innerHTML = nukeCount
                 }else{
                     currentSelection = "knife"
-                    currentDMG = 1
+                    if (g("knifeOption").innerHTML.includes("knife")) {
+                        currentDMG = knifeDamage                        
+                    } else {
+                        currentDMG = amongUsDamage
+                    }
                     resetSelection()
                     document.getElementById("knifeOption").classList.add("selectedWeapon")
                 }
@@ -382,7 +392,7 @@ function stopPointer() {
                 }
             };
 
-            imgCriminal.style.transition = "all 1s"
+            imgCriminal.style.transition = "all 2s"
 
             // Add the image to the DOM
             document.body.appendChild(imgCriminal);
@@ -410,7 +420,7 @@ function stopPointer() {
                     audio.play();
                     document.getElementById("myHealth").innerHTML = myHealth + " / " + fullHealth
                 }
-            },1000); 
+            },3000); 
         }
 
         setTimeout(() => {
@@ -626,6 +636,10 @@ function moveScreenPet(params) {
     setTimeout(() => {
         g("screenPet").style.left=Math.random()*900+"px";
         g("screenPet").style.top=Math.random()*600+"px";
+        
+        currentCriminalHealth -= 2
+        console.log(currentCriminalHealth);
+        
         moveScreenPet()
     }, genInt(2000));
     
@@ -663,4 +677,96 @@ function select(params) {
         }
         
     }, 2000);
+}
+
+
+function togglePistolInfo(shouldShow, whoCallsMe) {
+    if (shouldShow == true) {
+            document.getElementById("weaponInfo").style.display = "block"
+    }else{
+        document.getElementById("weaponInfo").style.display = "none"
+    }
+
+    if(whoCallsMe == 0) {
+        //pistol's info icon calls me
+        document.getElementById("weaponInfo").innerHTML = "DMG: 10 <br>x5 bundle "
+        document.getElementById("weaponInfo").style.top = "90px"
+                document.getElementById("weaponInfo").style.left = "60px"
+    } else if(whoCallsMe == 1) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "120px"
+        document.getElementById("weaponInfo").style.left = "57px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 50 <br>x5 bundle "
+    }else if (whoCallsMe == 2) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "150px"
+        document.getElementById("weaponInfo").style.left = "13px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 50 <br>x5 bundle "
+    }else if (whoCallsMe == 3) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "180px"
+        document.getElementById("weaponInfo").style.left = "48px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 200 <br>x5 bundle "
+    }else if (whoCallsMe == 4) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "210px"
+        document.getElementById("weaponInfo").style.left = "45px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 500 <br>x5 bundle "
+    }else if (whoCallsMe == 5) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "240px"
+        document.getElementById("weaponInfo").style.left = "50px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 1000 <br>x5 bundle "
+    }else if (whoCallsMe == 6) {
+        // push top to lower position
+        document.getElementById("weaponInfo").style.top = "270px"
+        document.getElementById("weaponInfo").style.left = "35px"
+
+        //change content 
+        document.getElementById("weaponInfo").innerHTML = "DMG: 100000 <br>x5 bundle "
+    }
+}
+
+var isButton1Clicked = false
+var isButton2Clicked = false
+var isButton3Clicked = false
+function secretButtonClick(whichButton) {
+    // play ding
+    const audio = new Audio("./sounds/ding.mp3");
+    audio.play();
+    if (whichButton == 1 ) {
+        // change button to green   
+        isButton1Clicked = true
+        document.getElementById("b1").style.backgroundColor = "lightgreen"
+    } else if (whichButton == 2) {
+        // change button to green   
+                isButton2Clicked = true
+        document.getElementById("b2").style.backgroundColor = "lightgreen"
+    } else if (whichButton == 3) {
+        // change button to green   
+                isButton3Clicked = true
+        document.getElementById("b3").style.backgroundColor = "lightgreen"
+    }
+    if (isButton1Clicked == true && isButton2Clicked == true && isButton3Clicked == true) {
+        g("amongUs").style.display = "block"
+        for (let index = 1; index < 4; index++) {
+            g(`b${index}`).style.display = "none"
+            
+        }
+    }
+}
+function SAUW(params) {
+    g("knifeOption").innerHTML = "among us x infinite <br>"
+    currentDMG = amongUsDamage
+    g("amongUs").style.display = "none"
 }

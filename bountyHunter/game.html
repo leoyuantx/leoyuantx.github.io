@@ -14,15 +14,55 @@
     
     <img onclick="hitRagdoll()" id="ragdoll" src="./images/ragdoll.png">
     <div onclick="train()" id="training">training</div>
+    
     <div id="shopboard">
         shop<hr>
-        <span class="buyable" onclick="buyPistol()">pistol $500<br></span> 
-        <span class="buyable" onclick="buyAk47()">ak-47 $1000<br></span> 
-        <span class="buyable" onclick="buyRL()">rocket launcher $10000<br></span>
-        <span class="buyable" onclick="buyArmy()">army $100000<br></span>
-        <span class="buyable" onclick="buyTank()">tank $1000000<br></span>
-        <span class="buyable" onclick="buyJet()">jet $5000000<br></span>
-        <span class="buyable" onclick="buyNuke()">nuke $10000000<br></span>
+        <div class="buyable">
+            <img 
+                src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true, 0)" 
+                onmouseleave="togglePistolInfo(false, 0)" >
+            <span  onclick="buyPistol()">pistol $500<br></span> 
+        </div>
+        <div class="buyable">
+            <img 
+                src="./images/info.png" width="15" alt=""
+                onmouseenter="togglePistolInfo(true,1)" 
+                onmouseleave="togglePistolInfo(false,1)" 
+            >
+             <span onclick="buyAk47()">ak-47 $1000<br></span>
+        </div>
+        <div class="buyable">
+            <img src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true,2)" 
+                onmouseleave="togglePistolInfo(false,2)">
+            <span onclick="buyRocketLauncher()">rocket launcher $5000<br></span>
+        </div>
+        <div class="buyable">
+            <img src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true,3)" 
+                onmouseleave="togglePistolInfo(false,3)">
+            <span onclick="buyArmy()">army $100000<br></span>
+        </div>
+        <div class="buyable">
+            <img src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true,4)" 
+                onmouseleave="togglePistolInfo(false,4)">
+            <span onclick="buyTank()">tank $1000000<br></span>
+        </div>
+        <div class="buyable">
+            <img src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true,5)" 
+                onmouseleave="togglePistolInfo(false,5)">
+            <span onclick="buyJet()">jet $5000000<br></span>
+        </div>
+        <div class="buyable">
+            <img src="./images/info.png" width="15" alt="" 
+                onmouseenter="togglePistolInfo(true,6)" 
+                onmouseleave="togglePistolInfo(false,6)">
+            <span onclick="buyNuke()">nuke $10000000<br></span>
+        </div>
+
         <hr>
         <span class="buyable" onclick="heal()">heal $500</span><br>
         <span class="buyable" onclick="incHealth()">more HP $<span id="mrHPPrice">1000</span></span>
@@ -89,9 +129,14 @@
             <div onclick="select()" class="compareButton">select</div>
         </div>
     </div>
-    <div class="secretButton" id="b1" onclick="button1Click()">1</div>
-    <div class="secretButton" id="b2" onclick="button2Click()">2</div>
-    <div class="secretButton" id="b3" onclick="secret()">3</div>
-
+    <div class="secretButton" id="b1" onclick="secretButtonClick(1)"></div>
+    <div class="secretButton" id="b2" onclick="secretButtonClick(2)"></div>
+    <div class="secretButton" id="b3" onclick="secretButtonClick(3)"></div>
+    <div id="weaponInfo">
+        DMG = 10
+        <br>
+        x5 bundle
+    </div>
+    <img  onclick="SAUW()" src="./images/among_us.png" id="amongUs">
 </body>
 </html>
