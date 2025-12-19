@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist - Table</title>
+    <style>
+        /* Simple, lightweight table styling */
+        .checklist-table {
+            border-collapse: collapse;
+            width: 100%;
+            /* made wider */
+            max-width: 1000px;
+            margin: 16px auto;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            font-size: 14px;
+        }
+        .checklist-table th,
+        .checklist-table td {
+            border: 2px solid #999;
+            padding: 8px;
+            text-align: center;
+        }
+        /* Constrain the first column (row headers) so 'th' doesn't become too wide */
+        .checklist-table th[scope="row"] {
+            text-align: left; /* easier to read long labels */
+            white-space: nowrap; /* keep label on one line */
+            max-width: 40px; /* narrowed */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 8px;
+        }
+        .checklist-table thead th {
+            background: #f4f4f4;
+            font-weight: 600;
+        }
+        .checklist-table caption {
+            caption-side: top;
+            text-align: left;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 720px) {
+            .checklist-table { font-size: 12px; }
+            .checklist-table th, .checklist-table td { padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <table class="checklist-table" aria-describedby="table-desc">
+           
+            <tbody>
+                <!-- 11 labeled rows sorted alphabetically -->
+                <tr>
+                    <th scope="row">BA 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Bounce 10min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Burpee 20min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Chess 25min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Chinese 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Coding 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Duolingo</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">IXL 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Jump 20</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Roller Skate 15min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Scratch 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <th scope="row">Youtube 30min</th>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

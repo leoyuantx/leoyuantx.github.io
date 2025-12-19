@@ -34,3 +34,19 @@ animations
     big pet image animates to slot
     egg shake
     unlock animation
+
+
+abilities
+    diamond ability 
+        can take 50 to 75 damage (random)
+    king ability
+        spawn 5 police dogs.
+        dogs hit and disapear
+        hit = 20 damage
+    atomic ability
+        shoots for 15 seconds.
+        every second is 20 damage
+    angel ability
+        heals your health to full for free
+        pet dmg is doubled
+        lasts 15 seconds

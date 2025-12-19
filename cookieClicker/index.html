@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker</title>
+    <style>
+        body{
+            background-image: url('./images/cookieBackground.jpeg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #cookie{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            cursor: pointer;
+        }
+        #totalCookies{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 35px;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        #totalCookieHelper{
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            font-size: 35px;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        #clickPowerContainerId{
+            position: absolute;
+            top: 90px;
+            left: 10px;
+            font-size: 35px;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        #arrowBox{
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            height: 80px;
+            cursor: pointer;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            border: #000000 5px solid;
+        }
+        #musicBox{
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            background-color: #fff;
+            border: #000000 5px solid;
+        }
+        #musicIcon{
+            width: 100%;
+            height: 100%;
+        }
+        #arrow{
+            width: 80%;
+            height: 100%;
+            position: absolute;
+            margin-left: 7%;
+        }
+        #shop{
+            position: absolute;
+            width: 300px;
+            height: 100%;
+            background-color: rgb(255, 255, 255);
+            right:0px;
+            text-align: center;
+            display: none;
+        }
+        .upgrade_item{
+         
+            background-color: rgba(124, 124, 124, 0.507);
+         
+        }
+        ul{
+            padding: 10px;
+            margin: 0;
+        }
+        li{
+            list-style: none;
+            margin-bottom: 15px;
+            user-select: none;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+
+        var cookies = 0
+        var cookieHelper = 0
+        var clickPower = 1
+        var isShopOpen = false
+        var isMusicPlaying = false
+        function clickCookie(params) {
+            cookies += clickPower
+            document.getElementById("cookieCount").innerText = cookies;
+            const audio = new Audio("./sounds/click.mp3");
+            audio.play();
+        }
+        setInterval(() => {
+            autoClick()
+        }, 1000);
+        function autoClick(params) {
+            cookies+= cookieHelper
+            document.getElementById("cookieCount").innerText = cookies;
+        }
+        function u1(params) {
+            if(cookies >= 25) {
+                cookies -= 25
+                document.getElementById("cookieCount").innerText = cookies;
+                clickPower += 1
+                document.getElementById("clickPowerId").innerText = clickPower;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u2(params) {
+            if(cookies >= 100) {
+                cookies -= 100
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 1
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u3(params) {
+            if(cookies >= 300) {
+                cookies -= 300
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 10
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u4(params) {
+            if(cookies >= 600) {
+                cookies -= 600
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 30
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u5(params) {
+            if(cookies >= 1000) {
+                cookies -= 1000
+                document.getElementById("cookieCount").innerText = cookies;
+                clickPower += 100
+                document.getElementById("clickPowerId").innerText = clickPower;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u6(params) {
+            if(cookies >= 2000) {
+                cookies -= 2000
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 50
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u7(params) {
+            if(cookies >= 10000) {
+                cookies -= 10000
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 500
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u8(params) {
+            if(cookies >= 100000) {
+                cookies -= 100000
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 50000
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u9(params) {
+            if(cookies >= 100000) {
+                cookies -= 100000
+                document.getElementById("cookieCount").innerText = cookies;
+                clickPower += 1000
+                document.getElementById("clickPowerId").innerText = clickPower;
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function u10(params) {
+            if(cookies >= 10000000) {
+                cookies -= 10000000
+                document.getElementById("cookieCount").innerText = cookies;
+                cookieHelper += 100000
+                document.getElementById("cookieHelper").innerText = cookieHelper;
+                clickPower += 10000
+                document.getElementById("clickPowerId").innerText = clickPower;
+                alert("You win!")
+            }else{
+                alert("not enough cookies")
+            }
+        }
+        function openShop(params) {
+            if (isShopOpen== false) {
+                 document.getElementById("shop").style.display = "block";
+                 isShopOpen = true
+                 document.getElementById("arrowBox").style.transform = "rotate(180deg)";
+            }else{
+                document.getElementById("shop").style.display = "none";
+                document.getElementById("arrowBox").style.transform = "rotate(0deg)";
+                isShopOpen = false
+            }
+
+        }
+        function playMusic(params) {
+            if(isMusicPlaying == true) {
+                return
+            }
+            isMusicPlaying = true
+            const bgm = new Audio("./sounds/pop1.mp3");
+            bgm.play();
+            bmg.onended = function() {
+                const bgm2 = new Audio("./sounds/pop2.mp3");
+                bgm2.play();
+                bgm2.onended = function() {
+                    const bgm3 = new Audio("./sounds/pop3.mp3");
+                   bgm3.play();
+                    bgm3.onended = function() {
+                       const bgm4 = new Audio("./sounds/pop4.mp3");
+                        bgm4.play();
+
+                  }
+             }
+          }
+      }
+    </script>
+</head>
+<body>
+    <img id="cookie" src="images/cookie.png" onclick="clickCookie()">
+    <div id="totalCookies">
+        cookies: <span id="cookieCount">0</span>
+    </div>
+    <div id="totalCookieHelper">
+        cookie helper: <span id="cookieHelper">0</span>
+    </div>
+    <div id="clickPowerContainerId">
+        click power: <span id="clickPowerId">1</span>
+    </div>
+    <div id="shop">
+        <h1>Shop</h1>
+        <hr>
+        <ul>
+            <li onclick="u1()">
+                <div class="upgrade_item">
+                normal clicker <br>
+                upgrades your click by 1 <br>
+                price 25 
+                </div>
+            </li>
+            <li onclick="u2()">
+                <div class="upgrade_item">
+                    grandmas cookies <br>
+                    +1 cookie helper <br>
+                    price 100
+                </div>
+            </li>
+            <li onclick="u3()">
+                <div class="upgrade_item">
+                    cookie farm <br>
+                    +10 cookie helper <br>
+                    price 300
+                </div>
+            </li>
+            <li onclick="u4()">
+                <div class="upgrade_item">
+                    cookie oven <br>
+                +30 cookie helper <br>
+                    price 600
+                </div>
+            </li>
+            <li onclick="u5()">
+                <div class="upgrade_item">
+                    gold clicker <br>
+                    +100 cookie helpers <br>
+                    price 1000 
+                </div>
+            </li>
+            <li onclick="u6()">
+                <div class="upgrade_item">
+                    giant cookie <br>
+                    +50 cookie helpers <br>
+                    price 2000
+                </div>
+            </li>
+            <li onclick="u7()">
+                <div class="upgrade_item">
+                    cookie factory <br>
+                    +500 cookie helpers <br>
+                    price 10,000
+                </div>
+            </li>
+            <li onclick="u8()">
+                <div class="upgrade_item">
+                    cookie mine <br>
+                    +50,000 cookie helpers <br>
+                    price 100,000 
+                </div>
+            </li>
+            <li onclick="u9()">
+                <div class="upgrade_item">
+                    rainbow clicker <br>
+                    upgrades your click by 1000 <br>
+                    price 100,000
+                </div>
+            </li>
+            <li onclick="u10()">
+                <div class="upgrade_item">
+                    you win! <br>
+                    +100,000 cookie helpers <br>
+                    upgrades your click by 10,000 <br>
+                    price 10M
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div id="arrowBox" onclick="openShop()">
+        <img id="arrow" src="images/arrow.png">
+    </div>
+    <!-- <audio controls>
+        <source src="./sounds/pop1.mp3" type="audio/mpeg">
+    </audio> -->
+    <div id="musicBox" onclick="playMusic()">
+        <img src="./images/musicIcon.png" id="musicIcon">
+    </div>
+
+</html>

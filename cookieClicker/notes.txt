@@ -1,0 +1,17 @@
+TODOs:
+cookie click animation 
+gifts(by time)
+gifts(by awards)
+golden cookies(flies around once in a while gives you double your cookies but -100-50)
+music stop and play
+
+
+
+Done:
+cookie in middle
+background image
+cookie clickable
+cookie click sound 
+10 upgrade level
+click to reveal shop
+upgrade click

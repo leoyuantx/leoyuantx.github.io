@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goodbye world</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Bebas Neue', 'Segoe UI', Arial, sans-serif;
+      background: radial-gradient(circle at 20% 30%, #74ebd5 0%, #ACB6E5 40%, #fbc2eb 80%, #a6c1ee 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    h1 {
+      color: #fff;
+      margin-bottom: 38px;
+      font-size: 4.5em; /* Increased from 2.7em */
+      letter-spacing: 3px;
+      text-shadow: 0 0 18px #1976d2, 0 2px 24px #fbc2eb;
+      font-weight: 700;
+  background: linear-gradient(90deg, #ff6e7f 0%, #bfe9ff 50%, #43cea2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow 2s infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 18px #1976d2, 0 2px 24px #fbc2eb; }
+      to { text-shadow: 0 0 32px #fbc2eb, 0 2px 40px #1976d2; }
+    }
+    #countdown {
+      display: flex;
+      gap: 28px;
+      font-size: 1.5em;
+      background: rgba(255,255,255,0.10);
+      border-radius: 32px;
+      box-shadow: 0 8px 32px 0 #1976d244, 0 0 0 4px #74ebd5aa inset;
+      padding: 40px 56px;
+      backdrop-filter: blur(14px);
+      min-width: 420px;
+      justify-content: center;
+      border: 2px solid #fbc2eb55;
+      animation: borderGlow 3s infinite alternate;
+    }
+    @keyframes borderGlow {
+      from { box-shadow: 0 8px 32px 0 #1976d244, 0 0 0 4px #74ebd5aa inset; }
+      to { box-shadow: 0 8px 48px 0 #fbc2eb88, 0 0 0 8px #a6c1ee88 inset; }
+    }
+    .time-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #fff8 60%, #fbc2eb88 100%);
+      border-radius: 16px;
+      padding: 22px 28px;
+      box-shadow: 0 2px 16px #1976d244, 0 0 12px #fbc2eb44;
+      min-width: 80px;
+      border: 2px solid #74ebd5;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .time-box:hover {
+      transform: translateY(-6px) scale(1.07);
+      box-shadow: 0 8px 32px #fbc2eb88, 0 0 24px #74ebd5cc;
+      border-color: #1976d2;
+    }
+    .time-box span {
+      font-size: 3.2em;
+      font-weight: 700;
+      color: #1976d2;
+      text-shadow: 0 2px 12px #fff8, 0 0 8px #fbc2eb88;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+      transition: color 0.3s;
+    }
+    .time-box:hover span {
+      color: #fbc2eb;
+    }
+    .label {
+      font-size: 1.4em;
+      color: #333;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-shadow: 0 1px 6px #fff6;
+      text-transform: uppercase;
+    }
+    @media (max-width: 700px) {
+      #countdown {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px 10px;
+        min-width: 200px;
+      }
+      h1 {
+        font-size: 2em;
+      }
+      .time-box {
+        min-width: 120px;
+        padding: 16px 10px;
+      }
+      .time-box span {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Goodbye world</h1>
+  <div id="countdown"></div>
+  <script>
+    function updateCountdown() {
+      const now = new Date();
+      const target = new Date('2067-11-28T22:40:00');
+      let diff = target - now;
+
+      if (diff <= 0) {
+        document.getElementById('countdown').innerHTML = 
+          `<div class="time-box"><span>0</span><div class="label">days</div></div>
+           <div class="time-box"><span>0</span><div class="label">hours</div></div>
+           <div class="time-box"><span>0</span><div class="label">minutes</div></div>
+           <div class="time-box"><span>0</span><div class="label">seconds</div></div>
+           <div style="color:#d32f2f;font-size:1.2em;margin-top:18px;width:100%;">Time reached!</div>`;
+        return;
+      }
+
+      let totalSeconds = Math.floor(diff / 1000);
+      let days = Math.floor(totalSeconds / (60 * 60 * 24));
+      let hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+      let minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+      let seconds = totalSeconds % 60;
+
+      document.getElementById('countdown').innerHTML =
+        `<div class="time-box"><span>${days}</span><div class="label">days</div></div>
+         <div class="time-box"><span>${hours}</span><div class="label">hours</div></div>
+         <div class="time-box"><span>${minutes}</span><div class="label">minutes</div></div>
+         <div class="time-box"><span>${seconds}</span><div class="label">seconds</div></div>`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>
