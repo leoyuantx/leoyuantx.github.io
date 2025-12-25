@@ -127,7 +127,13 @@
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       gap: 12px;
     }
-    
+
+    .word-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
     .word {
       display: flex;
       align-items: center;
@@ -160,6 +166,49 @@
 
     .word.selected:hover {
       box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    }
+
+    .word-controls {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .word-control-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      background: white;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .word-control-btn:hover {
+      background: #f0f0f0;
+      border-color: #667eea;
+      color: #667eea;
+    }
+
+    .word-control-btn:active {
+      transform: scale(0.95);
+    }
+
+    .word-counter {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      background: white;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 4px;
+      text-align: center;
+      user-select: none;
     }
     
     .overall-stats {
@@ -282,6 +331,11 @@
       grid.className = 'words-grid';
 
       page.words.forEach(word => {
+        // Create word container
+        const wordItem = document.createElement('div');
+        wordItem.className = 'word-item';
+
+        // Create word link
         const link = document.createElement('a');
         link.href = `https://translate.google.com/?sl=en&tl=zh-CN&op=translate&text=${encodeURIComponent(word)}`;
         link.target = '_blank';
@@ -303,7 +357,39 @@
           window.open(link.href, '_blank');
         });
         
-        grid.appendChild(link);
+        // Create controls container
+        const controls = document.createElement('div');
+        controls.className = 'word-controls';
+
+        // Create minus button
+        const minusBtn = document.createElement('button');
+        minusBtn.className = 'word-control-btn';
+        minusBtn.textContent = '−';
+        minusBtn.addEventListener('click', () => {
+          onMinusClick(word, minusBtn);
+        });
+
+        // Create counter display
+        const counter = document.createElement('div');
+        counter.className = 'word-counter';
+        counter.textContent = '0';
+        counter.dataset.count = '0';
+
+        // Create plus button
+        const plusBtn = document.createElement('button');
+        plusBtn.className = 'word-control-btn';
+        plusBtn.textContent = '+';
+        plusBtn.addEventListener('click', () => {
+          onPlusClick(word, plusBtn);
+        });
+
+        controls.appendChild(minusBtn);
+        controls.appendChild(counter);
+        controls.appendChild(plusBtn);
+
+        wordItem.appendChild(link);
+        wordItem.appendChild(controls);
+        grid.appendChild(wordItem);
       });
 
       content.appendChild(grid);
@@ -320,6 +406,18 @@
         document.getElementById(`tab-${idx}`).classList.add('active');
       });
     });
+
+    // Empty function for minus button
+    function onMinusClick(word, btn) {
+      // TODO: Add API call when endpoint is provided
+      console.log('Minus clicked for:', word);
+    }
+
+    // Empty function for plus button
+    function onPlusClick(word, btn) {
+      // TODO: Add API call when endpoint is provided
+      console.log('Plus clicked for:', word);
+    }
   </script>
 </body>
 </html>
