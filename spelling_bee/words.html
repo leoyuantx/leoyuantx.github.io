@@ -152,6 +152,15 @@
       transform: translateY(-3px);
       box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     }
+
+    .word.selected {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+      box-shadow: 0 4px 16px rgba(255, 107, 107, 0.5);
+    }
+
+    .word.selected:hover {
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    }
     
     .overall-stats {
       display: flex;
@@ -279,6 +288,21 @@
         link.className = 'word';
         link.title = `Translate ${word}`;
         link.textContent = word;
+        
+        // Add click handler for word selection
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Remove selected class from all words
+          document.querySelectorAll('.word.selected').forEach(w => w.classList.remove('selected'));
+          
+          // Add selected class to clicked word
+          link.classList.add('selected');
+          
+          // Open translation in new tab
+          window.open(link.href, '_blank');
+        });
+        
         grid.appendChild(link);
       });
 
