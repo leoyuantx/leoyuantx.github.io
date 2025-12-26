@@ -372,8 +372,8 @@
         // Create counter display
         const counter = document.createElement('div');
         counter.className = 'word-counter';
-        counter.textContent = '0';
-        counter.dataset.count = '0';
+        counter.textContent = '3';
+        counter.dataset.count = '3';
 
         // Create plus button
         const plusBtn = document.createElement('button');
@@ -446,6 +446,10 @@
             if (data.data[word] !== undefined) {
               counter.textContent = data.data[word];
               counter.dataset.count = data.data[word];
+            } else {
+              // If counter doesn't exist in backend, set to 3
+              counter.textContent = '3';
+              counter.dataset.count = '3';
             }
           });
           console.log('Word counters loaded successfully');
