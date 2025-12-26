@@ -396,28 +396,124 @@
       contentsContainer.appendChild(content);
     });
 
-    // Tab switching
-    document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        btn.classList.add('active');
-        document.getElementById(`tab-${idx}`).classList.add('active');
+    // Tab switching - set up click handlers
+    function setupTabSwitching() {
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabButtons.forEach((btn, idx) => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Remove active class from all buttons and contents
+          tabButtons.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked button and corresponding content
+          btn.classList.add('active');
+          if (tabContents[idx]) {
+            tabContents[idx].classList.add('active');
+          }
+        });
       });
-    });
-
-    // Empty function for minus button
-    function onMinusClick(word, btn) {
-      // TODO: Add API call when endpoint is provided
-      console.log('Minus clicked for:', word);
     }
 
-    // Empty function for plus button
-    function onPlusClick(word, btn) {
-      // TODO: Add API call when endpoint is provided
-      console.log('Plus clicked for:', word);
+    // Set up tabs after all content is generated
+    setupTabSwitching();
+
+    // API endpoint for updating word counters
+    const API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/updateWordCounter';
+    const GET_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/getWordCounters';
+
+    // Function to fetch all word counters on page load
+    async function loadWordCounters() {
+      try {
+        const response = await fetch(GET_API_URL, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          // Update all counter displays with fetched data
+          document.querySelectorAll('.word-counter').forEach(counter => {
+            const wordElement = counter.parentElement.parentElement.querySelector('.word');
+            const word = wordElement.textContent.trim();
+            
+            if (data.data[word] !== undefined) {
+              counter.textContent = data.data[word];
+              counter.dataset.count = data.data[word];
+            }
+          });
+          console.log('Word counters loaded successfully');
+        } else {
+          console.warn('Failed to load word counters:', data.error);
+        }
+      } catch (error) {
+        console.error('Failed to fetch word counters:', error);
+      }
     }
+
+    // Function to call the API
+    async function updateWordCounterAPI(word, count) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            word: word,
+            count: count
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          console.log('Counter updated:', data.message);
+          return true;
+        } else {
+          console.error('Error:', data.error);
+          return false;
+        }
+      } catch (error) {
+        console.error('Request failed:', error);
+        return false;
+      }
+    }
+
+    // Function for minus button
+    async function onMinusClick(word, btn) {
+      const counter = btn.parentElement.querySelector('.word-counter');
+      let currentCount = parseInt(counter.dataset.count || 0);
+      const newCount = Math.max(0, currentCount - 1);
+      
+      const success = await updateWordCounterAPI(word, newCount);
+      if (success) {
+        counter.textContent = newCount;
+        counter.dataset.count = newCount;
+      }
+    }
+
+    // Function for plus button
+    async function onPlusClick(word, btn) {
+      const counter = btn.parentElement.querySelector('.word-counter');
+      let currentCount = parseInt(counter.dataset.count || 0);
+      const newCount = currentCount + 1;
+      
+      const success = await updateWordCounterAPI(word, newCount);
+      if (success) {
+        counter.textContent = newCount;
+        counter.dataset.count = newCount;
+      }
+    }
+
+    // Load word counters when page is ready
+    loadWordCounters();
   </script>
 </body>
 </html>
