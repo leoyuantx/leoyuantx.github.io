@@ -340,6 +340,7 @@
         const wordItem = document.createElement('div');
         wordItem.className = 'word-item';
 
+
         // Create word link
         const link = document.createElement('a');
         link.href = `https://translate.google.com/?sl=en&tl=zh-CN&op=translate&text=${encodeURIComponent(word)}`;
@@ -358,8 +359,19 @@
           // Add selected class to clicked word
           link.classList.add('selected');
           
-          // Open translation in new tab
-          window.open(link.href, '_blank');
+          // Try to play audio file for the word
+          const audioPath = `./sounds/words/${word}.mp3`;
+          const audio = new Audio(audioPath);
+          
+          audio.addEventListener('error', () => {
+            // If audio file doesn't exist, open translation in new tab
+            window.open(link.href, '_blank');
+          });
+          
+          audio.play().catch(() => {
+            // If audio fails to play, open translation in new tab
+            window.open(link.href, '_blank');
+          });
         });
         
         // Create controls container
