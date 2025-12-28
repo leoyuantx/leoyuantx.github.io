@@ -498,7 +498,7 @@
       
       const success = await updateWordCounterAPI(word, newCount);
       if (success) {
-        var coinSound = new Audio('./sounds/coin.mp3');
+        var coinSound = new Audio('./sounds/correct.mp3');
         coinSound.play();
         counter.textContent = newCount;
         counter.dataset.count = newCount;
@@ -513,6 +513,9 @@
       
       const success = await updateWordCounterAPI(word, newCount);
       if (success) {
+        var oofSound = new Audio('./sounds/oof.mp3');
+        oofSound.play();
+
         counter.textContent = newCount;
         counter.dataset.count = newCount;
       }
