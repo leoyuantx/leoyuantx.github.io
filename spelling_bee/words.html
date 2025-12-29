@@ -387,6 +387,11 @@
         counter.className = 'word-counter';
         counter.textContent = '3';
         counter.dataset.count = '3';
+        counter.style.cursor = 'pointer';
+        counter.addEventListener('click', () => {
+          const translateUrl = `https://translate.google.com/?sl=en&tl=zh-CN&op=translate&text=${encodeURIComponent(word)}`;
+          window.open(translateUrl, '_blank');
+        });
 
         // Create correct image (plus)
         const correctImg = document.createElement('img');
