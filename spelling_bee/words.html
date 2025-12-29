@@ -172,26 +172,20 @@
       display: flex;
       gap: 4px;
       justify-content: center;
+      align-items: center;
     }
 
     .word-control-btn {
       flex: 1;
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      background: white;
-      color: #333;
-      font-weight: 600;
-      font-size: 14px;
-      border-radius: 4px;
       cursor: pointer;
       transition: all 0.2s ease;
       user-select: none;
+      object-fit: contain;
+      max-height: 32px;
     }
 
     .word-control-btn:hover {
-      background: #f0f0f0;
-      border-color: #667eea;
-      color: #667eea;
+      transform: scale(1.05);
     }
 
     .word-control-btn:active {
@@ -378,12 +372,14 @@
         const controls = document.createElement('div');
         controls.className = 'word-controls';
 
-        // Create minus button
-        const minusBtn = document.createElement('button');
-        minusBtn.className = 'word-control-btn';
-        minusBtn.textContent = '−';
-        minusBtn.addEventListener('click', () => {
-          onMinusClick(word, minusBtn);
+        // Create incorrect image (minus)
+        const incorrectImg = document.createElement('img');
+        incorrectImg.src = './images/incorrect.png';
+        incorrectImg.className = 'word-control-btn';
+        incorrectImg.alt = 'Incorrect';
+        incorrectImg.style.cursor = 'pointer';
+        incorrectImg.addEventListener('click', () => {
+          onPlusClick(word, incorrectImg);
         });
 
         // Create counter display
@@ -392,17 +388,20 @@
         counter.textContent = '3';
         counter.dataset.count = '3';
 
-        // Create plus button
-        const plusBtn = document.createElement('button');
-        plusBtn.className = 'word-control-btn';
-        plusBtn.textContent = '+';
-        plusBtn.addEventListener('click', () => {
-          onPlusClick(word, plusBtn);
+        // Create correct image (plus)
+        const correctImg = document.createElement('img');
+        correctImg.src = './images/correct.png';
+        correctImg.className = 'word-control-btn';
+        correctImg.alt = 'Correct';
+        correctImg.style.cursor = 'pointer';
+        correctImg.addEventListener('click', () => {
+          onMinusClick(word, correctImg);
         });
 
-        controls.appendChild(minusBtn);
+        controls.appendChild(correctImg);
         controls.appendChild(counter);
-        controls.appendChild(plusBtn);
+        controls.appendChild(incorrectImg);
+        
 
         wordItem.appendChild(link);
         wordItem.appendChild(controls);
