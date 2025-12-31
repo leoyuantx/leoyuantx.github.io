@@ -54,23 +54,39 @@
     .sort-switch-label {
       position: relative;
       display: inline-block;
-      width: 50px;
-      height: 28px;
+      width: 85px;
+      height: 34px;
       background-color: #ddd;
-      border-radius: 14px;
+      border-radius: 17px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .sort-switch-label::before {
+      content: 'Sort';
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      color: #666;
+      font-size: 13px;
+      line-height: 1;
     }
 
     .sort-switch-label::after {
       content: '';
       position: absolute;
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       background-color: white;
-      top: 2px;
-      left: 2px;
+      top: 3px;
+      left: 3px;
       transition: left 0.3s ease;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
@@ -79,8 +95,18 @@
       background-color: #667eea;
     }
 
+    .sort-switch input:checked + .sort-switch-label::before {
+      content: 'Unsort';
+      right: auto;
+      left: 8px;
+      opacity: 1;
+      color: white;
+      font-size: 13px;
+      line-height: 1;
+    }
+
     .sort-switch input:checked + .sort-switch-label::after {
-      left: 24px;
+      left: 54px;
     }
 
     .sort-switch-label:hover {
@@ -396,15 +422,8 @@
       sortLabel.htmlFor = `sort-${idx}`;
       sortLabel.className = 'sort-switch-label';
 
-      const sortText = document.createElement('span');
-      sortText.textContent = 'Sort';
-      sortText.style.fontSize = '14px';
-      sortText.style.fontWeight = '500';
-      sortText.style.color = '#333';
-
       sortSwitch.appendChild(sortCheckbox);
       sortSwitch.appendChild(sortLabel);
-      sortSwitch.appendChild(sortText);
 
       titleContainer.appendChild(title);
       titleContainer.appendChild(sortSwitch);
@@ -507,7 +526,6 @@
         if (isSorted) {
           // Sort by counter high to low
           sortCheckbox.dataset.sorted = 'yes';
-          sortText.textContent = 'Unsort';
           
           gridItems.sort((a, b) => {
             const countA = parseInt(a.querySelector('.word-counter').dataset.count || 0);
@@ -517,7 +535,6 @@
         } else {
           // Return to original order
           sortCheckbox.dataset.sorted = 'no';
-          sortText.textContent = 'Sort';
           
           // Restore original order
           gridItems.sort((a, b) => {
