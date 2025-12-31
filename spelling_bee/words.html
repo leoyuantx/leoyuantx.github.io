@@ -35,6 +35,56 @@
       margin-bottom: 20px;
       font-size: 1.5em;
       text-transform: capitalize;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .sort-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sort-switch input {
+      display: none;
+    }
+
+    .sort-switch-label {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+      background-color: #ddd;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .sort-switch-label::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: white;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .sort-switch input:checked + .sort-switch-label {
+      background-color: #667eea;
+    }
+
+    .sort-switch input:checked + .sort-switch-label::after {
+      left: 24px;
+    }
+
+    .sort-switch-label:hover {
+      opacity: 0.8;
     }
     
     .subtitle {
@@ -322,9 +372,43 @@
       content.className = `tab-content ${idx === 0 ? 'active' : ''}`;
       content.id = `tab-${idx}`;
 
+      const titleContainer = document.createElement('div');
+      titleContainer.style.display = 'flex';
+      titleContainer.style.alignItems = 'center';
+      titleContainer.style.justifyContent = 'space-between';
+      titleContainer.style.gap = '15px';
+      titleContainer.style.marginBottom = '20px';
+
       const title = document.createElement('h2');
       title.textContent = `${page.title} : ${page.words.length} words`;
-      content.appendChild(title);
+      title.style.margin = '0';
+      title.style.flex = '1';
+
+      const sortSwitch = document.createElement('div');
+      sortSwitch.className = 'sort-switch';
+
+      const sortCheckbox = document.createElement('input');
+      sortCheckbox.type = 'checkbox';
+      sortCheckbox.id = `sort-${idx}`;
+      sortCheckbox.dataset.sorted = 'no';
+
+      const sortLabel = document.createElement('label');
+      sortLabel.htmlFor = `sort-${idx}`;
+      sortLabel.className = 'sort-switch-label';
+
+      const sortText = document.createElement('span');
+      sortText.textContent = 'Sort';
+      sortText.style.fontSize = '14px';
+      sortText.style.fontWeight = '500';
+      sortText.style.color = '#333';
+
+      sortSwitch.appendChild(sortCheckbox);
+      sortSwitch.appendChild(sortLabel);
+      sortSwitch.appendChild(sortText);
+
+      titleContainer.appendChild(title);
+      titleContainer.appendChild(sortSwitch);
+      content.appendChild(titleContainer);
 
       const grid = document.createElement('div');
       grid.className = 'words-grid';
@@ -414,6 +498,39 @@
       });
 
       content.appendChild(grid);
+
+      // Add sort switch event listener
+      sortCheckbox.addEventListener('change', () => {
+        const gridItems = Array.from(grid.children);
+        const isSorted = sortCheckbox.checked;
+        
+        if (isSorted) {
+          // Sort by counter high to low
+          sortCheckbox.dataset.sorted = 'yes';
+          sortText.textContent = 'Unsort';
+          
+          gridItems.sort((a, b) => {
+            const countA = parseInt(a.querySelector('.word-counter').dataset.count || 0);
+            const countB = parseInt(b.querySelector('.word-counter').dataset.count || 0);
+            return countB - countA; // High to low
+          });
+        } else {
+          // Return to original order
+          sortCheckbox.dataset.sorted = 'no';
+          sortText.textContent = 'Sort';
+          
+          // Restore original order
+          gridItems.sort((a, b) => {
+            const wordA = a.querySelector('.word').textContent.trim();
+            const wordB = b.querySelector('.word').textContent.trim();
+            return page.words.indexOf(wordA) - page.words.indexOf(wordB);
+          });
+        }
+        
+        // Re-append sorted items to the grid
+        gridItems.forEach(item => grid.appendChild(item));
+      });
+
       contentsContainer.appendChild(content);
     });
 
