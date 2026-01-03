@@ -460,13 +460,16 @@
           const audioPath = `./sounds/words/${word}.mp3`;
           const audio = new Audio(audioPath);
           
-          audio.addEventListener('error', () => {
-            // If audio file doesn't exist, open translation in new tab
-            window.open(link.href, '_blank');
-          });
+          // audio.addEventListener('error', () => {
+          //   // If audio file doesn't exist, open translation in new tab
+          //   console.log("in error");
+            
+          //   window.open(link.href, '_blank');
+          // });
           
           audio.play().catch(() => {
             // If audio fails to play, open translation in new tab
+            console.log("in catch of play");
             window.open(link.href, '_blank');
           });
         });
