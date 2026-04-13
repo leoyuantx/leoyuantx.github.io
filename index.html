@@ -3,100 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>leo's first website</title >
+    <title>Leo's Website</title>
     <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
-        body {
-          background-size: cover;
-          background-image: url("./background.jpg");
-          
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
         }
-        #gameList {
-          font-size: 30px;
+
+        body {
+          background-image: url("./neonBG.PNG");
+          background-size: cover;
+          background-attachment: fixed;
+          font-family: 'Poppins', sans-serif;
+          color: #333;
+          min-height: 100vh;
+          padding: 20px;
+        }
+
+        @keyframes neonGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .container {
+          max-width: 1000px;
+          margin: 0 auto;
+          background: rgba(255, 255, 255, 0.95);
+          border-radius: 20px;
+          padding: 60px 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+          font-family: 'Playfair Display', serif;
+          font-size: 48px;
+          color: #667eea;
+          margin-bottom: 20px;
+          line-height: 1.3;
+        }
+
+        h2 {
+          font-family: 'Playfair Display', serif;
+          font-size: 32px;
+          color: #764ba2;
+          margin-top: 40px;
+          margin-bottom: 20px;
+        }
+
+        .intro-text {
+          font-size: 18px;
+          line-height: 1.6;
+          color: #555;
+          margin-bottom: 40px;
+        }
+
+        .section {
+          margin: 50px 0;
+          padding: 30px;
+          background: linear-gradient(135deg, #f5f7fa 0%, #f0f4ff 100%);
+          border-radius: 15px;
+          border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+          margin-top: 0;
+        }
+
+        .section-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #667eea;
+          margin-bottom: 20px;
+        }
+
+        .game-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-top: 20px;
+        }
+
+        .game-item {
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .game-item:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .game-item a {
+          display: block;
+          margin: 8px 0;
+          color: #667eea;
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.3s;
+        }
+
+        .game-item a:hover {
+          color: #764ba2;
+          text-decoration: underline;
+        }
+
+        .game-pair {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+          margin: 15px 0;
+        }
+
+        .game-pair a {
+          flex: 1;
+          min-width: 200px;
+          padding: 12px 20px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white !important;
+          border-radius: 8px;
+          text-align: center;
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .game-pair a:hover {
+          transform: scale(1.05);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+          text-decoration: none;
+        }
+
+        a {
+          color: #667eea;
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.3s;
+        }
+
+        a:hover {
+          color: #764ba2;
+          text-decoration: underline;
+        }
+
+        ul, li {
+          margin-left: 20px;
+          font-size: 16px;
+          line-height: 1.8;
+        }
+
+        li {
+          cursor: pointer;
+          transition: color 0.3s;
+        }
+
+        li:hover {
+          color: #667eea;
+        }
+
+        hr {
+          border: none;
+          height: 2px;
+          background: linear-gradient(to right, #667eea, #764ba2);
+          margin: 40px 0;
+        }
+
+        .movie-list {
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .spelling-bee {
+          margin-top: 50px;
+          text-align: center;
+        }
+
+        .spelling-bee img {
+          width: 80px;
+          height: 80px;
+          border-radius: 12px;
+          transition: transform 0.3s;
+        }
+
+        .spelling-bee img:hover {
+          transform: scale(1.1);
+        }
+
+        .footer-content {
+          text-align: center;
+          margin-top: 50px;
+          padding-top: 30px;
+          border-top: 2px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+          h1 {
+            font-size: 36px;
+          }
+
+          h2 {
+            font-size: 24px;
+          }
+
+          .container {
+            padding: 30px 20px;
+          }
+
+          .game-grid {
+            grid-template-columns: 1fr;
+          }
         }
     </style>
     <script>
       var aaa = 3;
+      let backgroundAudio;
+      
       function playyy() {
         let audio = new Audio("./Recording.m4a");
         audio.play();
-
-          console.log(window);
-
-    
+        console.log(window);
       }
 
-      
+      function playTotoro(event) {
+        event.preventDefault();
+        let audio = new Audio("https://www.youtube.com/embed/RUnvkHZwDg4");
+        audio.play().catch(() => {
+          window.open("https://www.youtube.com/watch?v=RUnvkHZwDg4&list=RDRUnvkHZwDg4&start_radio=1", "_blank");
+        });
+      }
 
+      function playSuzume(event) {
+        event.preventDefault();
+        let audio = new Audio("https://www.youtube.com/embed/Xs0Lxif1u9E");
+        audio.play().catch(() => {
+          window.open("https://www.youtube.com/watch?v=Xs0Lxif1u9E&list=RDXs0Lxif1u9E&start_radio=1", "_blank");
+        });
+      }
+
+      window.addEventListener('load', function() {
+        // Background music setup - Suzume theme
+        backgroundAudio = new Audio();
+        backgroundAudio.src = "./suzume-theme.mp3";
+        backgroundAudio.volume = 0.3;
+        backgroundAudio.loop = true;
+        backgroundAudio.play().catch(function(error) {
+          console.log("Could not play background audio. Make sure suzume-theme.mp3 is in the root directory.");
+        });
+      });
     </script>
 
 </head>
-<body  bgcolor="Aqua">
-   <h1>Hello,and welcome to leo's first website
-    <br>
-    I am a game master
-    <br>
-    I usually play roblox, paper.io, and PKXD
+<body>
+  <div class="container">
+    <h1>Welcome to Leo's World 🎮</h1>
+    <p class="intro-text">
+      I'm a passionate game master who loves playing Roblox, Paper.io, and PKXD. 
+      Welcome to my collection of games and favorite things!
+    </p>
 
-    </h1>
-    <hr>
-    <div id="gameList">
-      <p>These are the game links</p> 
-      <a target="_blank" href="https://paper-io.com/" >paper io</a>
-      <a target="_blank" href="./paper.io/intro_paperio.html" >intro for paper io</a>
-      <br>
-      <a target="_blank" href="./tictactoe/tictactoe.html">tictactoe</a>
-      <a target="_blank" href="./tictactoe/intro_tictactoe.html">intro for tictactoe</a>
-     <br>
-     <a target="_blank" href="./tictactoe/tictac4.html">tictac4</a>
-     <a target="_blank" href="./tictactoe/intro_tictac4.html">intro for tictac4</a>
-     <br>
-     <a target="_blank" href="https://site.playpkxd.com/">PKXD</a>
-     <a target="_blank" href="./pkxd/intro_PKXD.html">intro for PKXD</a>
-     <br>
-     <a target="_blank" href="./quiz/quiz.html">This is a quiz game.</a>
-      <br>
-     <a target="_blank" href="./rps/RPS.html">This is Rock Paper Scissors.</a>
-      <br>
-     <a target="_blank" href="./wwefl/WWEFL.html">This is Wind Water Earth Fire Lightning.</a>
-     <br>
-     <a target="_blank" href="number_guesser/number_guesser.html">This is number guesser with a little music</a>
-     <br>
-     <a target="_blank" href="ghost_catcher/ghost_catcher.html">This is ghost catcher</a>
-     <br>
-     <a target="_blank" href="ChessButDifferent/Chess.html">This is Ocean Chess</a>
-     <br>
-     <a target="_blank" href="bountyHunter/game.html">This is Bounty Hunter</a>
-    </div>
     <hr>
 
-    <div id="movieList">
-      These are my favorite movies.
-      <ul>
-        <li onclick="playyy()">Princess Mononoke</li>
-        <li>life of pi</li>
-      </ul>
+    <div class="section">
+      <div class="section-title">🎯 Game Links</div>
+      <div class="game-grid">
+        <div class="game-item">
+          <strong>Paper.io</strong>
+          <a target="_blank" href="https://paper-io.com/">Play Paper.io</a>
+          <a target="_blank" href="./paper.io/intro_paperio.html">Intro for Paper.io</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Tic Tac Toe</strong>
+          <a target="_blank" href="./tictactoe/tictactoe.html">Play Tic Tac Toe</a>
+          <a target="_blank" href="./tictactoe/intro_tictactoe.html">Intro</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Tic Tac 4</strong>
+          <a target="_blank" href="./tictactoe/tictac4.html">Play Tic Tac 4</a>
+          <a target="_blank" href="./tictactoe/intro_tictac4.html">Intro</a>
+        </div>
+
+        <div class="game-item">
+          <strong>PKXD</strong>
+          <a target="_blank" href="https://site.playpkxd.com/">Play PKXD</a>
+          <a target="_blank" href="./pkxd/intro_PKXD.html">Intro for PKXD</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Quiz Game</strong>
+          <a target="_blank" href="./quiz/quiz.html">Test Your Knowledge</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Rock Paper Scissors</strong>
+          <a target="_blank" href="./rps/RPS.html">Play RPS</a>
+        </div>
+
+        <div class="game-item">
+          <strong>WWEFL</strong>
+          <a target="_blank" href="./wwefl/WWEFL.html">Wind Water Earth Fire Lightning</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Number Guesser</strong>
+          <a target="_blank" href="number_guesser/number_guesser.html">Guess the Number</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Ghost Catcher</strong>
+          <a target="_blank" href="ghost_catcher/ghost_catcher.html">Catch the Ghosts</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Ocean Chess</strong>
+          <a target="_blank" href="ChessButDifferent/Chess.html">Play Chess</a>
+        </div>
+
+        <div class="game-item">
+          <strong>Bounty Hunter</strong>
+          <a target="_blank" href="bountyHunter/game.html">Hunt for Bounties</a>
+        </div>
+
+        <div class="game-item">
+          <strong>🚂 Zaamurets Presentation</strong>
+          <a target="_blank" href="./presentations/Zaamurets/index.html">Learn About Zaamurets</a>
+        </div>
+      </div>
     </div>
 
-   <h2>
-      I also like music. Such as <a target="_blank" href="https://www.youtube.com/watch?v=Sx4xVyXHl60&ab_channel=RelaxingGhibliPiano"> Ghibli's music</a> and
-      <br>
-      <a target="_blank" href="https://www.youtube.com/watch?v=vJao1u2uBqY&ab_channel=7clouds">radioactive from imagine dragons.</a>
-    </h2>
+    <hr>
 
-    <h2>
-      When I grow up, I want to be
-      <br>
-       a youtuber and I'll be a funny
-      <br>
-        animator and game reviewer..
-    </h2> 
-    <h2>
-      <a href="https://www.youtube.com/@Leo_RobloxPro">Here is my youtube channel.</a>
-    </h2>
+    <div class="section">
+      <div class="section-title">🎬 My Favorite Movies</div>
+      <div class="movie-list">
+        <ul>
+          <li>Castle in the Sky</li>
+          <li>Howl's Moving Castle</li>
+          <li>Suzume</li>
+          <li>Life of Pi</li>
+        </ul>
+      </div>
+    </div>
 
-    <a href="./spelling_bee/words.html"><img src="./sb.png" width="50" alt="Spelling Bee"></a>
+    <div class="section">
+      <div class="section-title">🎵 My Favorite Music</div>
+      <p>
+        I love music like <a target="_blank" href="https://www.youtube.com/watch?v=RUnvkHZwDg4&list=RDRUnvkHZwDg4&start_radio=1" onclick="playTotoro(event)">My Neighbor Totoro theme</a> and
+        <a target="_blank" href="https://www.youtube.com/watch?v=Xs0Lxif1u9E&list=RDXs0Lxif1u9E&start_radio=1" onclick="playSuzume(event)">Suzume theme song</a>.
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌟 My Dreams</div>
+      <p>
+        When I grow up, I want to be a YouTuber! I'll create funny animations and game reviews to entertain people around the world.
+      </p>
+    </div>
+
+    <div class="footer-content">
+      <h2>📺 Check Out My YouTube Channel</h2>
+      <p>
+        <a href="https://www.youtube.com/@ElitePawGaming" target="_blank">
+          Visit Leo's YouTube Channel →
+        </a>
+      </p>
+    </div>
+
+    <div class="spelling-bee">
+      <a href="./spelling_bee/words.html">
+        <img src="./sb.png" alt="Spelling Bee">
+      </a>
+    </div>
+  </div>
     
 </body>
 </html>

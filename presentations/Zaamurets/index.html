@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaamurets Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url("../../neonBG.PNG");
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #764ba2;
+            text-align: center;
+            margin-bottom: 50px;
+            font-weight: 500;
+        }
+
+        .chapter {
+            margin: 40px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4ff 100%);
+            border-left: 5px solid #667eea;
+            border-radius: 12px;
+        }
+
+        .chapter-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .chapter p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .fun-facts {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+            border-left: 5px solid #764ba2;
+        }
+
+        .conclusion {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #667eea;
+        }
+
+        .conclusion-text {
+            font-size: 18px;
+            font-style: italic;
+            color: #764ba2;
+            margin: 20px 0;
+        }
+
+        .question {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .chapter {
+            display: none;
+        }
+
+        .chapter.active {
+            display: block;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chapter-counter {
+            text-align: center;
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+
+            .chapter {
+                padding: 20px;
+            }
+        }
+    </style>
+    <script>
+        let currentChapter = 1;
+        const totalChapters = 8;
+
+        function showChapter(chapterNumber) {
+            // Hide all chapters
+            const chapters = document.querySelectorAll('.chapter');
+            chapters.forEach(chapter => {
+                chapter.classList.remove('active');
+            });
+
+            // Show the selected chapter
+            if (chapterNumber > 0 && chapterNumber <= totalChapters) {
+                chapters[chapterNumber - 1].classList.add('active');
+                currentChapter = chapterNumber;
+                updateButtons();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function nextChapter() {
+            if (currentChapter < totalChapters) {
+                showChapter(currentChapter + 1);
+            }
+        }
+
+        function prevChapter() {
+            if (currentChapter > 1) {
+                showChapter(currentChapter - 1);
+            }
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const counter = document.getElementById('chapterCounter');
+            const welcomeText = document.getElementById('welcomeText');
+
+            prevBtn.disabled = currentChapter === 1;
+            nextBtn.disabled = currentChapter === totalChapters;
+            counter.textContent = `Chapter ${currentChapter} of ${totalChapters}`;
+            welcomeText.style.display = currentChapter === 1 ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showChapter(1);
+        });
+    </script>
+<body>
+    <div class="container">
+        <h1>⭐ Zaamurets Presentation ⭐</h1>
+        <p class="subtitle" id="welcomeText">Welcome to my presentation! Instead of Mrs. Lawson teaching you, I'll be teaching you. Let's get started!</p>
+
+        <div class="chapter">
+            <div class="chapter-title">Intro</div>
+            <p>Imagine a tank with many cannons and machine guns that can go as fast as 28 miles per hour. That's Zaamurets, which is what we'll be learning about today! Press Next to continue!</p>
+            <img src="./images/Zaamurets1.png" alt="Zaamurets Armored Train" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter I: Different Names for Zaamurets</div>
+                <p>Russia built Zaamurets in Odessa during 1916 as a train to fight in World War I. Russia named it Zaamurets because it means "person from beyond the Amur River." When the Bolsheviks took over during the revolution, they renamed it Lenin after their leader, Vladimir Lenin. The Czech soldiers captured it and renamed it Orlik, which means young eagle in their language. The Japanese called it Rin-go, a secret code name. In Japanese, it means apple. The Chinese warlords called it Train No. 105 as a serial number.</p>
+            <img src="./images/Zaamurets1.png" alt="Zaamurets Armored Train" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">Why do you think each group that captured Zaamurets gave it a new name?</p>
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter II: About Zaamurets</div>
+            <p>Zaamurets could move on its own because it had powerful engines inside—this is called being "self-propelled." It had two large cannons and a dozen machine guns. The cannons were used to destroy enemy field guns from far away. The machine guns protected against soldiers who tried to attack close to the train. To observe safely outside, the train had special periscopes and rangefinders for distant targets. The cannons could rotate 360 degrees. In just 15 years, Zaamurets traveled 6,000 miles—that's like going from the left side of the U.S. to the right side and back! Different armies kept seizing and using it, like a prize toy being passed around and around.</p>
+            <img src="./images/Zaamurets2.png" alt="Zaamurets Specifications" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">What do you think Zaamurets was built to protect against?</p>
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter III: Living on Zaamurets</div>
+            <p>Living on Zaamurets was incredibly loud because of the powerful gasoline engines. The interior was cramped, filled with soldiers, ammunition, and weapons. For the 1900s, it was remarkably advanced technology. It had a telephone system so soldiers could communicate without shouting from the back to the front. About 50-70 soldiers inhabited it at one time. They had small bunk beds to sleep in, a compact kitchen, and a bathroom squeezed between ammunition storage.</p>
+            <p>Being in this cramped space felt like being trapped in a vibrating toaster. Gasoline fumes filled the air everywhere. The powerful engines created extreme heat. But the soldiers demonstrated remarkable strength and morale throughout their long journeys.</p>
+            <img src="./images/Zaamurets3.jpg" alt="Zaamurets Interior" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">How would you stay happy living in a tiny, loud, hot space?</p>
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter IV: Technical Upgrades and Improvements</div>
+            <p>When the Czech soldiers exhausted their supply of 57mm cannon ammunition, they made a strategic decision. They removed the outdated cannons and installed more powerful 76mm cannons. This modification significantly increased the train's combat power!</p>
+            <p>Soldiers constructed armored command booths on top of the train so commanders could observe farther and coordinate defensive operations better. These modifications demonstrated the crew's ingenuity and ability to adapt. Armored trains like Zaamurets proved how soldiers could innovate during the Russian Civil War.</p>
+            <img src="./images/Zaamurets4.jpg" alt="Zaamurets Technical Upgrades" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">Why would soldiers want bigger, stronger cannons?</p>
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter V: Combat Power and International Use</div>
+            <p>Zaamurets was essentially a behemoth of military engineering! Regular bullets couldn't penetrate its armor, so soldiers with conventional weapons had virtually no chance against it. However, it had one critical vulnerability: the railway tracks. If the tracks were destroyed, the entire armored train would become immobilized and defenseless.</p>
+            <p>When Zaamurets arrived in China, the general was so impressed that he commissioned the construction of additional identical trains! He linked them together to create a massive convoy a quarter mile long! These trains featured elaborate decorations of tigers and dragons. The gun turrets were curved in design, which was strategic because when a shell struck the slanted surface, it would deflect instead of detonating. Since Zaamurets had two engines, if one got damaged, the other could still keep the train moving safely.</p>
+            <img src="./images/Zaamurets5.jpg" alt="Zaamurets Combat Power" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">Why do you think the general made more Zaamurets trains instead of just one?</p>
+        </div>
+
+        <div class="chapter">
+            <div class="chapter-title">Chapter VI: Conclusion</div>
+            <p>In my assessment, Zaamurets was absolutely remarkable! It possessed nearly every capability one could imagine! Although its final fate remains unknown, it was undeniably a powerful and impressive achievement. Armored trains like Zaamurets demonstrate how soldiers developed and adapted new technologies. I hope you appreciated learning about this fascinating piece of military history!</p>
+            <img src="./images/Zaamurets6.jpg" alt="Zaamurets Conclusion" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+            <p class="question">If you owned Zaamurets, what would you name it?</p>
+        </div>
+
+        <div class="chapter fun-facts">
+            <div class="chapter-title">Chapter VII: Fun Facts</div>
+            <p>✨ It weighed about 80 tons—that's about 13 African elephants!</p>
+            <p>✨ It didn't run on coal; it ran on gasoline, which made it faster to start up if enemies attacked quickly.</p>
+            <p>✨ There were tiny hatches on the floor so soldiers could escape if needed.</p>
+            <p>✨ Zaamurets could go backwards as fast as it could go forwards, which was great for getting away from danger.</p>
+            <p>✨ Armored trains during World War I and the Russian Civil War could travel up to 40 miles per hour—very fast for military vehicles back then!</p>
+            <p>✨ The curved gun turrets were designed like naval ship gun turrets, bringing sea warfare ideas to railways.</p>
+            <p>✨ It had 12-16 mm of armor.</p>
+            <p>✨ It could reach speeds up to 45 km/h (about 28 miles per hour).</p>
+            <img src="./images/Zaamurets7.png" alt="Zaamurets Fun Facts" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+        </div>
+
+        <div class="chapter fun-facts">
+            <div class="chapter-title">Chapter VII: Fun Facts</div>
+            <p>✨ It weighed about 80 tons—that's about 13 African elephants!</p>
+            <p>✨ It didn't run on coal; it ran on gasoline, which made it faster to start up if enemies attacked quickly.</p>
+            <p>✨ There were tiny hatches on the floor so soldiers could escape if needed.</p>
+            <p>✨ Zaamurets could go backwards as fast as it could go forwards, which was great for getting away from danger.</p>
+            <p>✨ Armored trains during World War I and the Russian Civil War could travel up to 40 miles per hour—very fast for military vehicles back then!</p>
+            <p>✨ The curved gun turrets were designed like naval ship gun turrets, bringing sea warfare ideas to railways.</p>
+            <p>✨ It had 12-16 mm of armor.</p>
+            <p>✨ It could reach speeds up to 45 km/h (about 28 miles per hour).</p>
+            <img src="./images/Zaamurets7.png" alt="Zaamurets Fun Facts" style="max-width: 100%; height: auto; border-radius: 12px; margin-top: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
+        </div>
+
+        <div class="conclusion">
+        </div>
+
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="prevChapter()">← Previous Chapter</button>
+            <button class="nav-button" id="nextBtn" onclick="nextChapter()">Next Chapter →</button>
+        </div>
+
+        <div class="chapter-counter" id="chapterCounter">Chapter 1 of 8</div>
+    </div>
+</body>
+</html>

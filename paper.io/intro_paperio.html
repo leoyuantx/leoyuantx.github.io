@@ -3,38 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>How to Play Paper.io</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url("../neonBG.PNG");
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            color: #555;
+            font-weight: 500;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .game-image-wrapper {
+            margin: 40px 0;
+            text-align: center;
+        }
+
         img {
-            width: 800px;
-            height: 400px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            transition: transform 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        .rules {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4ff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            margin: 30px 0;
+        }
+
+        .rules ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules li {
+            font-size: 16px;
+            color: #555;
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .rules li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-top: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>
-        how to play: paper.io
-    </h1>
-      <br>
-      <br>
+    <div class="container">
+        <h1>🎮 How to Play Paper.io</h1>
+        
         <h3>
-            Paper io is a game where you are a block of any skin
-            <br>
-            and you run around the map filling more spaces as you go.
-            <br>
-            don't get killed! you get killed by someone touching your line
-            <br>
-            if you touch your own line you get killed too
-            <br>
-            you can also touch other people's lines to get them killed.
-            <br>
-            to win you have to cover the whole map.
-            <br>
-            the block follows your mouse or whatever your on like ipad and yeah.
-            <br>
+            Claim the map by filling spaces as your block! Avoid enemies and block other players to win.
         </h3>
 
-    
-    <img src="./ss_paperio.png" alt="">
+        <div class="rules">
+            <ul>
+                <li>Move your block around the map to claim territory</li>
+                <li>Cover more of the map than your opponents to win</li>
+                <li>Don't touch your own trail or you get eliminated</li>
+                <li>If you touch an opponent's trail, they get eliminated</li>
+                <li>Avoid being touched by other players</li>
+                <li>The block follows your mouse or touch input</li>
+            </ul>
+        </div>
+
+        <div class="game-image-wrapper">
+            <img src="./ss_paperio.png" alt="Paper.io Gameplay Screenshot">
+        </div>
+
+        <a href="https://paper-io.com/" class="cta-button" target="_blank">Play Now →</a>
+    </div>
 </body>
 </html>

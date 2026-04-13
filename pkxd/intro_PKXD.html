@@ -3,35 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>How to Play PKXD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url("../neonBG.PNG");
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            color: #555;
+            font-weight: 500;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .game-image-wrapper {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            transition: transform 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        .rules {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4ff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            margin: 30px 0;
+        }
+
+        .rules ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules li {
+            font-size: 16px;
+            color: #555;
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .rules li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-top: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>
-        How to play PKXD    
-    </h1>
-      <br>
-      <h3>
+    <div class="container">
+        <h1>🎮 How to Play PKXD</h1>
+        
+        <h3>
+            Build your virtual life, decorate your house, collect pets, and play with real people!
+        </h3>
 
-      To play PKXD you are a guy that has money 
-      <br>
-      use the money to buy build and decorate your house.
-      <br>
-      you can also use the money to buy pets and many others.
-      <br>
-      but this is the best thing: ITS CLOUD.
-      <br>
-      if you don't know cloud in coding means it means
-      <br>
-      servers that are accessed over the Internet,
-      <br>
-       and the software and databases
-       <br>
-        that run on those servers.
-        <br>
-        or you can play with other people not bots but real people.
-        <br>
-        you can also earn money by playing and even more in the game.
-    </h3>
-    <img src="./ss_PKXD.webp" alt="">
+        <div class="rules">
+            <ul>
+                <li>Start with money to buy and decorate your house</li>
+                <li>Collect and care for virtual pets</li>
+                <li>Play with real people, not just bots</li>
+                <li>Earn more money through gameplay and activities</li>
+                <li>Build your dream virtual home</li>
+                <li>Cloud-based so your progress is always saved</li>
+            </ul>
+        </div>
+
+        <div class="game-image-wrapper">
+            <img src="./ss_PKXD.webp" alt="PKXD Gameplay Screenshot">
+        </div>
+
+        <a href="https://site.playpkxd.com/" class="cta-button" target="_blank">Play Now →</a>
+    </div>
 </body>
 </html>

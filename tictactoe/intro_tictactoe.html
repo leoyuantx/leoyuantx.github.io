@@ -3,17 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>How to Play Tic Tac Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url("../neonBG.PNG");
+            background-size: cover;
+            background-attachment: fixed;
+            position: relative;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        body > .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes neonLines {
+            0%, 100% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 100% 0%, 0% 100%; }
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 20px;
+            color: #555;
+            font-weight: 500;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .game-image-wrapper {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            transition: transform 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes neonLines {
+            0%, 100% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 100% 0%, 0% 100%; }
+        }        .rules {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4ff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            margin: 30px 0;
+        }
+
+        .rules ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules li {
+            font-size: 16px;
+            color: #555;
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .rules li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-top: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>
-        How to play: tictactoe</h1>
-        <br>
+    <div class="container">
+        <h1>🎮 How to Play Tic Tac Toe</h1>
+        
         <h3>
-            To play tictactoe you have to get 3 in a row to win.
+            Get 3 in a row to win! It's simple, strategic, and fun.
         </h3>
-        <br>
 
-    <img src="./ss_tictactoe.png" alt="">
+        <div class="rules">
+            <ul>
+                <li>Player 1 plays as X, Player 2 plays as O</li>
+                <li>Take turns placing your marks on a 3x3 grid</li>
+                <li>First to get 3 in a row (horizontally, vertically, or diagonally) wins</li>
+                <li>Block your opponent from getting 3 in a row</li>
+                <li>If all 9 squares are filled with no winner, it's a draw</li>
+            </ul>
+        </div>
+
+        <div class="game-image-wrapper">
+            <img src="./ss_tictactoe.png" alt="Tic Tac Toe Gameplay Screenshot">
+        </div>
+
+        <a href="./tictactoe.html" class="cta-button">Play Now →</a>
+    </div>
 </body>
 </html>
