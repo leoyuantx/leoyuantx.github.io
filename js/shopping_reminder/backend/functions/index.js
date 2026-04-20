@@ -34,10 +34,54 @@ function setCorsHeaders(response) {
   response.set("Access-Control-Allow-Headers", "Content-Type");
 }
 
+function addDays(baseDate, days) {
+  const date = new Date(baseDate);
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
+function toIsoDateString(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getDaysUntilIsoDate(dateString) {
+  if (typeof dateString !== "string") {
+    return null;
+  }
+
+  const parts = dateString.split("-");
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const targetUtc = Date.UTC(year, month - 1, day);
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+  return Math.round((targetUtc - todayUtc) / millisecondsPerDay);
+}
+
+function buildItemWithDates(name, refill, consume) {
+  const today = new Date();
+  return {
+    name,
+    refillDate: toIsoDateString(addDays(today, refill)),
+    consumeDate: toIsoDateString(addDays(today, consume)),
+  };
+}
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
-export const shoppingList = onRequest((request, response) => {
+export const initShoppingList = onRequest((request, response) => {
   setCorsHeaders(response);
   if (request.method === "OPTIONS") {
     response.status(204).send("");
@@ -85,7 +129,11 @@ export const shoppingList = onRequest((request, response) => {
     {name: "Laundry detergent", refill: 28, consume: -1},
   ];
 
-  const writes = items.map((item) =>
+  const itemsWithDates = items.map((item) =>
+    buildItemWithDates(item.name, item.refill, item.consume)
+  );
+
+  const writes = itemsWithDates.map((item) =>
     db.collection("shoppingList").doc(item.name.toLowerCase().replace(/\s+/g, "-")).set(item)
   );
 
@@ -115,10 +163,15 @@ export const fetchShoppingList = onRequest((request, response) => {
   db.collection("shoppingList")
     .get()
     .then((snapshot) => {
-      const items = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const items = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          refill: getDaysUntilIsoDate(data.refillDate),
+          consume: getDaysUntilIsoDate(data.consumeDate),
+        };
+      });
 
       response.status(200).json({
         count: items.length,
@@ -134,7 +187,7 @@ export const fetchShoppingList = onRequest((request, response) => {
     });
 });
 
-export const addShoppingItem = onRequest((request, response) => {
+function addShoppingItemHandler(request, response) {
   setCorsHeaders(response);
   if (request.method === "OPTIONS") {
     response.status(204).send("");
@@ -160,7 +213,7 @@ export const addShoppingItem = onRequest((request, response) => {
   }
 
   const id = name.toLowerCase().replace(/\s+/g, "-");
-  const item = {name, refill, consume};
+  const item = buildItemWithDates(name, refill, consume);
 
   db.collection("shoppingList")
     .doc(id)
@@ -181,7 +234,9 @@ export const addShoppingItem = onRequest((request, response) => {
         error: error.message,
       });
     });
-});
+}
+
+export const addShoppingItem = onRequest(addShoppingItemHandler);
 
 export const deleteItem = onRequest((request, response) => {
   setCorsHeaders(response);
@@ -271,7 +326,7 @@ export const updateItem = onRequest((request, response) => {
       });
       return;
     }
-    updates.refill = refill;
+    updates.refillDate = toIsoDateString(addDays(new Date(), refill));
   }
 
   if (request.body?.consume !== undefined) {
@@ -282,7 +337,7 @@ export const updateItem = onRequest((request, response) => {
       });
       return;
     }
-    updates.consume = consume;
+    updates.consumeDate = toIsoDateString(addDays(new Date(), consume));
   }
 
   if (Object.keys(updates).length === 0) {
@@ -304,13 +359,19 @@ export const updateItem = onRequest((request, response) => {
       }
 
       return docRef.set(updates, {merge: true})
-        .then(() => docRef.get())
-        .then((updatedDoc) => {
+        .then(() => {
+          const mergedData = {
+            ...doc.data(),
+            ...updates,
+          };
+
           response.status(200).json({
             message: "Item updated",
             item: {
               id,
-              ...updatedDoc.data(),
+              ...mergedData,
+              refill: getDaysUntilIsoDate(mergedData.refillDate),
+              consume: getDaysUntilIsoDate(mergedData.consumeDate),
             },
           });
         });
