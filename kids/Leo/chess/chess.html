@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="pieces.css">
+    <title>Chess WW3</title>
+</head>
+<body>
+    <div id="bigout"> 
+    <div id="out">
+        <div id="b00" onclick="onBoxClicked(id)">123</div>
+        <div id="b07" onclick="onBoxClicked(id)">123</div>
+        <div id="b70" onclick="onBoxClicked(id)">123</div>
+        <div id="b77" onclick="onBoxClicked(id)">123</div>
+        <img src="square.png" alt="" id="myImg">
+    </div>
+    </div>
+    
+    <script>
+        let p1 = {
+            left:"10vmin",
+            top:"10vmin"
+        }
+        let p2 = {
+            left:"80vmin",
+            top:"10vmin"
+        }
+        function g(id) {
+            return document.getElementById(id)
+        }
+        function onBoxClicked(id) {
+            console.log(id);
+            console.log(g(id).clientLeft);
+            console.log(g(id).offsetLeft);
+            console.log(g(id).scrollLeft); 
+            console.log(g(id).getBoundingClientRect().left);
+            console.log("-------");
+            
+            
+            console.log(g(id).clientWidth);
+            console.log(g(id).offsetWidth);
+            console.log(g(id).scrollWidth);
+            console.log(g(id).getBoundingClientRect().width);
+            console.log("========");
+
+            // g("myImg").style.left = g(id).offsetLeft + "px"
+            // g("myImg").style.top = g(id).offsetTop + "px"
+
+            if (id == "b00") {
+                g("myImg").style.left = p1.left
+                g("myImg").style.top = p1.top    
+            } else {
+                g("myImg").style.left = p2.left
+                g("myImg").style.top = p2.top
+            }
+            
+
+
+        }
+        
+        
+    </script>
+</body>
+</html>

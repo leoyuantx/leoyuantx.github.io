@@ -1,0 +1,19 @@
+
+Current problems:
+overlapping
+bomb the ship, not working
+
+
+new ideas:
+overlap with at least one space
+able to place ship and rotate
+
+
+-------- finish everything else, then come to this feature --------
+play on 2 computers (very very fancy feature!!!)
+
+
+
+------- done ----------
+make rule clickable as button, to toggle inst/.;l,;kjm lruction
+click on explody, image is changed to splashy

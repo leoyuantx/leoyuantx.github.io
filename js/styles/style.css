@@ -1,0 +1,595 @@
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #game {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        #title-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 50%, #7c2d12 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            z-index: 100;
+            font-family: 'Press Start 2P', monospace;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+        #title-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, transparent 2px, transparent 10px),
+                repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0px, transparent 2px, transparent 10px),
+                radial-gradient(circle at 20% 30%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(59, 130,  246, 0.1) 0%, transparent 60%);
+            animation: bgPulse 10s ease-in-out infinite;
+        }
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        #title-screen.hidden { display: none; }
+
+        #title-screen h1 {
+            font-size: clamp(24px, 6vw, 64px);
+            text-shadow: 4px 4px 0 #0f172a, 8px 8px 0 #f97316;
+            letter-spacing: 4px;
+            text-align: center;
+            animation: titlePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        #title-screen .subtitle {
+            font-size: clamp(10px, 2vw, 18px);
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .pixel-border {
+            border: 4px solid #f8fafc;
+            box-shadow: inset -4px -4px 0 #64748b, inset 4px 4px 0 #cbd5e1, 8px 8px 0 #0f172a;
+        }
+
+        .title-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(12px, 2vw, 20px);
+            padding: 16px 48px;
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            color: #ecfdf5;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .title-btn:hover { transform: translateY(-4px); background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%); }
+        .title-btn:active { transform: translateY(0); }
+        .title-btn.training { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
+        .title-btn.training:hover { background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%); }
+        .title-btn.arena { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); }
+        .title-btn.arena:hover { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); }
+
+        #title-decorations { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+
+        .pixel-star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #f8fafc;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(8px, 1.5vw, 14px);
+            color: #f8fafc;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        #hud.hidden { display: none; }
+
+        .hud-left, .hud-right { display: flex; flex-direction: column; gap: 8px; }
+
+        .hud-bar { background: #1e293b; border: 2px solid #475569; padding: 6px 12px; }
+
+        .hp-bar { width: 200px; height: 20px; background: #1e293b; border: 2px solid #475569; position: relative; }
+
+        .hp-fill { height: 100%; background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%); transition: width 0.2s; }
+
+        #dialogue-box {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(90vw, 700px);
+            background: #0f172a;
+            border: 4px solid #f8fafc;
+            padding: 20px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(10px, 1.5vw, 14px);
+            color: #f8fafc;
+            line-height: 1.8;
+            z-index: 60;
+        }
+
+        #dialogue-box.hidden { display: none; }
+        #dialogue-box .speaker { color: #fbbf24; margin-bottom: 8px; }
+        #dialogue-box .hint { color: #94a3b8; font-size: 0.8em; margin-top: 12px; }
+        #dialogue-box .hint::after { content: 'PRESS E TO CONTINUE'; }
+
+        #tutorial-hint {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid #fbbf24;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(8px, 1.2vw, 12px);
+            color: #fbbf24;
+            text-align: center;
+            z-index: 55;
+        }
+
+        #tutorial-hint.hidden { display: none; }
+
+        #bow-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(124, 58, 237, 0.9);
+            border: 3px solid #a78bfa;
+            padding: 8px 16px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: #f8fafc;
+            z-index: 55;
+            animation: bowPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes bowPulse {
+            0%, 100% { box-shadow: 0 0 10px #7c3aed; }
+            50% { box-shadow: 0 0 25px #a78bfa, 0 0 40px #7c3aed; }
+        }
+
+        #bow-indicator.targeted {
+            background: rgba(220, 38, 38, 0.9);
+            border-color: #f87171;
+            animation: none;
+            box-shadow: 0 0 20px #dc2626;
+        }
+
+        #bow-indicator.hidden { display: none; }
+
+        #shop-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0f172a;
+            border: 4px solid #fbbf24;
+            padding: 24px;
+            font-family: 'Press Start 2P', monospace;
+            color: #f8fafc;
+            z-index: 70;
+            min-width: 400px;
+            max-width: 90vw;
+        }
+        #shop-panel.hidden { display: none; }
+        #shop-panel h2 { color: #fbbf24; margin-bottom: 16px; font-size: 18px; text-align: center; }
+        #shop-panel .shop-section { margin: 12px 0; }
+        #shop-panel .shop-item { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 8px; background: #1e293b; border: 2px solid #475569; }
+        #shop-panel .shop-item:hover { border-color: #fbbf24; cursor: pointer; }
+        #shop-panel .shop-item.disabled { opacity: 0.5; cursor: not-allowed; }
+        #shop-panel .price { color: #fbbf24; font-size: 10px; }
+        #shop-panel .close-btn { margin-top: 16px; width: 100%; padding: 10px; background: #dc2626; border: none; color: #f8fafc; font-family: inherit; font-size: 12px; cursor: pointer; }
+        #shop-panel .close-btn:hover { background: #ef4444; }
+
+        #shop-dialogue {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(90vw, 600px);
+            background: #0f172a;
+            border: 4px solid #22c55e;
+            padding: 20px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: #f8fafc;
+            z-index: 65;
+        }
+        #shop-dialogue.hidden { display: none; }
+        #shop-dialogue .speaker { color: #22c55e; margin-bottom: 12px; }
+        #shop-dialogue .choices { margin-top: 16px; }
+        #shop-dialogue .choice { padding: 8px 12px; margin: 4px 0; background: #1e293b; border: 2px solid #475569; cursor: pointer; }
+        #shop-dialogue .choice:hover { border-color: #22c55e; background: #334155; }
+        
+        /* Store UI (Special Items) */
+        #store-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0f172a;
+            border: 4px solid #8b5cf6;
+            padding: 24px;
+            font-family: 'Press Start 2P', monospace;
+            color: #f8fafc;
+            z-index: 75;
+            min-width: 500px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #store-panel.hidden { display: none; }
+        #store-panel h2 { color: #8b5cf6; margin-bottom: 16px; font-size: 18px; text-align: center; }
+        #store-panel .store-section { margin: 16px 0; }
+        #store-panel .store-section h3 { color: #a78bfa; font-size: 12px; margin-bottom: 8px; }
+        #store-panel .store-item { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 12px; background: #1e293b; border: 2px solid #475569; }
+        #store-panel .store-item:hover { border-color: #8b5cf6; cursor: pointer; }
+        #store-panel .store-item.disabled { opacity: 0.5; cursor: not-allowed; }
+        #store-panel .store-item .item-info { flex: 1; }
+        #store-panel .store-item .item-name { color: #f8fafc; font-size: 11px; margin-bottom: 4px; }
+        #store-panel .store-item .item-desc { color: #94a3b8; font-size: 8px; }
+        #store-panel .price { color: #fbbf24; font-size: 10px; margin: 0 12px; }
+        #store-panel .level-info { color: #a78bfa; font-size: 8px; }
+        #store-panel .close-btn { margin-top: 16px; width: 100%; padding: 10px; background: #dc2626; border: none; color: #f8fafc; font-family: inherit; font-size: 12px; cursor: pointer; }
+        #store-panel .close-btn:hover { background: #ef4444; }
+        
+        /* Force Field Indicator */
+        #forcefield-hud {
+            position: fixed;
+            bottom: 120px;
+            right: 20px;
+            background: rgba(139, 92, 246, 0.9);
+            border: 3px solid #a78bfa;
+            padding: 10px 16px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: #f8fafc;
+            z-index: 60;
+        }
+        #forcefield-hud.hidden { display: none; }
+        #forcefield-hud.respawning { background: rgba(100, 116, 139, 0.7); border-color: #64748b; }
+        
+        /* World Map */
+        #world-map {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #world-map.hidden { display: none; }
+        #world-map h2 { color: #fbbf24; font-size: 24px; margin-bottom: 40px; }
+        .world-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 300px);
+            gap: 40px;
+        }
+        .area-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 4px solid #475569;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .area-card:hover { border-color: #fbbf24; transform: scale(1.05); }
+        .area-card.locked { opacity: 0.5; cursor: not-allowed; }
+        .area-card.locked:hover { transform: none; border-color: #475569; }
+        .area-card.current { border-color: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
+        .area-card h3 { color: #fbbf24; font-size: 16px; margin-bottom: 12px; }
+        .area-card .area-desc { color: #94a3b8; font-size: 9px; margin-bottom: 12px; }
+        .area-card .area-progress { color: #f8fafc; font-size: 10px; }
+        .area-card .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 20px; }
+        .map-close-btn {
+            margin-top: 40px;
+            padding: 12px 32px;
+            background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+            color: #f8fafc;
+            border: none;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .map-close-btn:hover { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); }
+        
+        /* Pause Menu */
+        #pause-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 85;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #pause-menu.hidden { display: none; }
+        #pause-menu h2 { color: #fbbf24; font-size: 28px; margin-bottom: 32px; }
+        .pause-section {
+            background: #1e293b;
+            border: 3px solid #475569;
+            padding: 20px;
+            margin: 12px 0;
+            min-width: 500px;
+        }
+        .pause-section h3 { color: #22c55e; font-size: 14px; margin-bottom: 16px; }
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .equip-slot {
+            background: #0f172a;
+            border: 2px solid #475569;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .equip-slot:hover { border-color: #fbbf24; background: #1e293b; }
+        .equip-slot.equipped { border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
+        .equip-slot .equip-name { color: #f8fafc; font-size: 10px; margin-bottom: 4px; }
+        .equip-slot .equip-level { color: #94a3b8; font-size: 8px; }
+        .pause-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 32px;
+        }
+        .pause-btn {
+            padding: 14px 28px;
+            font-family: inherit;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+        .pause-btn.resume { background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%); color: #ecfdf5; }
+        .pause-btn.resume:hover { background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%); }
+        .pause-btn.map { background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); color: #f8fafc; }
+        .pause-btn.map:hover { background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%); }
+        .pause-btn.quit { background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%); color: #f8fafc; }
+        .pause-btn.quit:hover { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); }
+        
+        #level-finder {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #level-finder h2 {
+            font-family: 'Press Start 2P', monospace;
+            color: #22c55e;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #level-finder input {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            padding: 12px 20px;
+            background: #1e293b;
+            border: 3px solid #22c55e;
+            color: #f8fafc;
+            width: 400px;
+            text-align: center;
+        }
+        #level-finder input:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+        #level-finder .hint {
+            color: #fbbf24;
+            font-size: 10px;
+            margin-top: 12px;
+        }
+        #level-finder .buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 24px;
+        }
+        #level-finder button {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            padding: 12px 24px;
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            color: #ecfdf5;
+            border: none;
+            cursor: pointer;
+        }
+        #level-finder button:hover {
+            background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
+        }
+        #level-finder button.cancel {
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+        }
+        #level-finder button.cancel:hover {
+            background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+        }
+        #level-finder.hidden {
+            display: none;
+        }
+        
+        /* Potion Slots UI */
+        #potion-slots {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 60;
+            pointer-events: auto;
+        }
+        
+        .potion-slot {
+            width: 56px;
+            height: 56px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 3px solid #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        .potion-slot:hover {
+            border-color: #fbbf24;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+        }
+        
+        .potion-slot.empty {
+            cursor: default;
+        }
+        
+        .potion-slot.empty:hover {
+            border-color: #475569;
+            transform: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        .potion-slot .dot {
+            width: 8px;
+            height: 8px;
+            background: #64748b;
+            border-radius: 50%;
+        }
+        
+        .potion-slot .key-hint {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        
+        #potion-slots.hidden {
+            display: none;
+        }
+        
+        /* Arena Mode */
+        #arena-ui {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 4px solid #dc2626;
+            padding: 20px;
+            font-family: 'Press Start 2P', monospace;
+            color: #f8fafc;
+            z-index: 80;
+            min-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #arena-ui.hidden { display: none; }
+        #arena-ui h2 { color: #fbbf24; text-align: center; margin-bottom: 16px; font-size: 16px; }
+        .arena-section { margin: 16px 0; }
+        .arena-section h3 { color: #22c55e; font-size: 12px; margin-bottom: 8px; border-bottom: 2px solid #334155; padding-bottom: 4px; }
+        .mob-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            margin: 8px 0;
+        }
+        .mob-btn {
+            padding: 12px 8px;
+            background: #1e293b;
+            border: 2px solid #475569;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .mob-btn:hover { border-color: #dc2626; background: #334155; transform: scale(1.05); }
+        .mob-btn.selected { border-color: #fbbf24; background: #713f12; box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        .arena-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .arena-btn {
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .arena-btn.start { background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%); color: #ecfdf5; }
+        .arena-btn.start:hover { background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%); }
+        .arena-btn.clear { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); color: #f8fafc; }
+        .arena-btn.clear:hover { background: linear-gradient(180deg, #f87171 0%, #ef4444 100%); }
+        .arena-btn.exit { background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%); color: #f8fafc; }
+        .arena-btn.exit:hover { background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%); }
+        .arena-hint {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 8px;
+            margin-top: 12px;
+            padding: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #475569;
+        }

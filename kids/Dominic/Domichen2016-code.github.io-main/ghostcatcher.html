@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Ghost Catcher</title>
+    <style>
+      /* Page layout */
+      :root{
+        --card-bg: rgba(255,255,255,0.9);
+        --accent: #6c5ce7;
+        --muted: #6b7280;
+      }
+
+      html,body{
+        height: 100%;
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        background: linear-gradient(180deg,#f6f8ff 0%, #eef2ff 100%);
+        -webkit-font-smoothing:antialiased;
+      }
+
+      /* central game area to keep things responsive */
+      body > .game-wrap {
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      /* Ghost image is positioned absolutely but scaled responsively */
+      #ghost {
+        position: absolute;
+        left: 50%;
+        top: 40%;
+        transform: translate(-50%, -50%);
+        display: none;
+        width: min(18vw, 220px);
+        height: auto;
+        max-width: 240px;
+        transition: transform 180ms ease, opacity 180ms ease;
+        cursor: pointer;
+        will-change: transform, left, top;
+      }
+
+      /* Score and timer: compact, readable badges at top-left */
+      #score, #timer {
+        position: fixed;
+        left: 16px;
+        background: var(--card-bg);
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(25,25,50,0.08);
+        color: #111827;
+        font-weight: 600;
+        min-width: 110px;
+      }
+      #score { top: 16px; }
+      #timer { top: 72px; }
+
+      /* Difficulty selector modal */
+      #diff_sel {
+        position: fixed;
+        left: 50%;
+        top: 48%;
+        transform: translate(-50%, -50%);
+        background: var(--card-bg);
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 18px 60px rgba(28,31,70,0.12);
+        text-align: center;
+        z-index: 80;
+        max-width: 92vw;
+        width: 360px;
+      }
+      #diff_sel > div { margin-bottom: 0.5rem; color: var(--muted); }
+      #diff_sel button {
+        margin: 0.35rem;
+        padding: 0.55rem 0.9rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(90deg,var(--accent), #4b6be1);
+        box-shadow: 0 8px 24px rgba(76,64,255,0.12);
+      }
+
+      /* Final score overlay */
+      #finalScore {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 48%;
+        transform: translate(-50%, -50%);
+        background: var(--card-bg);
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 18px 60px rgba(28,31,70,0.12);
+        cursor: pointer;
+        z-index: 90;
+        text-align: center;
+        min-width: 260px;
+      }
+
+      #finalScore span { color: var(--accent); font-weight: 800; }
+
+      /* Small responsive tweaks */
+      @media (max-width: 640px) {
+        #ghost { width: min(30vw, 160px); }
+        #diff_sel { width: 92vw; }
+        #score, #timer { left: 12px; padding: 0.4rem 0.6rem; min-width: 92px; }
+      }
+
+      @media (max-width: 380px) {
+        #ghost { width: min(40vw, 140px); }
+        #diff_sel { padding: 0.75rem; }
+        #finalScore { padding: 0.75rem; }
+      }
+    </style>
+</head>
+<body>
+  <img src="./ghost.png" alt="" style="width:175px;height:200px;" id="ghost" onclick="addScore()">  
+  <div id="diff_sel">
+    <div> Select difficulty</div>
+    <button id ="Easy" onclick="setDifficulty(1)">1 Easy</button>
+    <button id ="Medium" onclick="setDifficulty(2)">2 Medium</button>
+    <button id ="Hard" onclick="setDifficulty(3)">3 Hard</button>
+    <button id ="Impossible" onclick="setDifficulty(4)">4 Impossible</button>
+  </div>
+  <div id="finalScore" onclick="restart()">You scored <span id="finalScoreValue"></span>. Click here to play again</div>
+  <h2
+   id="score">Score:0</h2>
+  <h2 id="timer">Time left:</h2>
+  <script>
+    function restart() {
+      location.reload();
+    } 
+    function setDifficulty(params) {
+     if (params == 1) {
+        levelsec = 800
+     } else if (params == 2) {
+        levelsec = 500
+     } else if (params == 3) {
+        levelsec = 300
+     } else if (params == 4) {
+        levelsec = 100
+     }
+      document.getElementById("diff_sel").style.display = "none"
+      document.getElementById("ghost").style.display = "block"
+     let timerId = setInterval(() => {
+      timerText.innerHTML = remainingTime
+
+      remainingTime--
+      if (remainingTime == -1) {
+        clearInterval(timerId)
+      }
+    }, 1000);
+         let moveTimer = setInterval(() => {
+      randomLT()
+      if (gameIsDone == true) {
+        console.log("game is done now, should stop moving");
+        
+        clearInterval(moveTimer)
+      } else {
+        console.log("game is not done");
+        
+      }
+    }, levelsec);
+  
+    setTimeout(() => {
+        console.log("setting gameIsDone to true");
+        gameIsDone = true
+        document.getElementById("finalScore").style.display = "block"
+        document.getElementById("finalScoreValue").innerHTML = finalScore
+        document.getElementById("ghost").style.display = "none"
+      }, 17000);
+  }
+    var gameIsDone = false
+    var remainingTime = 15 // todo change to 0:xx
+    var levelsec
+    var finalScore = 0
+     
+      function moveGhost(l, t) {
+        document.getElementById("ghost").style.left = l + "px"
+        document.getElementById("ghost").style.top = t + "px"
+      }
+
+      function addScore() {
+        if (!gameIsDone) {
+          finalScore++
+          document.getElementById("score").innerHTML = finalScore
+
+        }
+      }
+
+      function randomLT(params) {
+        if (gameIsDone == false) {
+          // game is still going
+          var left = Math.floor(Math. random() * (1000 - 1) + 1)
+          var top = Math.floor(Math. random() * (661 - 1) + 1)
+          moveGhost(left, top)  
+        } else {
+          // game is done, we block user input
+        }
+        
+      }
+      
+        
+    let timerText = document.getElementById("timer") 
+    
+
+
+      
+    
+  </script>
+</body>
+</html>   

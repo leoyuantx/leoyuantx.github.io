@@ -1,0 +1,23 @@
+.place {
+    position: relative;
+}
+
+.hole {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* background-image: url(./hole_bg.png);
+    background-repeat: no-repeat;
+    background-size: cover; */
+    width: 200px;
+    height: 200px;
+    text-align: center;
+}
+
+.mole {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+}

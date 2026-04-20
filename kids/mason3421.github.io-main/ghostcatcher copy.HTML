@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Catcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url('14235.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #reaper {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            z-index: 10;
+            filter: drop-shadow(0 0 12px rgba(255, 100, 100, 0.6));
+            transition: filter 0.15s;
+        }
+
+        #reaper:hover {
+            filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.9));
+        }
+
+        #happy {
+            position: absolute;
+            bottom: 10px;
+        }
+
+        #ao {
+            position: absolute;
+            bottom: 10px;
+        }
+
+        .hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        #sc_field {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            pointer-events: auto;
+        }
+
+        #sc_field #sc {
+            color: #00e5ff;
+            font-family: 'Creepster', cursive;
+            font-size: 1.5rem;
+        }
+
+        #timer {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            pointer-events: auto;
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        #timer #time_left {
+            font-family: 'Creepster', cursive;
+            font-size: 1.5rem;
+            color: #7fff7f;
+        }
+
+        #timer.warning {
+            color: #ff4444;
+            border-color: rgba(255, 68, 68, 0.4);
+        }
+
+        #timer.warning #time_left {
+            color: #ff4444;
+        }
+
+        #hb_frame {
+            position: absolute;
+            background-color: rgb(0, 238, 255);
+            width: 125px;
+            height: 125px;
+            left: 50%;
+        }
+
+        #hb_color_fill {
+            position: absolute;
+            background-color: rgb(0, 238, 255);
+            width: 125px;
+            height: 125px;
+            left: 50%;
+        }
+
+        #info_board {
+            position: fixed;
+            color: #fff;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: min(90vw, 560px);
+            padding: 48px 40px;
+            background: rgba(10, 5, 20, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(150, 100, 255, 0.3);
+            border-radius: 24px;
+            text-align: center;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(100, 50, 200, 0.15);
+            z-index: 100;
+        }
+
+        #info_board #info_msg {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        #info_board h2 {
+            font-family: 'Creepster', cursive;
+            font-size: 2.5rem;
+            color: #c084fc;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+        }
+
+        #start_button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 14px 40px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        #start_button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5);
+        }
+
+        #start_button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <img src="r1.gif" alt="" id="reaper" onclick="moveReaper()">
+    
+    <div class="hud">
+        <div id="sc_field">Score: <span id="sc">0</span></div>
+        <div id="timer">Time: <span id="time_left">160</span>s</div>
+    </div>
+
+    <div id="info_board">
+        <h2>Ghost Catcher</h2>
+        <span id="info_msg"></span>
+        <br>
+        <button onclick="start_game()" id="start_button">Start Game</button>
+    </div>
+    <script>
+        const ALL_LEVEL_TIME = 160000
+        let time_left = 160
+        const LEVEL_1_GOAL = 100
+        const LEVEL_2_GOAL = 110
+        const LEVEL_3_GOAL = 130
+        const LEVEL_4_GOAL = 150
+        const LEVEL_5_GOAL = 160
+        const LEVEL_6_GOAL = 160
+
+       
+        var n = 0
+        let score = 0
+        let totaltime = 0
+        
+        document.getElementById("info_msg").innerHTML = "You are in level 1. You have 160 seconds to get 100 ghosts."
+
+        var currentLevel = 1
+        var soundEffect = new Audio('./songs/bgm.mp3');
+
+        function start_game() {
+            document.getElementById("info_board").style.display = "none"
+
+            if(currentLevel == 6) {
+
+                if(document.getElementById("start_button").innerHTML == "continue") {
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "just kidding you still haven't beaten game. You are in level 6, You have 126 seconds to get 160 ghosts."
+                    
+                    document.getElementById("start_button").innerHTML= "continue to final level"
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 126
+                    document.getElementById("time_left").innerHTML = time_left
+                } else if(document.getElementById("start_button").innerHTML == "continue to final level") {
+                    soundEffect = new Audio('./songs/bgm2.mp3');
+                    document.body.style.backgroundColor = "rgba(255,0,0,.5)"
+                    document.body.style.backgroundBlendMode = "multiply"
+                    soundEffect.play();
+                    start_timer()
+                }
+
+                
+            } else {
+                soundEffect = new Audio('./songs/bgm.mp3');
+                // background-color: rgba(200,100,0,.5);
+                // background-blend-mode: multiply;
+                document.body.style.backgroundColor = ""
+                document.body.style.backgroundBlendMode = ""
+                soundEffect.play();
+                start_timer()
+            }
+            
+        }
+
+        function getRndInteger(min, max) {
+           return Math.floor(Math.random() * (max - min) ) + min;
+        }
+
+        function moveReaper(params) {
+            score++
+            document.getElementById("sc").innerHTML = score
+            
+            var myRandomNumber = getRndInteger(0, 1000)
+            document.getElementById("reaper").style.left = myRandomNumber+"px"
+            var myRandomNumber2 = getRndInteger(0, 550)
+            document.getElementById("reaper").style.top = myRandomNumber2+"px"
+
+            if (currentLevel == 1) {
+                if (score >= LEVEL_1_GOAL) {
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "You are in level 2. You have 160 seconds to get 110 ghosts."
+                    clearInterval(countDownInterval);
+
+                    document.getElementById("start_button").innerHTML= "continue"
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 160
+                    document.getElementById("time_left").innerHTML = time_left
+
+                    currentLevel++
+
+                    document.getElementById("reaper").style.left = 0+"px"
+                    document.getElementById("reaper").style.top = 0+"px"
+
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+
+                }
+            } else if (currentLevel == 2) {
+                if (score >= LEVEL_2_GOAL) {
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "You are in level 3. You have 160 seconds to get 120 ghosts."
+                    clearInterval(countDownInterval);
+                    document.getElementById("start_button").innerHTML= "continue"
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 160
+                    document.getElementById("time_left").innerHTML = time_left
+
+                    currentLevel++
+
+                    document.getElementById("reaper").style.left = 0+"px"
+                    document.getElementById("reaper").style.top = 0+"px"
+
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+
+                }
+            }  else if (currentLevel == 3) {
+                if (score >= LEVEL_3_GOAL) {
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "You are in level 4. You have 160 seconds to get 150 ghosts."
+                    clearInterval(countDownInterval);
+                    document.getElementById("start_button").innerHTML= "continue"
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 160
+                    document.getElementById("time_left").innerHTML = time_left
+
+                    currentLevel++
+
+                    document.getElementById("reaper").style.left = 0+"px"
+                    document.getElementById("reaper").style.top = 0+"px"
+
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+
+                }
+            }  else if (currentLevel == 4) {
+                if (score >= LEVEL_4_GOAL) {
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "You are in level 5. You have 160 seconds to get 160 ghosts."
+                    clearInterval(countDownInterval);
+                    document.getElementById("start_button").innerHTML= "continue"
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 160
+                    document.getElementById("time_left").innerHTML = time_left
+
+                    currentLevel++
+
+                    document.getElementById("reaper").style.left = 0+"px"
+                    document.getElementById("reaper").style.top = 0+"px"
+
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+
+                }
+            } else if (currentLevel == 5) {
+                if (score >= LEVEL_5_GOAL) {
+
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "congrats, you have completed all the 5 levels! :)"
+                    clearInterval(countDownInterval);
+                    
+                    score = 0;
+                    document.getElementById("sc").innerHTML = score
+
+                    time_left = 126
+                    document.getElementById("time_left").innerHTML = time_left
+
+                    currentLevel++
+
+                    document.getElementById("reaper").style.left = 0+"px"
+                    document.getElementById("reaper").style.top = 0+"px"
+
+                    document.getElementById("start_button").innerHTML= "continue"
+
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+                } 
+
+            } else if(currentLevel == 6) {
+                console.log("Level 6 reached with score: " + score)
+                if (score >= LEVEL_6_GOAL) {
+                    alert("..................... ")
+                    document.getElementById("info_board").style.display = "block"
+                    document.getElementById("info_msg").innerHTML = "you have won the game..."
+                    document.getElementById("start_button").innerHTML= "restart game"
+                    document.getElementById("start_button").onclick = function() {
+                        location.reload();
+                    }
+
+
+                    clearInterval(countDownInterval);
+                    soundEffect.pause();
+                    soundEffect.currentTime = 0;
+                    currentLevel = 1;
+                    score = 0;
+                    time_left = 160;
+                    document.getElementById("sc").innerHTML = score;
+                    document.getElementById("time_left").innerHTML = time_left;
+                    document.getElementById("reaper").style.left = 0+"px";
+                    document.getElementById("reaper").style.top = 0+"px";
+
+
+
+                } else {
+                    alert("you'll never beat this game ")
+                }
+            }
+        }
+
+        
+        var countDownInterval;
+        function start_timer(params) {
+            countDownInterval = setInterval(() => {
+                time_left--
+                document.getElementById("time_left").innerHTML = time_left
+
+                if(time_left <= 10) {
+                    document.getElementById("timer").classList.add("warning")
+                }
+
+                if (time_left == 0) {
+                    clearInterval(countDownInterval);
+                    // alert("game over. you scored " + score)
+                    if (currentLevel == 1) {
+                        if (score >= LEVEL_1_GOAL) {
+                            
+                        } else {
+                            alert("loser, you'll have to restart ")
+                        }
+                    } else if (currentLevel == 2) {
+                        if (score >= LEVEL_2_GOAL) {
+                            
+                        } else {
+                            alert("loser, you'll have to restart ")
+                        }
+                    } else if (currentLevel == 3) {
+                        if (score >= LEVEL_3_GOAL) {
+                            
+                        } else {
+                            alert("loser, you'll have to restart ")
+                        }
+                    } else if (currentLevel == 4) {
+                        if (score >= LEVEL_4_GOAL) {
+                            
+                        } else {
+                            alert("loser, you'll have to restart ")
+                        }
+                    } else if (currentLevel == 5) {
+                        if (score >= LEVEL_5_GOAL) {
+                            
+                        } else {
+                            alert("loser, you'll have to restart ")
+                        }
+                    } else if(currentLevel ==6) {
+                        if (score >= LEVEL_6_GOAL) {
+                            alert("..................... ")
+                        } else {
+                            alert("you'll never beat this game ")
+                        }
+                    }
+                    location.reload()
+                }
+            }, 1000);
+        }
+
+        function showInfoBoard(levelNumber) {
+            // show the div
+
+            // show 160
+
+            // show the goal for tht levelNumber
+        }
+    </script>
+
+
+
+</body> 
+</html>

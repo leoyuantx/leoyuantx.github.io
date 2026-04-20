@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        button {
+            width: 200px;
+            height: 200px;
+            color: blue;
+            background-color: blue;
+            border: none;
+        }
+        #myImg {
+            width: 400px;
+            height: 400px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #go{
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            background-color: gold;
+            line-height: 50px;
+            text-align: center;
+            color: white;
+            font-size: 30px;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #bt1 {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #bt2 {
+            position: absolute;
+            top: 40%;
+            left: 0;
+        }
+
+        #bt3 {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        #bt4 {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        #bt5 {
+            position: absolute;
+            top: 40%;
+            right: 0;
+        }
+
+        #bt6 {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
+        
+
+    </style>
+</head>
+<body>
+    <img id="myImg" src="./imgs/1.jpg" alt="">
+    <div id="go" onclick="go()">Go</div>
+    <button id="bt1">1</button>
+    <button id="bt2">2</button>
+    <button id="bt3">3</button>
+    <button id="bt4">4</button>
+    <button id="bt5">5</button>
+    <button id="bt6">6</button>
+
+
+    <script>
+        let result = 0
+
+        let currentRepeatTime = 0;
+        let MAX_REPEAT = 30
+        let INTERVAL = 150
+
+        let buttons = [...document.querySelectorAll("button")]
+        
+        buttons.forEach(bt => {
+            bt.addEventListener('click', function(e) {
+                result = e.target.innerHTML
+            });
+        });
+        
+        function randomIntFromInterval(min, max) { // min and max included 
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
+        function go() {
+            let intervalId = setInterval(() => {
+                currentRepeatTime++;
+                if (currentRepeatTime >= MAX_REPEAT) {
+                    clearInterval(intervalId)
+                    setTimeout(() => {
+                        console.log("to " + result);
+                        if (result != 0) {
+                            document.querySelector("img").src = `./imgs/${result}.jpg`    
+                        }
+                        currentRepeatTime = 0
+                    }, INTERVAL);
+                    return
+                }
+
+                const rndInt = randomIntFromInterval(1, 6);
+                console.log("int " + rndInt);
+                document.querySelector("img").src = `./imgs/${rndInt}.jpg`                
+            }, INTERVAL);
+
+            
+        }
+        
+    </script>
+
+</body>
+</html>

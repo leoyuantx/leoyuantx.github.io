@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+
+            margin: 0;
+            padding: 0;
+            background-repeat: no-repeat;
+            background-image: url(./bg.jpg);
+            /* background-position: 50%; */
+            background-position-x: center;
+            background-position-y: 10px;
+        }
+        #L {
+            position: absolute;
+            left: 1%;
+            top: 50%;
+            width:400px;
+        }
+        #r {
+            position: absolute;
+            left: 69%;
+            width: 400px;
+            top:50% ;
+        }
+        #final{
+            position: absolute;
+            left: 45%;
+            top:70%;
+            text-align: center;
+        }
+        
+    </style>
+    <script>
+        var leftDecision = "";
+        var rightDecision = "";
+        document.addEventListener("keyup",
+            (event) => {
+                const keyName = event.key;
+                console.log("keynam " + keyName)
+                if (keyName == 'q') {
+                    document.getElementById("L").setAttribute("src", "rock.png")
+                    leftDecision = "rock"
+                } else if (keyName=='w') {
+                    document.getElementById("L").setAttribute("src", "paper.png")
+                    leftDecision = "paper"
+                } else if (keyName=="e") {
+                    document.getElementById("L").setAttribute("src","scissors.png")
+                    leftDecision = "scissors"
+                } else if (keyName=="i") {
+                    document.getElementById("r").setAttribute("src", "rock.png")
+                    rightDecision="rock"
+                } else if (keyName=="o") {
+                    document.getElementById("r").setAttribute("src", "paper.png")
+                    rightDecision="paper"
+                } else if (keyName=="p") {
+                    document.getElementById("r").setAttribute("src", "scissors.png")
+                    rightDecision="scissors"
+                }
+                if (leftDecision != "" && rightDecision != "") {
+                    setTimeout(check_winner,1000);     
+                }
+                
+            }, 
+            false,
+        );
+
+        function check_winner(params) {
+            // compare leftDecision with rightDecision
+            console.log(leftDecision)
+            console.log(rightDecision)
+            if (leftDecision =="rock" && rightDecision=="rock") {
+                alert("draw")
+            }
+            if (leftDecision=="paper" &&  rightDecision=="paper") {
+                alert("draw")
+            }
+            if (leftDecision=="scissors" && rightDecision=="scissors") {
+                alert("draw")
+            }
+            if (leftDecision=="rock" && rightDecision=="paper") {
+                alert("right")
+            }
+            if (leftDecision=="rock" && rightDecision=="scissors") {
+                alert("left")
+            }
+            if (leftDecision=="paper" && rightDecision=="rock") {
+                alert("left")
+            }
+            if (leftDecision=="paper" && rightDecision=="scissors") {
+                alert("right")
+            }
+            if (leftDecision=="scissors" && rightDecision=="rock") {
+                alert("right")
+            }
+            if (leftDecision=="scissors" && rightDecision=="paper") {
+                alert("left")
+            }
+        }
+
+        function submit(params) {
+            console.log("i'm clicked")
+        }
+        
+    </script>
+</head>
+<body>
+    hello im Mason welcome to my rock paper scissors game 
+    <br>
+    rock,paper,scissors
+    <br>
+    Left side: click q,w,e q=rock w=paper e=scissors
+    <br>
+    right side: click i,o,p i=rock o=paper p=scissors
+    <br>
+
+    <img id="L" src="./question_icon.jpg" alt="">
+    <img id="r" src="./question_icon.jpg" alt="">
+
+    <div id="final">
+        
+
+    </div>
+</body>
+</html>

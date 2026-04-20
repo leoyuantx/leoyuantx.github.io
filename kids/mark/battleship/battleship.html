@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>This is battleship game</title>
+    <style>
+        body {
+            background-image: url("./images/ocean.jpeg");
+        }
+        #title {
+            position: absolute;
+            left: 40%;
+            font-size: 50px;
+        }
+        .box {
+            width: 60px;
+            height: 60px;
+            border: 2px whitesmoke solid;
+            float: left;
+            color: yellow;
+            font-size: 30px;
+        }
+        .row {
+            clear: both;
+        }
+        #board {
+            position: absolute;
+            top: 10%;
+            left: 24%;
+        }  
+        #feedback {
+            display: none;
+            
+        }
+        #Start {
+            position: absolute;
+            left: 45%;
+            top: 90%;
+            font-size: 50px;
+        }
+        #Rules {
+            position: absolute;
+            left: 85%;
+            top: 5%;
+            color: black;
+            width: 100px;
+            height: 50px;
+            font-size: 30px;
+        }
+        #instruction {
+            display: none;
+            position: absolute;
+            left: 80%;
+            top: 10%;
+        }
+        .ship {
+            display: none;
+            font-size: 20px;
+            line-height: 30px;
+            margin-bottom: 10px;
+        }
+        #startArranging {
+            font-size: 20px;
+            line-height: 40px;
+            margin-bottom: 10px;
+        }
+        .direction {
+            display: none;
+            font-size: 20px;
+            line-height: 40px;
+            margin-bottom: 10px;
+        }
+        .shipImg {
+            position: absolute;
+        }
+    </style>
+    <script>
+        var messages = [
+            "msg1",
+            "msg2",
+            "msg3",
+            "msg4",
+            "msg5"
+        ];
+        let ships = [
+            {
+                length:2,
+                isPlaced: false
+            },
+            {
+                length:3,
+                isPlaced: false
+            },
+            {
+                length:3,
+                isPlaced: false
+            },
+            {
+                length:4,
+                isPlaced: false
+            },
+            {
+                length:5,
+                isPlaced: false
+            },
+        ]
+        var shouldIgnore = false;
+        var messageIndex = 0
+        var isGameStarted = true;
+        var numberOfTries = 0;
+        var MAX_TRIES = 50;  // adjust difficulty
+
+        let isArrangingMode = false
+        let imPuttingWhichShip = -1
+        let imPuttingShipInWhichDirection = -1
+
+        function listRemainingShips() {
+            let numberOfPlacedShips = 0
+            for (let index = 0; index < ships.length; index++) {
+                if (ships[index].isPlaced) {
+                    g(`ship${index}`).style.display = "none"
+                    numberOfPlacedShips++
+                } else {
+                    g(`ship${index}`).style.display = "block"
+                }
+            }
+
+            g("direction0").style.display = "none"
+            g("direction1").style.display = "none"
+            g("direction2").style.display = "none"
+            g("direction3").style.display = "none"
+
+            if (numberOfPlacedShips == 5) {
+                alert("all ships are placed, game is started now")
+                g("startArranging").style.display = "none"
+                g("direction0").style.display = "none"
+                g("direction1").style.display = "none"
+                g("direction2").style.display = "none"
+                g("direction3").style.display = "none"
+
+                // find all ship images, and hide each of them
+                const shipImages = document.querySelectorAll('.shipImg');
+                shipImages.forEach(img => {
+                    img.style.display = 'none';
+                });
+                
+                // hide all Xs
+                document.querySelectorAll(".box").forEach(element => {
+                    element.style.color = "transparent"
+                });
+
+                isArrangingMode = false
+            }
+
+            
+        }
+        
+        function onBoxClicked(id) {
+            if (isArrangingMode) {
+                console.log(`isArrangingMode ${isArrangingMode}`);
+                console.log(`imPuttingWhichShip ${imPuttingWhichShip}`);
+                console.log(`imPuttingShipInWhichDirection ${imPuttingShipInWhichDirection}`);
+                let row = +id[1]
+                let col = +id[2]
+                console.log(`row ${row} --- col ${col}`);
+
+                // check enough space
+                if (imPuttingShipInWhichDirection == 0) {
+                    let newCol = col + ships[imPuttingWhichShip].length - 1
+                    if (newCol > 9) {
+                        alert("not enough space to the right")
+                        return
+                    }
+                } else if (imPuttingShipInWhichDirection == 1) {
+                    let newCol = col - ships[imPuttingWhichShip].length + 1
+                    if (newCol < 0) {
+                        alert("not enough space to the left")
+                        return
+                    }
+                } else if (imPuttingShipInWhichDirection == 2) {
+                    let newRow = row + ships[imPuttingWhichShip].length - 1
+                    if(newRow > 9) {
+                        alert("not enough space to the bottom")
+                        return
+                    }
+                } else if (imPuttingShipInWhichDirection == 3) {
+                    let newRow = row - ships[imPuttingWhichShip].length + 1
+                    if(newRow < 0) {
+                        alert("not enough space to the top")
+                        return
+                    }
+                }
+
+                const img = document.createElement('img');
+                img.src = `./images/s${imPuttingWhichShip}.png`;
+
+                // Get the left and top position of the clicked box
+                const rect = g(id).getBoundingClientRect();
+                const left = rect.left;
+                const top = rect.top;
+                img.style.left = `${left}px`;
+                img.style.top = `${top}px`;
+    
+                // calculate and set ship width
+                let shipWidth = 0
+                if (imPuttingWhichShip == 0) {
+                    shipWidth = 120
+                } else if (imPuttingWhichShip == 1 || imPuttingWhichShip == 2) {
+                    shipWidth = 180
+                } else if (imPuttingWhichShip == 3) {
+                    shipWidth = 240
+                } else if (imPuttingWhichShip == 4) {
+                    shipWidth = 300
+                }
+                img.style.width = `${shipWidth}px`
+                
+                // rotate ship if needed
+                img.style.transformOrigin = '30px 30px'; 
+                let rotateDegree = 0
+                if(imPuttingShipInWhichDirection == 0) {
+                    rotateDegree = 0
+                } else if (imPuttingShipInWhichDirection == 1) {
+                    rotateDegree = 180
+                } else if(imPuttingShipInWhichDirection == 2){
+                    rotateDegree = 90
+                } else if (imPuttingShipInWhichDirection == 3) {
+                    rotateDegree = 270
+                }
+                img.style.transform = `rotate(${rotateDegree}deg)`;
+                img.className = "shipImg"
+
+                document.body.appendChild(img);
+                
+                for (let index = 0; index < ships[imPuttingWhichShip].length; index++) {
+                    if (imPuttingShipInWhichDirection == 0) {
+                        g(`b${row}${col+index}`).innerHTML = "X"
+                    } else if (imPuttingShipInWhichDirection == 1) {
+                        g(`b${row}${col-index}`).innerHTML = "X"
+                    } else if (imPuttingShipInWhichDirection == 2) {
+                        g(`b${row+index}${col}`).innerHTML = "X"
+                    } else if (imPuttingShipInWhichDirection == 3) {
+                        g(`b${row-index}${col}`).innerHTML = "X"
+                    }
+                }
+
+                ships[imPuttingWhichShip].isPlaced = true
+                console.log(ships);
+
+                listRemainingShips()
+                
+                imPuttingShipInWhichDirection = -1
+                imPuttingWhichShip = -1
+
+                return
+            }
+
+            if (isGameStarted == true && numberOfTries < MAX_TRIES) {
+                console.log(`${id} is clicked`);
+                if (document.getElementById(id).innerHTML == "X") {
+                    var elem = document.createElement("img");
+                    elem.setAttribute("src", "./images/Explody.png");
+                    elem.setAttribute("height", "55");
+                    elem.setAttribute("width", "55");
+                    elem.setAttribute("alt", "explody");
+                    document.getElementById(id).innerHTML = "";
+                    document.getElementById(id).appendChild(elem);
+                } else if(document.getElementById(id).innerHTML.includes("png")) {
+                    alert("hey you already clicked here")
+                } 
+                
+                else {
+                    var elem = document.createElement("img");
+                    elem.setAttribute("src", "./images/splash.webp");
+                    elem.setAttribute("height", "55");
+                    elem.setAttribute("width", "55");
+                    elem.setAttribute("alt", "splashy");
+                    document.getElementById(id).innerHTML = "";
+                    document.getElementById(id).appendChild(elem);
+                }
+                numberOfTries++;
+                checkAllShipSunk();
+            } else if(!isGameStarted){
+                if (!shouldIgnore) {
+                    alert(messages[messageIndex]);
+                    if (messageIndex <= 4) {
+                        messageIndex++;
+                    }      
+                }
+                if (messageIndex == 5) {
+                    shouldIgnore = true;
+                }
+            } else {
+                // player has tried more than MAX times
+                alertLose()
+            }
+        }
+
+        function alertLose() {
+            alert("You've tried more than " + MAX_TRIES + " times. You haven't bombed all the ships.")
+        }
+
+        function checkAllShipSunk(params) {
+            // check all 100 boxes, see if all Xs are cleared
+            var isThereX = false;
+            for (let i = 0; i < 10; i++) {
+                for (let j = 0; j < 10; j++) {
+                    if(document.getElementById("b"+i+j).innerHTML == "X") {
+                        console.log("found x at b"+i+j);
+                        isThereX = true;
+                    }
+                }
+            }
+            if (isThereX) {
+                console.log("there is still ship left");
+                return false;
+            } else {
+                console.log("All ship are bombed");
+                alert(`You've bombed all the ships with ${numberOfTries} tries. YEAH!!!`)
+                location.reload()
+                return true;
+            }
+        }
+
+        //ps stands for place ship
+        // usually you can put 5 ships
+        // 1 submarine: length = 3
+        // 1 battleship: length = 4
+        // 1 patrol boat: length = 2
+        // 1 destroyer: length = 3
+        // 1 aircraft carrier: length = 5
+
+        // Javascript classes
+        // 1st time: create home page, display 10 rows of numbers
+        // 2nd time: Mar/30, draw board, adjust position and size, give background image
+        // 3rd time: Apr/06, put Xs at 4 random positions
+        // maybe next next time, randomly select location
+        // maybe next next next time, hide all the Xs, so Mark can play
+        function ps_generic(length, direction) {
+            var startRow = genRandomInteger();
+            var startCol = genRandomInteger();
+
+            while (startRow > 6) {
+                // we cannot use this row, please re-gen random integer again
+                startRow = genRandomInteger();
+            }
+
+            var row = startRow;
+            var col = startCol;
+
+            for (let index = 0; index < length; index++) {
+                document.getElementById("b"+row+col).innerHTML = "X";
+                row++
+            }
+        }
+
+        function ps(params) {
+            var startRow = genRandomInteger();
+            var startCol = genRandomInteger();
+
+            while (startRow > 6) {
+                startRow = genRandomInteger();
+            }
+
+            var row = startRow;
+            var col = startCol;
+
+            for (let index = 0; index < 4; index++) {
+                document.getElementById("b"+row+col).innerHTML = "X";
+                row++
+            }
+        }
+
+        function ps_r() {
+            var startRow = genRandomInteger();
+            var startCol = genRandomInteger();
+
+            while (startRow > 6) {
+                // we cannot use this row, please re-gen random integer again
+                startRow = genRandomInteger();
+            }
+
+            var row = startRow;
+            var col = startCol;
+
+            for (let index = 0; index < length; index++) {
+                document.getElementById("b"+row+col).innerHTML = "X";
+                // if (direction == 0) {
+                //     row -= 1;
+                // } else if (direction == 1) {
+                //     row += 1;
+                // } else if (direction == 2) {
+                //     col -= 1;
+                // } else if (direction == 3) {
+                //     col += 1;
+                // }
+            }
+        }
+
+        function getRandomDirection() {
+            //0 up, 1 down, 2 right, 3 left
+            return Math.floor(Math.random() * 4);
+        }
+
+        function genRandomInteger() {
+            // return a value from 0 to 9
+            return Math.floor(Math.random() * 10);
+        }
+
+        function p4s() {
+            if (isGameStarted == true) {
+                // ps(5, 0);
+                // ps(5, 1);
+                // ps(5, 2);
+                // ps(5, 3);
+                ps();    
+            }
+            
+        }
+        function startGame(params) {
+            isGameStarted = true;
+            alert("Game started")
+        }
+
+        function toggleRules() {
+            if (document.getElementById("instruction").style.display == "block") {
+                document.getElementById("instruction").style.display = "none"
+            } else {
+                document.getElementById("instruction").style.display = "block"
+            }
+            
+        }
+
+        function g(id) {
+            return document.getElementById(id)
+        }
+
+        function startArranging() {
+            isArrangingMode = true
+            g("ship0").style.display = "block"
+            g("ship1").style.display = "block"
+            g("ship2").style.display = "block"
+            g("ship3").style.display = "block"
+            g("ship4").style.display = "block"
+        }
+
+        function selectShip(ship) {
+            console.log(`ship ${ship}`);
+            imPuttingWhichShip = ship
+
+            //hide other ship options
+            for (let index = 0; index < 5; index++) {
+                if(index != ship) {
+                    g(`ship${index}`).style.display = "none"
+                }
+            }
+
+            // show direction
+            g("direction0").style.display = "block"
+            g("direction1").style.display = "block"
+            g("direction2").style.display = "block"
+            g("direction3").style.display = "block"
+        }
+
+        function selectDirection(direction) {
+            imPuttingShipInWhichDirection = direction
+        }
+
+
+        
+    </script>
+</head>
+<body>
+    <div id="title" onclick="p4s()">Battleship</div>
+    <div id="board">
+        <div class="row">
+            <div class="box" id="b00" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b01" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b02" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b03" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b04" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b05" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b06" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b07" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b08" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b09" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b10" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b11" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b12" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b13" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b14" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b15" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b16" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b17" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b18" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b19" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b20" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b21" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b22" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b23" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b24" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b25" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b26" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b27" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b28" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b29" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        
+        <div class="row">
+            <div class="box" id="b30" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b31" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b32" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b33" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b34" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b35" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b36" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b37" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b38" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b39" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b40" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b41" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b42" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b43" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b44" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b45" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b46" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b47" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b48" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b49" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b50" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b51" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b52" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b53" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b54" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b55" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b56" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b57" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b58" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b59" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b60" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b61" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b62" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b63" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b64" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b65" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b66" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b67" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b68" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b69" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b70" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b71" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b72" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b73" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b74" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b75" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b76" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b77" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b78" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b79" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b80" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b81" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b82" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b83" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b84" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b85" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b86" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b87" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b88" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b89" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+        <div class="row">
+            <div class="box" id="b90" onclick="onBoxClicked(this.id)">1</div>
+            <div class="box" id="b91" onclick="onBoxClicked(this.id)">2</div>
+            <div class="box" id="b92" onclick="onBoxClicked(this.id)">3</div>
+            <div class="box" id="b93" onclick="onBoxClicked(this.id)">4</div>
+            <div class="box" id="b94" onclick="onBoxClicked(this.id)">5</div>
+            <div class="box" id="b95" onclick="onBoxClicked(this.id)">6</div>
+            <div class="box" id="b96" onclick="onBoxClicked(this.id)">7</div>
+            <div class="box" id="b97" onclick="onBoxClicked(this.id)">8</div>
+            <div class="box" id="b98" onclick="onBoxClicked(this.id)">9</div>
+            <div class="box" id="b99" onclick="onBoxClicked(this.id)">10</div>
+        </div>
+    </div>
+
+    <div id="instruction">
+        <h3>
+            Click here to spawn enemy ships: <br>
+            Easy mode (3 ships) <br>
+            Normal mode (5 ships) <br>
+            <div>Hard mode (7 ships)</div>
+            
+        </h3>
+    </div>
+    <button id="Rules" onclick="toggleRules()">Rules</button>
+
+    <button id="Start" onclick="startGame()">Start</button>
+
+    <button id="startArranging" onclick="startArranging()">Start arranging ships</button>
+    <button class="ship" id="ship0" onclick="selectShip(0)">Ship 0, Destroyer, length 2</button>
+    <button class="ship" id="ship1" onclick="selectShip(1)">Ship 1, Submarine, length 3</button>
+    <button class="ship" id="ship2" onclick="selectShip(2)">Ship 2, Cruiser, length 3</button>
+    <button class="ship" id="ship3" onclick="selectShip(3)">Ship 3, Battleship, length 4</button>
+    <button class="ship" id="ship4" onclick="selectShip(4)">Ship 4, Aircraft Carrier, length 5</button>
+
+    <button class="direction" id="direction0" onclick="selectDirection(0)">From left to right</button>
+    <button class="direction" id="direction1" onclick="selectDirection(1)">From right to left</button>
+    <button class="direction" id="direction2" onclick="selectDirection(2)">From top to bottom</button>
+    <button class="direction" id="direction3" onclick="selectDirection(3)">From bottom to top</button>
+
+
+</body>
+</html>

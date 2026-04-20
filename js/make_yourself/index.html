@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Yourself</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Category Tabs */
+        .tabs {
+            display: flex;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 12px;
+            gap: 8px;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tab.clothes { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+        .tab.skins { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; }
+        .tab.hair { background: linear-gradient(135deg, #8e44ad, #9b59b6); color: #fff; }
+        .tab.shoes { background: linear-gradient(135deg, #e67e22, #d35400); color: #fff; }
+        .tab.accessories { background: linear-gradient(135deg, #16a085, #1abc9c); color: #fff; }
+        .tab.gender { background: linear-gradient(135deg, #e91e63, #ad1457); color: #fff; }
+        .tab.bodyshape { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; }
+        .tab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .tab.active { box-shadow: 0 0 0 4px #fff, 0 6px 20px rgba(0,0,0,0.3); }
+        
+        /* Options Panel */
+        .options-panel {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            min-height: 120px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .option {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            border: 3px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .option:hover { 
+            transform: scale(1.1) translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .option.selected { 
+            border-color: #ffd700; 
+            box-shadow: 0 0 0 3px #ffd700, 0 8px 25px rgba(255,215,0,0.4);
+        }
+        .option-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Main Stage */
+        .stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.8s ease;
+            min-height: 500px;
+            background-attachment: fixed;
+        }
+        
+        /* Avatar */
+        .avatar {
+            position: relative;
+            width: 280px;
+            height: 400px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+        }
+        
+        /* Head */
+        .head {
+            position: absolute;
+            width: 120px;
+            height: 130px;
+            top: 20px;
+            left: 80px;
+            border-radius: 60px 60px 50px 50px;
+            border: 3px solid rgba(0,0,0,0.1);
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Eyes - cuter design */
+        .eyes {
+            position: absolute;
+            top: 35px;
+            left: 20px;
+            width: 80px;
+            height: 25px;
+            z-index: 10;
+        }
+        .eye {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            border: 3px solid #333;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .eye:first-child { left: 10px; }
+        .eye:last-child { right: 10px; }
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            top: 4px;
+            left: 5px;
+        }
+        .eye::before {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #fff;
+            border-radius: 50%;
+            top: 6px;
+            left: 9px;
+            z-index: 1;
+        }
+        
+        /* Nose - cuter */
+        .nose {
+            position: absolute;
+            top: 65px;
+            left: 55px;
+            width: 8px;
+            height: 6px;
+            background: rgba(0,0,0,0.12);
+            border-radius: 50%;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        /* Mouth - cuter smile */
+        .mouth {
+            position: absolute;
+            top: 80px;
+            left: 40px;
+            width: 40px;
+            height: 22px;
+            border: 3px solid #333;
+            border-top: none;
+            border-radius: 0 0 22px 22px;
+            background: #ff6b9d;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        /* Cheeks - cute blush */
+        .cheeks {
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            width: 100px;
+            height: 15px;
+            z-index: 10;
+        }
+        .cheek {
+            position: absolute;
+            width: 15px;
+            height: 10px;
+            background: rgba(255, 182, 193, 0.7);
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(255, 182, 193, 0.4);
+        }
+        .cheek.left { left: 0; }
+        .cheek.right { right: 0; }
+        
+        /* Hair - positioned to not cover face */
+        .hair {
+            position: absolute;
+            top: -5px;
+            left: 70px;
+            width: 140px;
+            height: 70px;
+            border-radius: 70px 70px 30px 30px;
+            z-index: -1;
+        }
+        
+        /* Body */
+        .body {
+            position: absolute;
+            width: 140px;
+            height: 180px;
+            top: 140px;
+            left: 70px;
+            border-radius: 20px 20px 30px 30px;
+            border: 2px solid rgba(0,0,0,0.1);
+            box-shadow: inset 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* Arms */
+        .arms {
+            position: absolute;
+            top: 150px;
+            left: 25px;
+            width: 230px;
+            height: 40px;
+        }
+        .arm {
+            position: absolute;
+            width: 65px;
+            height: 22px;
+            border-radius: 12px;
+            top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .arm.left { left: 0; transform: rotate(-35deg); }
+        .arm.right { right: 0; transform: rotate(35deg); }
+        
+        /* Legs */
+        .legs {
+            position: absolute;
+            top: 310px;
+            left: 90px;
+            width: 100px;
+            height: 70px;
+        }
+        .leg {
+            position: absolute;
+            width: 20px;
+            height: 60px;
+            border-radius: 10px;
+            top: 0;
+        }
+        .leg.left { left: 20px; }
+        .leg.right { right: 20px; }
+        
+        /* Accessory */
+        .accessory {
+            position: absolute;
+            top: 0px;
+            left: 60px;
+            z-index: 20;
+        }
+        
+        /* Shoes - properly attached */
+        .shoes {
+            position: absolute;
+            top: 365px;
+            left: 88px;
+            width: 104px;
+            height: 35px;
+        }
+        .shoe {
+            position: absolute;
+            width: 44px;
+            height: 28px;
+            border-radius: 15px 2px 2px 15px;
+            top: 0;
+            border: 2px solid rgba(0,0,0,0.3);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        .shoe.left { left: 10px; }
+        .shoe.right { right: 10px; }
+        
+        /* Necklace */
+        .necklace {
+            position: absolute;
+            top: 155px;
+            left: 110px;
+            width: 60px;
+            height: 40px;
+            z-index: 15;
+        }
+        
+        /* Tie */
+        .tie {
+            position: absolute;
+            top: 150px;
+            left: 120px;
+            width: 40px;
+            height: 80px;
+            z-index: 15;
+        }
+        
+        /* Bracelet */
+        .bracelet {
+            position: absolute;
+            top: 200px;
+            left: 210px;
+            width: 25px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        
+        /* Custom clothes controls */
+        .custom-controls {
+            display: none;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            gap: 10px;
+            align-items: center;
+        }
+        .custom-controls.active { display: flex; }
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .emoji-input {
+            font-size: 24px;
+            width: 60px;
+            height: 50px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            background: #fff;
+        }
+        .apply-custom {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Enhanced backgrounds with ground and separated elements */
+        .bg-beach { 
+            background: linear-gradient(180deg, #87ceeb 0%, #87ceeb 40%, #f4e4a6 40%, #f4e4a6 70%, #c2b280 70%, #c2b280 100%);
+            position: relative;
+        }
+        .bg-forest { 
+            background: linear-gradient(180deg, #87ceeb 0%, #87ceeb 20%, #228b22 20%, #228b22 60%, #8fbc8f 60%, #8fbc8f 100%);
+            position: relative;
+        }
+        .bg-city { 
+            background: linear-gradient(180deg, #4a90e2 0%, #4a90e2 30%, #7f8c8d 30%, #7f8c8d 80%, #2c3e50 80%, #2c3e50 100%);
+            position: relative;
+        }
+        .bg-space { 
+            background: radial-gradient(circle at 30% 20%, #1a1a2e 0%, #16213e 30%, #0f0c29 100%);
+            position: relative;
+        }
+        .bg-sunset { 
+            background: linear-gradient(180deg, #ff7e5f 0%, #feb47b 30%, #ffb347 70%, #ffa726 100%);
+            position: relative;
+        }
+        .bg-snow { 
+            background: linear-gradient(180deg, #b8c6db 0%, #f5f7fa 50%, #fff 100%);
+            position: relative;
+        }
+        .bg-candy { 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ffa8e4 100%);
+            position: relative;
+        }
+        .bg-ocean { 
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 40%, #0077b6 100%);
+            position: relative;
+        }
+        
+        /* Animations for backgrounds */
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.02); opacity: 0.9; } }
+        @keyframes twinkle { 0% { opacity: 0.6; } 100% { opacity: 1; text-shadow: 0 0 10px #fff; } }
+        @keyframes glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
+        @keyframes snowfall { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(5px) rotate(180deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-5px) scale(1.05); } }
+        @keyframes wave { 0%, 100% { transform: translateX(0px) rotate(0deg); } 50% { transform: translateX(3px) rotate(1deg); } }
+        @keyframes slide { 0% { transform: translateX(-10px); } 100% { transform: translateX(10px); } }
+        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes drift { 0%, 100% { transform: translateX(0px) translateY(0px); } 25% { transform: translateX(5px) translateY(-3px); } 75% { transform: translateX(-3px) translateY(2px); } }
+        @keyframes rainbow { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(180deg); } }
+        @keyframes swim { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(8px); } }
+    </style>
+</head>
+<body>
+    <!-- Category Tabs -->
+    <div class="tabs">
+        <button class="tab clothes active" data-category="clothes">👕 Clothes</button>
+        <button class="tab hair" data-category="hair">💇 Hair</button>
+        <button class="tab shoes" data-category="shoes">👟 Shoes</button>
+        <button class="tab skins" data-category="skins">🎨 Skins</button>
+        <button class="tab accessories" data-category="accessories">💎 Accessories</button>
+        <button class="tab gender" data-category="gender">⚧️ Gender</button>
+        <button class="tab bodyshape" data-category="bodyshape">💪 Body Shape</button>
+    </div>
+    
+    <!-- Options Panel -->
+    <div class="options-panel" id="optionsPanel"></div>
+    
+    <!-- Custom Clothes Controls -->
+    <div class="custom-controls active" id="customControls">
+        <label>Color:</label>
+        <input type="color" class="color-picker" id="colorPicker" value="#3498db">
+        <label>Design:</label>
+        <input type="text" class="emoji-input" id="emojiInput" placeholder="🎯" maxlength="2">
+        <button class="apply-custom" id="applyCustom">Apply Custom</button>
+    </div>
+    
+    <!-- Main Stage with Background -->
+    <div class="stage" id="stage">
+        <div class="avatar" id="avatar">
+            <!-- Head with facial features -->
+            <div class="head" id="head">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+                <div class="cheeks">
+                    <div class="cheek left"></div>
+                    <div class="cheek right"></div>
+                </div>
+                <div class="nose"></div>
+                <div class="mouth"></div>
+            </div>
+            
+            <!-- Hair -->
+            <div class="hair" id="hair"></div>
+            
+            <!-- Body -->
+            <div class="body" id="body"></div>
+            
+            <!-- Arms -->
+            <div class="arms" id="arms">
+                <div class="arm left" id="armLeft"></div>
+                <div class="arm right" id="armRight"></div>
+            </div>
+            
+            <!-- Legs -->
+            <div class="legs" id="legs">
+                <div class="leg left" id="legLeft"></div>
+                <div class="leg right" id="legRight"></div>
+            </div>
+            
+            <!-- Accessories -->
+            <div class="accessory" id="accessory"></div>
+            <div class="necklace" id="necklace"></div>
+            <div class="tie" id="tie"></div>
+            <div class="bracelet" id="bracelet"></div>
+            
+            <!-- Shoes -->
+            <div class="shoes" id="shoes">
+                <div class="shoe left"></div>
+                <div class="shoe right"></div>
+            </div>
+        </div>
+<div class="bg-hint" id="bgHint">🎨 Tap background to explore places!</div>
+            <div class="bg-emoji" id="bgEmoji1" style="position: absolute; top: 10%; left: 10%; font-size: 30px; cursor: grab; user-select: none; z-index: 5;">🌟</div>
+            <div class="bg-emoji" id="bgEmoji2" style="position: absolute; top: 20%; right: 15%; font-size: 35px; cursor: grab; user-select: none; z-index: 5;">⭐</div>
+            <div class="bg-emoji" id="bgEmoji3" style="position: absolute; bottom: 15%; left: 15%; font-size: 25px; cursor: grab; user-select: none; z-index: 5;">✨</div>
+            <div class="bg-emoji" id="bgEmoji4" style="position: absolute; bottom: 20%; right: 20%; font-size: 40px; cursor: grab; user-select: none; z-index: 5;">💫</div>
+        </div>
+        
+        <!-- Done Button -->
+        <button id="doneBtn" style="position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.3s;">📸 Done</button>
+
+    <script>
+        // Background places with CSS classes
+        const backgrounds = [
+            { name: 'Beach', class: 'bg-beach' },
+            { name: 'Forest', class: 'bg-forest' },
+            { name: 'City', class: 'bg-city' },
+            { name: 'Space', class: 'bg-space' },
+            { name: 'Sunset', class: 'bg-sunset' },
+            { name: 'Snow', class: 'bg-snow' },
+            { name: 'Candy Land', class: 'bg-candy' },
+            { name: 'Ocean', class: 'bg-ocean' }
+        ];
+        let bgIndex = 0;
+
+        // Realistic items for each category
+        const items = {
+            clothes: [
+                { id: 'casual', name: 'Casual T-Shirt', color: '#3498db', pattern: 'solid', design: '🎯' },
+                { id: 'graphic', name: 'Graphic Tee', color: '#e74c3c', pattern: 'solid', design: '🎸' },
+                { id: 'pink_tee', name: 'Pink T-Shirt', color: '#ff69b4', pattern: 'solid', design: '💖' },
+                { id: 'rose_shirt', name: 'Rose Shirt', color: '#f8c8dc', pattern: 'solid', design: '🌹' },
+                { id: 'magenta_top', name: 'Magenta Top', color: '#da70d6', pattern: 'solid', design: '💫' },
+                { id: 'formal', name: 'Dress Shirt', color: '#ecf0f1', pattern: 'solid', design: '' },
+                { id: 'hoodie', name: 'Hoodie', color: '#7f8c8d', pattern: 'solid', design: '🏀' },
+                { id: 'pink_hoodie', name: 'Pink Hoodie', color: '#ff1493', pattern: 'solid', design: '🎀' },
+                { id: 'blazer', name: 'Blazer', color: '#2c3e50', pattern: 'solid', design: '' },
+                { id: 'sweater', name: 'Sweater', color: '#e74c3c', pattern: 'knit', design: '❄️' },
+                { id: 'pink_sweater', name: 'Pink Sweater', color: '#ffc0cb', pattern: 'knit', design: '🦋' },
+                { id: 'jacket', name: 'Leather Jacket', color: '#1a1a1a', pattern: 'leather', design: '🏍️' },
+                { id: 'dress', name: 'Summer Dress', color: '#f39c12', pattern: 'floral', design: '🌸' },
+                { id: 'pink_dress', name: 'Pink Dress', color: '#ffb6c1', pattern: 'floral', design: '🦄' },
+                { id: 'suit', name: 'Business Suit', color: '#34495e', pattern: 'pinstripe', design: '' },
+                { id: 'sports', name: 'Sports Jersey', color: '#27ae60', pattern: 'solid', design: '⚽' },
+                { id: 'custom', name: 'Custom Design', color: '#3498db', pattern: 'solid', design: '🎯', isCustom: true }
+            ],
+            skins: [
+                { id: 'light1', name: 'Fair', color: '#fdbcb4' },
+                { id: 'light2', name: 'Light', color: '#edb98a' },
+                { id: 'medium1', name: 'Medium', color: '#d08b5b' },
+                { id: 'medium2', name: 'Tan', color: '#ae7242' },
+                { id: 'dark1', name: 'Olive', color: '#925d3d' },
+                { id: 'dark2', name: 'Dark', color: '#8d5524' },
+                { id: 'dark3', name: 'Deep', color: '#67341b' },
+                { id: 'cool', name: 'Cool Tone', color: '#c8a882' }
+            ],
+            hair: [
+                { id: 'short_brown', name: 'Short Brown', color: '#8b4513', style: 'short' },
+                { id: 'long_blonde', name: 'Long Blonde', color: '#daa520', style: 'long' },
+                { id: 'curly_black', name: 'Curly Black', color: '#2f1b14', style: 'curly' },
+                { id: 'pixie_pink', name: 'Pixie Pink', color: '#ff69b4', style: 'pixie' },
+                { id: 'afro', name: 'Afro', color: '#1a1a1a', style: 'afro' },
+                { id: 'bald', name: 'Bald', color: 'transparent', style: 'bald' },
+                { id: 'ponytail', name: 'Ponytail', color: '#654321', style: 'ponytail' },
+                { id: 'braids', name: 'Braids', color: '#8b4513', style: 'braids' }
+            ],
+            shoes: [
+                { id: 'sneakers_white', name: 'White Sneakers', color: '#ffffff', style: 'sneaker' },
+                { id: 'sneakers_red', name: 'Red Sneakers', color: '#e74c3c', style: 'sneaker' },
+                { id: 'sneakers_blue', name: 'Blue Sneakers', color: '#3498db', style: 'sneaker' },
+                { id: 'boots_brown', name: 'Brown Boots', color: '#8b4513', style: 'boot' },
+                { id: 'boots_black', name: 'Black Boots', color: '#2c3e50', style: 'boot' },
+                { id: 'dress_black', name: 'Black Dress Shoes', color: '#1a1a1a', style: 'dress' },
+                { id: 'dress_brown', name: 'Brown Dress Shoes', color: '#8b4513', style: 'dress' },
+                { id: 'sandals_tan', name: 'Tan Sandals', color: '#deb887', style: 'sandal' },
+                { id: 'heels_red', name: 'Red High Heels', color: '#e74c3c', style: 'heel' },
+                { id: 'heels_black', name: 'Black High Heels', color: '#1a1a1a', style: 'heel' },
+                { id: 'flats_pink', name: 'Pink Flats', color: '#ff69b4', style: 'flat' },
+                { id: 'converse', name: 'Canvas Shoes', color: '#34495e', style: 'canvas' }
+            ],
+            accessories: [
+                // Head accessories
+                { id: 'glasses', name: 'Glasses', type: 'head', style: 'glasses', icon: '👓' },
+                { id: 'sunglasses', name: 'Sunglasses', type: 'head', style: 'sunglasses', icon: '🕶️' },
+                { id: 'hat', name: 'Baseball Cap', type: 'head', style: 'cap', icon: '🧢' },
+                { id: 'beanie', name: 'Beanie', type: 'head', style: 'beanie', icon: '🧶' },
+                { id: 'crown', name: 'Crown', type: 'head', style: 'crown', icon: '👑' },
+                
+                // Neck accessories
+                { id: 'gold_necklace', name: 'Gold Necklace', type: 'necklace', color: '#ffd700', icon: '💎' },
+                { id: 'silver_necklace', name: 'Silver Necklace', type: 'necklace', color: '#c0c0c0', icon: '💎' },
+                { id: 'pearl_necklace', name: 'Pearl Necklace', type: 'necklace', color: '#f8f8ff', icon: '📿' },
+                
+                // Ties
+                { id: 'red_tie', name: 'Red Tie', type: 'tie', color: '#e74c3c', pattern: 'solid' },
+                { id: 'blue_tie', name: 'Blue Tie', type: 'tie', color: '#3498db', pattern: 'solid' },
+                { id: 'striped_tie', name: 'Striped Tie', type: 'tie', color: '#2c3e50', pattern: 'stripes' },
+                
+                // Bracelets
+                { id: 'gold_bracelet', name: 'Gold Bracelet', type: 'bracelet', color: '#ffd700' },
+                { id: 'silver_bracelet', name: 'Silver Bracelet', type: 'bracelet', color: '#c0c0c0' },
+                { id: 'fitness_band', name: 'Fitness Band', type: 'bracelet', color: '#1abc9c' }
+            ],
+            gender: [
+                { id: 'male', name: 'Male', icon: '👨', bodyShape: 'masculine', shoulderWidth: '150px', hipWidth: '130px' },
+                { id: 'female', name: 'Female', icon: '👩', bodyShape: 'feminine', shoulderWidth: '140px', hipWidth: '145px' }
+            ],
+            bodyshape: [
+                { id: 'slim', name: 'Slim', icon: '🧍', width: '120px', height: '180px' },
+                { id: 'average', name: 'Average', icon: '🚶', width: '140px', height: '180px' },
+                { id: 'athletic', name: 'Athletic', icon: '🏃', width: '155px', height: '185px' },
+                { id: 'broad', name: 'Broad', icon: '🤸', width: '170px', height: '185px' },
+                { id: 'curvy', name: 'Curvy', icon: '💃', width: '145px', height: '180px' },
+                { id: 'tall', name: 'Tall', icon: '🏀', width: '135px', height: '200px' }
+            ]
+        };
+
+        // Current selections
+        let current = {
+            clothes: items.clothes[0],
+            skin: items.skins[0],
+            hair: items.hair[0],
+            headAccessory: null,
+            necklace: null,
+            tie: null,
+            bracelet: null,
+            shoes: items.shoes[0],
+            gender: items.gender[0],
+            bodyshape: items.bodyshape[1]
+        };
+
+        let activeCategory = 'clothes';
+
+        // DOM Elements
+        const stage = document.getElementById('stage');
+        const optionsPanel = document.getElementById('optionsPanel');
+        const tabs = document.querySelectorAll('.tab');
+        const customControls = document.getElementById('customControls');
+        const colorPicker = document.getElementById('colorPicker');
+        const emojiInput = document.getElementById('emojiInput');
+        const applyCustomBtn = document.getElementById('applyCustom');
+        const avatar = {
+            head: document.getElementById('head'),
+            hair: document.getElementById('hair'),
+            body: document.getElementById('body'),
+            arms: document.getElementById('arms'),
+            armLeft: document.getElementById('armLeft'),
+            armRight: document.getElementById('armRight'),
+            legs: document.getElementById('legs'),
+            legLeft: document.getElementById('legLeft'),
+            legRight: document.getElementById('legRight'),
+            accessory: document.getElementById('accessory'),
+            necklace: document.getElementById('necklace'),
+            tie: document.getElementById('tie'),
+            bracelet: document.getElementById('bracelet'),
+            shoes: document.getElementById('shoes')
+        };
+
+        // Initialize
+        function init() {
+            updateBackground();
+            renderOptions();
+            updateAvatar();
+            setupCustomControls();
+            setupDragAndDrop();
+            setupDoneButton();
+        }
+        
+        // Setup custom controls
+        function setupCustomControls() {
+            applyCustomBtn.addEventListener('click', () => {
+                const customItem = {
+                    id: 'custom',
+                    name: 'Custom Design',
+                    color: colorPicker.value,
+                    pattern: 'solid',
+                    design: emojiInput.value || '🎯',
+                    isCustom: true
+                };
+                
+                // Update the custom item in the items array
+                const customIndex = items.clothes.findIndex(item => item.id === 'custom');
+                if (customIndex !== -1) {
+                    items.clothes[customIndex] = customItem;
+                }
+                
+                current.clothes = customItem;
+                renderOptions();
+                updateAvatar();
+            });
+        }
+
+        // Change background on stage click
+        stage.addEventListener('click', (e) => {
+            if (!e.target.closest('.avatar')) {
+                bgIndex = (bgIndex + 1) % backgrounds.length;
+                updateBackground();
+            }
+        });
+
+        function updateBackground() {
+            // Remove all background classes
+            backgrounds.forEach(bg => stage.classList.remove(bg.class));
+            // Add current background class
+            stage.classList.add(backgrounds[bgIndex].class);
+            
+            // Remove existing background decorations
+            document.querySelectorAll('.bg-decoration').forEach(el => el.remove());
+            
+            // Add draggable background decorations based on current background
+            const currentBg = backgrounds[bgIndex];
+            addBackgroundDecorations(currentBg.class);
+        }
+
+        // Add background decorations as draggable elements
+        function addBackgroundDecorations(bgClass) {
+            const decorations = {
+                'bg-beach': [
+                    { emoji: '🌅', top: '15%', right: '20%', fontSize: '40px' },
+                    { emoji: '🏖️', bottom: '24%', left: '5%', fontSize: '18px' },
+                    { emoji: '🏄‍♀️', bottom: '24%', left: '25%', fontSize: '18px' },
+                    { emoji: '🐚', bottom: '24%', left: '45%', fontSize: '18px' },
+                    { emoji: '⭐', bottom: '24%', left: '65%', fontSize: '18px' },
+                    { emoji: '🌴', bottom: '24%', right: '5%', fontSize: '18px' }
+                ],
+                'bg-forest': [
+                    { emoji: '🌲', bottom: '32%', left: '3%', fontSize: '28px' },
+                    { emoji: '🌳', bottom: '32%', left: '23%', fontSize: '28px' },
+                    { emoji: '🌲', bottom: '32%', left: '43%', fontSize: '28px' },
+                    { emoji: '🌳', bottom: '32%', right: '3%', fontSize: '28px' },
+                    { emoji: '🦌', bottom: '28%', left: '8%', fontSize: '16px' },
+                    { emoji: '🐿️', bottom: '28%', left: '25%', fontSize: '16px' },
+                    { emoji: '🍄', bottom: '28%', left: '42%', fontSize: '16px' },
+                    { emoji: '🦋', bottom: '28%', left: '58%', fontSize: '16px' },
+                    { emoji: '🐻', bottom: '28%', right: '8%', fontSize: '16px' }
+                ],
+                'bg-city': [
+                    { emoji: '🏢', bottom: '22%', left: '5%', fontSize: '24px' },
+                    { emoji: '🏬', bottom: '22%', left: '20%', fontSize: '24px' },
+                    { emoji: '🏪', bottom: '22%', left: '35%', fontSize: '24px' },
+                    { emoji: '🏢', bottom: '22%', left: '50%', fontSize: '24px' },
+                    { emoji: '🏬', bottom: '22%', right: '5%', fontSize: '24px' },
+                    { emoji: '🚗', bottom: '18%', left: '10%', fontSize: '14px' },
+                    { emoji: '🚕', bottom: '18%', left: '25%', fontSize: '14px' },
+                    { emoji: '🚌', bottom: '18%', left: '40%', fontSize: '14px' },
+                    { emoji: '💫', bottom: '18%', left: '55%', fontSize: '14px' },
+                    { emoji: '🚙', bottom: '18%', right: '10%', fontSize: '14px' }
+                ],
+                'bg-space': [
+                    { emoji: '🌍', bottom: '15%', left: '15%', fontSize: '60px' },
+                    { emoji: '🚀', top: '8%', left: '8%', fontSize: '20px' },
+                    { emoji: '⭐', top: '8%', left: '25%', fontSize: '20px' },
+                    { emoji: '🛸', top: '8%', left: '42%', fontSize: '20px' },
+                    { emoji: '💫', top: '8%', left: '58%', fontSize: '20px' },
+                    { emoji: '🌟', top: '8%', left: '75%', fontSize: '20px' },
+                    { emoji: '👽', top: '8%', right: '8%', fontSize: '20px' }
+                ],
+                'bg-sunset': [
+                    { emoji: '🌄', bottom: '42%', left: '12%', fontSize: '45px' },
+                    { emoji: '🦅', top: '12%', left: '8%', fontSize: '18px' },
+                    { emoji: '☁️', top: '12%', left: '25%', fontSize: '18px' },
+                    { emoji: '🌸', top: '12%', left: '42%', fontSize: '18px' },
+                    { emoji: '✨', top: '12%', left: '58%', fontSize: '18px' },
+                    { emoji: '🌼', top: '12%', right: '8%', fontSize: '18px' }
+                ],
+                'bg-snow': [
+                    { emoji: '🏔️', bottom: '38%', left: '12%', fontSize: '28px' },
+                    { emoji: '⛷️', bottom: '38%', left: '40%', fontSize: '28px' },
+                    { emoji: '🏔️', bottom: '38%', right: '12%', fontSize: '28px' },
+                    { emoji: '❄️', top: '5%', left: '5%', fontSize: '16px' },
+                    { emoji: '⛄', top: '5%', left: '22%', fontSize: '16px' },
+                    { emoji: '🎿', top: '5%', left: '38%', fontSize: '16px' },
+                    { emoji: '❄️', top: '5%', left: '55%', fontSize: '16px' },
+                    { emoji: '🏂', top: '5%', left: '72%', fontSize: '16px' },
+                    { emoji: '❄️', top: '5%', right: '5%', fontSize: '16px' }
+                ],
+                'bg-candy': [
+                    { emoji: '🏰', bottom: '42%', right: '18%', fontSize: '40px' },
+                    { emoji: '🍭', top: '15%', left: '10%', fontSize: '18px' },
+                    { emoji: '🧁', top: '15%', left: '25%', fontSize: '18px' },
+                    { emoji: '🍰', top: '15%', left: '40%', fontSize: '18px' },
+                    { emoji: '🌈', top: '15%', left: '55%', fontSize: '18px' },
+                    { emoji: '🦄', top: '15%', left: '70%', fontSize: '18px' },
+                    { emoji: '🎆', top: '15%', right: '10%', fontSize: '18px' }
+                ],
+                'bg-ocean': [
+                    { emoji: '🌊', bottom: '35%', left: '8%', fontSize: '22px' },
+                    { emoji: '🐋', bottom: '35%', left: '25%', fontSize: '22px' },
+                    { emoji: '🌊', bottom: '35%', left: '42%', fontSize: '22px' },
+                    { emoji: '🐙', bottom: '35%', left: '58%', fontSize: '22px' },
+                    { emoji: '🌊', bottom: '35%', right: '8%', fontSize: '22px' },
+                    { emoji: '⛵', top: '12%', left: '5%', fontSize: '16px' },
+                    { emoji: '🐠', top: '12%', left: '22%', fontSize: '16px' },
+                    { emoji: '🦈', top: '12%', left: '38%', fontSize: '16px' },
+                    { emoji: '⭐', top: '12%', left: '55%', fontSize: '16px' },
+                    { emoji: '🐚', top: '12%', left: '72%', fontSize: '16px' },
+                    { emoji: '🏝️', top: '12%', right: '5%', fontSize: '16px' }
+                ]
+            };
+            
+            const bgDecorations = decorations[bgClass] || [];
+            bgDecorations.forEach((decoration, index) => {
+                const element = document.createElement('div');
+                element.className = 'bg-decoration';
+                element.textContent = decoration.emoji;
+                element.style.position = 'absolute';
+                element.style.fontSize = decoration.fontSize;
+                element.style.cursor = 'grab';
+                element.style.userSelect = 'none';
+                element.style.zIndex = '3';
+                
+                // Set position
+                if (decoration.top) element.style.top = decoration.top;
+                if (decoration.bottom) element.style.bottom = decoration.bottom;
+                if (decoration.left) element.style.left = decoration.left;
+                if (decoration.right) element.style.right = decoration.right;
+                
+                stage.appendChild(element);
+            });
+        }
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeCategory = tab.dataset.category;
+                
+                // Show custom controls only for clothes category
+                if (activeCategory === 'clothes') {
+                    customControls.classList.add('active');
+                } else {
+                    customControls.classList.remove('active');
+                }
+                
+                renderOptions();
+            });
+        });
+
+        // Render options for current category
+        function renderOptions() {
+            optionsPanel.innerHTML = '';
+            const categoryItems = items[activeCategory];
+            
+            categoryItems.forEach(item => {
+                const opt = document.createElement('div');
+                opt.className = 'option';
+                
+                // Create preview based on item type
+                const preview = document.createElement('div');
+                preview.className = 'option-preview';
+                
+                if (activeCategory === 'clothes') {
+                    preview.style.background = item.color;
+                    preview.style.borderRadius = '8px';
+                    preview.style.position = 'relative';
+                    
+                    if (item.pattern === 'knit') {
+                        preview.style.backgroundImage = 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)';
+                    } else if (item.pattern === 'leather') {
+                        preview.style.background = `linear-gradient(135deg, ${item.color}, #000)`;
+                    } else if (item.pattern === 'floral') {
+                        preview.style.backgroundImage = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 2px, transparent 2px)`;
+                    }
+                    
+                    // Add design icon if present
+                    if (item.design) {
+                        const design = document.createElement('span');
+                        design.textContent = item.design;
+                        design.style.fontSize = '28px';
+                        design.style.position = 'absolute';
+                        design.style.top = '50%';
+                        design.style.left = '50%';
+                        design.style.transform = 'translate(-50%, -50%)';
+                        design.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
+                        preview.appendChild(design);
+                    }
+                    
+                    // Special styling for custom option
+                    if (item.isCustom) {
+                        preview.style.border = '3px dashed #3498db';
+                        preview.style.position = 'relative';
+                        const customLabel = document.createElement('div');
+                        customLabel.textContent = 'CUSTOM';
+                        customLabel.style.position = 'absolute';
+                        customLabel.style.bottom = '-2px';
+                        customLabel.style.left = '50%';
+                        customLabel.style.transform = 'translateX(-50%)';
+                        customLabel.style.fontSize = '8px';
+                        customLabel.style.fontWeight = 'bold';
+                        customLabel.style.color = '#3498db';
+                        preview.appendChild(customLabel);
+                    }
+                } else if (activeCategory === 'skins') {
+                    preview.style.background = item.color;
+                    preview.style.borderRadius = '50%';
+                    preview.style.width = '50px';
+                    preview.style.height = '50px';
+                    preview.style.border = '2px solid rgba(0,0,0,0.1)';
+                } else if (activeCategory === 'hair') {
+                    if (item.style !== 'bald') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = item.style === 'afro' ? '50%' : '20px 20px 10px 10px';
+                    } else {
+                        preview.textContent = '👨‍🦲';
+                        preview.style.fontSize = '30px';
+                    }
+                } else if (activeCategory === 'shoes') {
+                    if (item.style === 'sneaker' || item.style === 'canvas') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '15px 2px 2px 15px';
+                        preview.style.width = '65px';
+                        preview.style.height = '25px';
+                        preview.style.border = '2px solid rgba(0,0,0,0.2)';
+                    } else if (item.style === 'boot') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '12px 2px 2px 12px';
+                        preview.style.width = '60px';
+                        preview.style.height = '30px';
+                        preview.style.border = '2px solid rgba(0,0,0,0.3)';
+                    } else if (item.style === 'heel') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '12px 2px 2px 20px';
+                        preview.style.width = '60px';
+                        preview.style.height = '25px';
+                        preview.style.boxShadow = '0 8px 0 -3px ' + item.color;
+                    } else if (item.style === 'dress') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '20px 3px 3px 20px';
+                        preview.style.width = '65px';
+                        preview.style.height = '22px';
+                        preview.style.border = '1px solid rgba(0,0,0,0.4)';
+                    } else if (item.style === 'sandal') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '25px 5px 5px 25px';
+                        preview.style.width = '65px';
+                        preview.style.height = '18px';
+                        preview.style.border = '1px solid rgba(0,0,0,0.2)';
+                    } else if (item.style === 'flat') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '20px 2px 2px 20px';
+                        preview.style.width = '65px';
+                        preview.style.height = '20px';
+                    }
+                } else if (activeCategory === 'accessories') {
+                    if (item.type === 'head' || item.type === 'necklace' || item.type === 'bracelet') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '50%';
+                        preview.style.width = '40px';
+                        preview.style.height = '40px';
+                        preview.style.border = '3px solid rgba(0,0,0,0.2)';
+                        if (item.icon) {
+                            preview.textContent = item.icon;
+                            preview.style.fontSize = '16px';
+                        }
+                    } else if (item.type === 'tie') {
+                        preview.style.background = item.color;
+                        preview.style.width = '30px';
+                        preview.style.height = '60px';
+                        preview.style.borderRadius = '5px 5px 15px 15px';
+                        if (item.pattern === 'stripes') {
+                            preview.style.backgroundImage = 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.3) 3px, rgba(255,255,255,0.3) 6px)';
+                        }
+                    } else if (item.icon) {
+                        preview.textContent = item.icon;
+                        preview.style.fontSize = '24px';
+                    }
+                } else if (activeCategory === 'shoes') {
+                    if (item.style === 'sneaker' || item.style === 'canvas') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '15px 2px 2px 15px';
+                        preview.style.width = '65px';
+                        preview.style.height = '25px';
+                        preview.style.border = '2px solid rgba(0,0,0,0.2)';
+                    } else if (item.style === 'boot') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '12px 2px 2px 12px';
+                        preview.style.width = '60px';
+                        preview.style.height = '30px';
+                        preview.style.border = '2px solid rgba(0,0,0,0.3)';
+                    } else if (item.style === 'heel') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '12px 2px 2px 20px';
+                        preview.style.width = '60px';
+                        preview.style.height = '25px';
+                        preview.style.boxShadow = '0 8px 0 -3px ' + item.color;
+                    } else if (item.style === 'dress') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '20px 3px 3px 20px';
+                        preview.style.width = '65px';
+                        preview.style.height = '22px';
+                        preview.style.border = '1px solid rgba(0,0,0,0.4)';
+                    } else if (item.style === 'sandal') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '25px 5px 5px 25px';
+                        preview.style.width = '65px';
+                        preview.style.height = '18px';
+                        preview.style.border = '1px solid rgba(0,0,0,0.2)';
+                    } else if (item.style === 'flat') {
+                        preview.style.background = item.color;
+                        preview.style.borderRadius = '20px 2px 2px 20px';
+                        preview.style.width = '65px';
+                        preview.style.height = '20px';
+                    }
+                } else if (activeCategory === 'gender') {
+                    preview.textContent = item.icon;
+                    preview.style.fontSize = '30px';
+                } else if (activeCategory === 'bodyshape') {
+                    preview.textContent = item.icon;
+                    preview.style.fontSize = '35px';
+                }
+                
+                opt.appendChild(preview);
+                
+                // Check if selected
+                if (isItemSelected(item)) {
+                    opt.classList.add('selected');
+                }
+                
+                opt.addEventListener('click', () => selectItem(item));
+                optionsPanel.appendChild(opt);
+            });
+        }
+
+        function isItemSelected(item) {
+            if (activeCategory === 'clothes') return current.clothes?.id === item.id;
+            if (activeCategory === 'skins') return current.skin?.id === item.id;
+            if (activeCategory === 'hair') return current.hair?.id === item.id;
+            if (activeCategory === 'shoes') return current.shoes?.id === item.id;
+            if (activeCategory === 'gender') return current.gender?.id === item.id;
+            if (activeCategory === 'bodyshape') return current.bodyshape?.id === item.id;
+            if (activeCategory === 'accessories') {
+                if (item.type === 'head') return current.headAccessory?.id === item.id;
+                if (item.type === 'necklace') return current.necklace?.id === item.id;
+                if (item.type === 'tie') return current.tie?.id === item.id;
+                if (item.type === 'bracelet') return current.bracelet?.id === item.id;
+            }
+            return false;
+        }
+
+        // Select an item
+        function selectItem(item) {
+            if (activeCategory === 'clothes') {
+                current.clothes = item;
+                
+                // If custom item selected, populate the custom controls
+                if (item.isCustom) {
+                    colorPicker.value = item.color;
+                    emojiInput.value = item.design;
+                }
+            } else if (activeCategory === 'skins') {
+                current.skin = item;
+            } else if (activeCategory === 'hair') {
+                current.hair = current.hair?.id === item.id ? null : item;
+            } else if (activeCategory === 'shoes') {
+                current.shoes = current.shoes?.id === item.id ? null : item;
+            } else if (activeCategory === 'gender') {
+                current.gender = item;
+            } else if (activeCategory === 'bodyshape') {
+                current.bodyshape = item;
+            } else if (activeCategory === 'accessories') {
+                if (item.type === 'head') {
+                    current.headAccessory = current.headAccessory?.id === item.id ? null : item;
+                } else if (item.type === 'necklace') {
+                    current.necklace = current.necklace?.id === item.id ? null : item;
+                } else if (item.type === 'tie') {
+                    current.tie = current.tie?.id === item.id ? null : item;
+                } else if (item.type === 'bracelet') {
+                    current.bracelet = current.bracelet?.id === item.id ? null : item;
+                }
+            }
+            renderOptions(); // Re-render to update selection
+            updateAvatar();
+        }
+
+        // Update avatar display
+        function updateAvatar() {
+            // Head (skin color)
+            avatar.head.style.background = current.skin.color;
+            
+            // Arms and legs (skin color)
+            avatar.armLeft.style.background = current.skin.color;
+            avatar.armRight.style.background = current.skin.color;
+            avatar.legLeft.style.background = current.skin.color;
+            avatar.legRight.style.background = current.skin.color;
+            
+            // Body styling based on gender and body shape
+            avatar.body.style.width = current.bodyshape.width;
+            avatar.body.style.height = current.bodyshape.height;
+            
+            if (current.gender.bodyShape === 'feminine') {
+                avatar.body.style.borderRadius = '30px 30px 25px 25px';
+                // Feminine shoulders
+                avatar.armLeft.style.width = '55px';
+                avatar.armRight.style.width = '55px';
+                // Adjust arm positions for narrower shoulders
+                avatar.armLeft.style.left = '40px';
+                avatar.armRight.style.right = '40px';
+            } else {
+                avatar.body.style.borderRadius = '25px 25px 30px 30px';
+                // Masculine shoulders
+                avatar.armLeft.style.width = '65px';
+                avatar.armRight.style.width = '65px';
+                // Adjust arm positions for broader shoulders
+                avatar.armLeft.style.left = '30px';
+                avatar.armRight.style.right = '30px';
+            }
+            
+            // Body (clothes)
+            avatar.body.style.background = current.clothes.color;
+            avatar.body.style.backgroundImage = 'none';
+            
+            if (current.clothes.pattern === 'knit') {
+                avatar.body.style.backgroundImage = 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.1) 3px, rgba(255,255,255,0.1) 6px)';
+            } else if (current.clothes.pattern === 'leather') {
+                avatar.body.style.background = `linear-gradient(135deg, ${current.clothes.color}, #000)`;
+            } else if (current.clothes.pattern === 'floral') {
+                avatar.body.style.backgroundImage = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 2px, transparent 2px), radial-gradient(circle at 70% 70%, rgba(255,192,203,0.4) 2px, transparent 2px)`;
+            } else if (current.clothes.pattern === 'pinstripe') {
+                avatar.body.style.backgroundImage = 'repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.1) 8px, rgba(255,255,255,0.1) 10px)';
+            }
+            
+            // Add design to clothes
+            let designElement = avatar.body.querySelector('.design');
+            if (current.clothes.design) {
+                if (!designElement) {
+                    designElement = document.createElement('div');
+                    designElement.className = 'design';
+                    designElement.style.position = 'absolute';
+                    designElement.style.top = '50%';
+                    designElement.style.left = '50%';
+                    designElement.style.transform = 'translate(-50%, -50%)';
+                    designElement.style.fontSize = '45px';
+                    designElement.style.zIndex = '10';
+                    designElement.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+                    designElement.style.filter = 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))';
+                    avatar.body.appendChild(designElement);
+                }
+                designElement.textContent = current.clothes.design;
+            } else if (designElement) {
+                designElement.remove();
+            }
+            
+            // Hair
+            if (current.hair && current.hair.style !== 'bald') {
+                avatar.hair.style.background = current.hair.color;
+                avatar.hair.style.display = 'block';
+                
+                switch (current.hair.style) {
+                    case 'afro':
+                        avatar.hair.style.borderRadius = '50%';
+                        avatar.hair.style.width = '160px';
+                        avatar.hair.style.height = '120px';
+                        avatar.hair.style.top = '-20px';
+                        avatar.hair.style.left = '60px';
+                        break;
+                    case 'long':
+                        avatar.hair.style.borderRadius = '70px 70px 20px 20px';
+                        avatar.hair.style.width = '140px';
+                        avatar.hair.style.height = '150px';
+                        avatar.hair.style.top = '5px';
+                        avatar.hair.style.left = '70px';
+                        break;
+                    case 'curly':
+                        avatar.hair.style.borderRadius = '60% 40% 40% 60%';
+                        avatar.hair.style.width = '150px';
+                        avatar.hair.style.height = '100px';
+                        avatar.hair.style.top = '-8px';
+                        avatar.hair.style.left = '65px';
+                        break;
+                    case 'pixie':
+                        avatar.hair.style.borderRadius = '50px 70px 30px 40px';
+                        avatar.hair.style.width = '130px';
+                        avatar.hair.style.height = '70px';
+                        avatar.hair.style.top = '-3px';
+                        avatar.hair.style.left = '75px';
+                        break;
+                    case 'ponytail':
+                        avatar.hair.style.borderRadius = '70px 70px 40px 40px';
+                        avatar.hair.style.width = '140px';
+                        avatar.hair.style.height = '90px';
+                        avatar.hair.style.top = '5px';
+                        avatar.hair.style.left = '70px';
+                        // Add ponytail extension
+                        avatar.hair.style.boxShadow = `20px 80px 0 -10px ${current.hair.color}`;
+                        break;
+                    case 'braids':
+                        avatar.hair.style.borderRadius = '60px 60px 20px 20px';
+                        avatar.hair.style.width = '140px';
+                        avatar.hair.style.height = '100px';
+                        avatar.hair.style.top = '5px';
+                        avatar.hair.style.left = '70px';
+                        avatar.hair.style.backgroundImage = 'repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.2) 8px, rgba(0,0,0,0.2) 10px)';
+                        break;
+                    default:
+                        avatar.hair.style.borderRadius = '70px 70px 40px 40px';
+                        avatar.hair.style.width = '140px';
+                        avatar.hair.style.height = '80px';
+                        avatar.hair.style.top = '5px';
+                        avatar.hair.style.left = '70px';
+                }
+            } else {
+                avatar.hair.style.display = 'none';
+            }
+            
+            // Head Accessory
+            if (current.headAccessory) {
+                avatar.accessory.style.display = 'block';
+                avatar.accessory.textContent = current.headAccessory.icon;
+                avatar.accessory.style.fontSize = current.headAccessory.style === 'glasses' ? '40px' : '50px';
+                
+                if (current.headAccessory.style === 'glasses' || current.headAccessory.style === 'sunglasses') {
+                    avatar.accessory.style.top = '45px';
+                    avatar.accessory.style.left = '90px';
+                } else {
+                    avatar.accessory.style.top = '0px';
+                    avatar.accessory.style.left = '60px';
+                }
+            } else {
+                avatar.accessory.style.display = 'none';
+            }
+            
+            // Necklace
+            if (current.necklace) {
+                avatar.necklace.style.display = 'block';
+                avatar.necklace.style.background = current.necklace.color;
+                avatar.necklace.style.borderRadius = '50% 50% 70% 70%';
+                avatar.necklace.style.border = '3px solid rgba(0,0,0,0.2)';
+            } else {
+                avatar.necklace.style.display = 'none';
+            }
+            
+            // Tie
+            if (current.tie) {
+                avatar.tie.style.display = 'block';
+                avatar.tie.style.background = current.tie.color;
+                avatar.tie.style.borderRadius = '5px 5px 15px 15px';
+                avatar.tie.style.border = '2px solid rgba(0,0,0,0.1)';
+                if (current.tie.pattern === 'stripes') {
+                    avatar.tie.style.backgroundImage = 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.3) 3px, rgba(255,255,255,0.3) 6px)';
+                }
+            } else {
+                avatar.tie.style.display = 'none';
+            }
+            
+            // Bracelet
+            if (current.bracelet) {
+                avatar.bracelet.style.display = 'block';
+                avatar.bracelet.style.background = current.bracelet.color;
+                avatar.bracelet.style.border = '2px solid rgba(0,0,0,0.2)';
+            } else {
+                avatar.bracelet.style.display = 'none';
+            }
+            
+            // Shoes
+            if (current.shoes) {
+                const shoes = avatar.shoes.querySelectorAll('.shoe');
+                shoes.forEach(shoe => {
+                    shoe.style.background = current.shoes.color;
+                    shoe.style.display = 'block';
+                    
+                    // Adjust shoe style based on type
+                    if (current.shoes.style === 'heel') {
+                        shoe.style.borderRadius = '12px 2px 2px 20px';
+                        shoe.style.height = '25px';
+                        shoe.style.width = '42px';
+                        shoe.style.boxShadow = '0 8px 0 -3px ' + current.shoes.color;
+                    } else if (current.shoes.style === 'boot') {
+                        shoe.style.borderRadius = '12px 2px 2px 12px';
+                        shoe.style.height = '30px';
+                        shoe.style.width = '42px';
+                        shoe.style.boxShadow = 'none';
+                    } else if (current.shoes.style === 'dress') {
+                        shoe.style.borderRadius = '20px 3px 3px 20px';
+                        shoe.style.height = '22px';
+                        shoe.style.width = '42px';
+                        shoe.style.boxShadow = 'none';
+                    } else if (current.shoes.style === 'sandal') {
+                        shoe.style.borderRadius = '25px 5px 5px 25px';
+                        shoe.style.height = '18px';
+                        shoe.style.width = '40px';
+                        shoe.style.boxShadow = 'none';
+                        shoe.style.border = '1px solid rgba(0,0,0,0.2)';
+                    } else if (current.shoes.style === 'flat') {
+                        shoe.style.borderRadius = '20px 2px 2px 20px';
+                        shoe.style.height = '20px';
+                        shoe.style.width = '42px';
+                        shoe.style.boxShadow = 'none';
+                    } else if (current.shoes.style === 'canvas') {
+                        shoe.style.borderRadius = '15px 2px 2px 15px';
+                        shoe.style.height = '25px';
+                        shoe.style.width = '42px';
+                        shoe.style.border = '2px solid rgba(0,0,0,0.3)';
+                        shoe.style.boxShadow = 'none';
+                    } else {
+                        // Default sneaker style
+                        shoe.style.borderRadius = '15px 2px 2px 15px';
+                        shoe.style.height = '25px';
+                        shoe.style.width = '42px';
+                        shoe.style.boxShadow = 'none';
+                    }
+                });
+            } else {
+                const shoes = avatar.shoes.querySelectorAll('.shoe');
+                shoes.forEach(shoe => shoe.style.display = 'none');
+            }
+        }
+        
+        // Setup drag and drop for background emojis
+        function setupDragAndDrop() {
+            // Use event delegation to handle all draggable elements
+            setupDragForSelector('.bg-emoji, .bg-decoration');
+        }
+        
+        function setupDragForSelector(selector) {
+            let isDragging = false;
+            let dragTarget = null;
+            let startX, startY, initialX, initialY;
+            
+            document.addEventListener('mousedown', (e) => {
+                const target = e.target.closest(selector);
+                if (!target) return;
+                
+                isDragging = true;
+                dragTarget = target;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const rect = target.getBoundingClientRect();
+                const stageRect = stage.getBoundingClientRect();
+                initialX = rect.left - stageRect.left;
+                initialY = rect.top - stageRect.top;
+                
+                target.style.cursor = 'grabbing';
+                target.style.position = 'absolute';
+                target.style.left = initialX + 'px';
+                target.style.top = initialY + 'px';
+                target.style.right = 'auto';
+                target.style.bottom = 'auto';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || !dragTarget) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                dragTarget.style.left = (initialX + deltaX) + 'px';
+                dragTarget.style.top = (initialY + deltaY) + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging && dragTarget) {
+                    dragTarget.style.cursor = 'grab';
+                    isDragging = false;
+                    dragTarget = null;
+                }
+            });
+            
+            // Double click to resize (for existing elements)
+            document.addEventListener('dblclick', (e) => {
+                const target = e.target.closest(selector);
+                if (!target) return;
+                
+                const currentSize = parseInt(target.style.fontSize) || 30;
+                const newSize = currentSize === 30 ? 50 : currentSize === 50 ? 20 : 30;
+                target.style.fontSize = newSize + 'px';
+            });
+        }
+        
+        // Setup done button
+        function setupDoneButton() {
+            const doneBtn = document.getElementById('doneBtn');
+            const tabs = document.querySelector('.tabs');
+            const optionsPanel = document.getElementById('optionsPanel');
+            const customControls = document.getElementById('customControls');
+            const bgHint = document.getElementById('bgHint');
+            let isHidden = false;
+            
+            doneBtn.addEventListener('click', () => {
+                isHidden = !isHidden;
+                
+                if (isHidden) {
+                    tabs.style.display = 'none';
+                    optionsPanel.style.display = 'none';
+                    customControls.style.display = 'none';
+                    bgHint.style.display = 'none';
+                    doneBtn.textContent = '⚙️ Edit';
+                    doneBtn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                } else {
+                    tabs.style.display = 'flex';
+                    optionsPanel.style.display = 'flex';
+                    if (activeCategory === 'clothes') customControls.style.display = 'flex';
+                    bgHint.style.display = 'block';
+                    doneBtn.textContent = '📸 Done';
+                    doneBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

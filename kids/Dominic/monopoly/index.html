@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-image: url('./images/bg.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        
+        #board {
+            width: 100vw;
+            height: 100vh;
+        }
+        .corner_box {
+            background-color: rgba(255, 0, 0, 0.639);
+            color: #fff;
+            width: 130px;
+            height: 130px;
+            border: 1px solid #fff; 
+        }
+        .reg_box_vertical {
+            background-color: rgba(35, 35, 133, 0.295);
+            color: #fff;
+            width: 81px;
+            height: 100%;
+            border: 1px solid #fff; 
+        }
+
+        .reg_box_horizontal {
+            background-color: rgba(35, 35, 133, 0.295);
+            color: #fff;
+            width: 130px;
+            height: 81px;
+            border: 1px solid #fff;
+        }
+
+        #b1{
+            bottom: 0;
+            right: 333px;
+        }
+
+        #b2 {
+            bottom: 0;
+            right: 463px;
+        }
+
+        #bottom_row {
+            position: absolute;
+            bottom: 0px;
+            width: 100%;
+            height: 130px;
+            padding-right: 334px;
+            
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        #left_col {
+            position: absolute;
+            left: 333px;
+            top: 0;
+            width: 130px;
+            height: 100%;
+            padding-top: 129px;
+            background-color: rgba(64, 255, 0, 0.411);
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        #right_col {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 129px;
+            height: 100%;
+            padding-right: 466px;
+            background-color: rgba(0, 255, 255, 0.557);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #top_row {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 129px;
+            padding-left: 333px;
+            display: flex;
+            flex-direction: row;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div id="board">
+        <div id="bottom_row">
+            <div id="b1" class="corner_box">Go</div>
+            <div id="b2" class="reg_box_vertical">Mid Ave</div>
+            <div id="b3" class="reg_box_vertical">Community Chest</div>
+            <div id="b4" class="reg_box_vertical">Baltic Ave</div>
+            <div id="b5" class="reg_box_vertical">Income Tax</div>
+            <div id="b6" class="reg_box_vertical">Reading Railroad</div>
+            <div id="b7" class="reg_box_vertical">Oriental Ave</div>
+            <div id="b8" class="reg_box_vertical">Chance</div>
+            <div id="b9" class="reg_box_vertical">Vermont Ave</div>
+            <div id="b10" class="reg_box_vertical">Connecticut Ave</div>
+        </div>
+        <div id="left_col">
+            <div id="b11" class="corner_box">Jail</div>
+            <div id="b12" class="reg_box_horizontal">St. Charles Place</div>
+            <div id="b13" class="reg_box_horizontal">Electric Company</div>
+            <div id="b14" class="reg_box_horizontal">States Ave</div>
+            <div id="b15" class="reg_box_horizontal">Virginia Ave</div>
+            <div id="b16" class="reg_box_horizontal">Pennsylvania Railroad</div>
+            <div id="b17" class="reg_box_horizontal">St. James Place</div>
+            <div id="b18" class="reg_box_horizontal">Community Chest</div>
+            <div id="b19" class="reg_box_horizontal">Tennessee Ave</div>
+            <div id="b20" class="reg_box_horizontal">New York Ave</div>
+        </div>
+
+        <div id="top_row">
+            <div id="b21" class="corner_box">Free Parking</div>
+            <div id="b22" class="reg_box_vertical">Kentucky Ave</div>
+            <div id="b23" class="reg_box_vertical">Chance</div>
+            <div id="b24" class="reg_box_vertical">Indiana Ave</div>
+            <div id="b25" class="reg_box_vertical">Illinois Ave</div>
+            <div id="b26" class="reg_box_vertical">B. & O. Railroad</div>
+            <div id="b27" class="reg_box_vertical">Atlantic Ave</div>
+            <div id="b28" class="reg_box_vertical">Ventnor Ave</div>
+            <div id="b29" class="reg_box_vertical">Water Works</div>
+            <div id="b30" class="reg_box_vertical">Marvin Gardens</div>
+        </div>
+
+        <div id="right_col">
+            <div id="b31" class="corner_box">Go To Jail</div>
+            <div id="b32" class="reg_box_horizontal">Pacific Ave</div>
+            <div id="b33" class="reg_box_horizontal">North Carolina Ave</div>
+            <div id="b34" class="reg_box_horizontal">Community Chest</div>
+            <div id="b35" class="reg_box_horizontal">Pennsylvania Ave</div>
+            <div id="b36" class="reg_box_horizontal">Short Line</div>
+            <div id="b37" class="reg_box_horizontal">Chance</div>
+            <div id="b38" class="reg_box_horizontal">Park Place</div>
+            <div id="b39" class="reg_box_horizontal">Luxury Tax</div>
+            <div id="b39" class="reg_box_horizontal">Broadwalk</div>
+        </div>
+        
+       
+        
+        
+    </div>
+    
+</body>
+</html>

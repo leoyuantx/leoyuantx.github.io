@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>The Battlefield - Turn-Based Squad</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			background: #050816;
+			color: #fff;
+			font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			overflow: hidden;
+		}
+
+		#game-container {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			overflow: hidden;
+		}
+
+		canvas {
+			width: 100%;
+			height: 100%;
+			display: block;
+			background: #4b2e16;
+		}
+
+		#ui {
+			position: fixed;
+			top: 10px;
+			left: 50%;
+			transform: translateX(-50%);
+			display: flex;
+			gap: 20px;
+			font-size: 16px;
+			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+			z-index: 10;
+		}
+
+		#start-overlay {
+			position: fixed;
+			inset: 0;
+			background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.96));
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 16px;
+			z-index: 20;
+		}
+
+		#start-overlay h1 {
+			font-size: 40px;
+			letter-spacing: 0.08em;
+		}
+
+		#start-overlay p {
+			max-width: 520px;
+			text-align: center;
+			opacity: 0.85;
+		}
+
+		.menu-btn {
+			margin-top: 12px;
+			padding: 10px 28px;
+			border-radius: 999px;
+			border: none;
+			cursor: pointer;
+			font-size: 16px;
+			font-weight: 600;
+			color: #ecfdf5;
+			box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+			transition: transform 0.1s, box-shadow 0.1s;
+		}
+
+		#start-btn {
+			background: linear-gradient(135deg, #22c55e, #16a34a);
+		}
+
+		#hangar-btn {
+			background: linear-gradient(135deg, #3b82f6, #2563eb);
+			box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+		}
+
+		.menu-btn:hover {
+			transform: translateY(-1px);
+		}
+
+		.menu-btn:active {
+			transform: translateY(0);
+		}
+
+		#hint {
+			font-size: 14px;
+			opacity: 0.7;
+		}
+
+		#game-over {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.9);
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 12px;
+			z-index: 30;
+		}
+
+		#game-over button {
+			padding: 8px 22px;
+			border-radius: 999px;
+			border: none;
+			cursor: pointer;
+			background: #3b82f6;
+			color: white;
+			font-size: 15px;
+			font-weight: 600;
+		}
+
+		/* Hangar Overlay */
+		#hangar-overlay {
+			position: fixed;
+			inset: 0;
+			background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15), rgba(15, 23, 42, 0.98));
+			display: none;
+			z-index: 25;
+		}
+
+		#hangar-overlay.show {
+			display: flex;
+		}
+
+		#hangar-left {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 40px;
+			gap: 20px;
+		}
+
+		#hangar-left h2 {
+			font-size: 28px;
+			margin-bottom: 10px;
+		}
+
+		.unit-preview {
+			display: flex;
+			gap: 24px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.unit-card {
+			background: rgba(30, 41, 59, 0.9);
+			border: 2px solid #475569;
+			border-radius: 12px;
+			padding: 16px;
+			width: 120px;
+			text-align: center;
+		}
+
+		.unit-card canvas {
+			width: 80px;
+			height: 80px;
+			margin-bottom: 8px;
+		}
+
+		.unit-card .name {
+			font-weight: 600;
+			font-size: 13px;
+		}
+
+		#hangar-right {
+			width: 280px;
+			background: rgba(15, 23, 42, 0.95);
+			border-left: 2px solid #334155;
+			padding: 30px 20px;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
+
+		#hangar-right h3 {
+			font-size: 20px;
+			border-bottom: 1px solid #475569;
+			padding-bottom: 8px;
+		}
+
+		.unit-card.clickable {
+			cursor: pointer;
+			transition: transform 0.12s ease;
+		}
+
+		.unit-card.clickable:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 8px 18px rgba(15, 23, 42, 0.45);
+		}
+
+		.modal-backdrop {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.82);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 35;
+		}
+
+		.modal-backdrop.show {
+			display: flex;
+		}
+
+		.hangar-modal {
+			background: rgba(30, 41, 59, 0.98);
+			border: 1px solid rgba(148, 163, 184, 0.3);
+			border-radius: 12px;
+			padding: 20px;
+			width: min(520px, 90%);
+			max-height: 80vh;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			box-shadow: 0 20px 48px rgba(15, 23, 42, 0.6);
+		}
+
+		.hangar-modal header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.hangar-modal header h3 {
+			font-size: 20px;
+		}
+
+		.modal-close {
+			background: none;
+			border: none;
+			color: #cbd5f5;
+			font-size: 20px;
+			cursor: pointer;
+		}
+
+		.unit-change-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+			gap: 12px;
+			overflow-y: auto;
+			padding-right: 6px;
+		}
+
+		.unit-change-option {
+			background: rgba(15, 23, 42, 0.8);
+			border: 1px solid rgba(59, 130, 246, 0.2);
+			border-radius: 10px;
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+			cursor: pointer;
+			transition: transform 0.12s ease, border-color 0.12s ease;
+		}
+
+		.unit-change-option:hover {
+			transform: translateY(-2px);
+			border-color: rgba(59, 130, 246, 0.45);
+		}
+
+		.unit-change-option.selected {
+			border-color: rgba(34, 197, 94, 0.6);
+			box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+		}
+
+		.unit-change-option.disabled {
+			opacity: 0.4;
+			cursor: not-allowed;
+			border-color: rgba(71, 85, 105, 0.35);
+		}
+
+		.unit-change-option.disabled:hover {
+			transform: none;
+		}
+
+		.unit-change-option canvas {
+			width: 80px;
+			height: 80px;
+		}
+
+		.unit-change-option .label {
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		.unit-change-option .stats {
+			font-size: 12px;
+			opacity: 0.75;
+			text-align: center;
+		}
+
+		.unit-change-current {
+			background: rgba(15, 23, 42, 0.6);
+			border: 1px solid rgba(148, 163, 184, 0.3);
+			border-radius: 10px;
+			padding: 12px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-size: 14px;
+		}
+
+		.unit-change-current canvas {
+			width: 64px;
+			height: 64px;
+		}
+
+		.unit-change-current .details {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+
+		.merge-controls {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		#merge-btn {
+			margin-top: auto;
+			padding: 10px 18px;
+			border-radius: 999px;
+			border: none;
+			background: linear-gradient(135deg, #f97316, #ea580c);
+			color: #fff;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform 0.12s ease, opacity 0.12s ease;
+			opacity: 0.5;
+			pointer-events: none;
+		}
+
+		#merge-btn.available {
+			opacity: 1;
+			pointer-events: auto;
+		}
+
+		#merge-btn:hover {
+			transform: translateY(-2px);
+		}
+
+		#merge-overlay .hangar-modal {
+			width: min(720px, 94%);
+		}
+
+		.merge-body {
+			display: grid;
+			grid-template-columns: 1fr auto 1fr;
+			gap: 18px;
+			align-items: stretch;
+		}
+
+		.merge-section {
+			background: rgba(15, 23, 42, 0.6);
+			border: 1px solid rgba(148, 163, 184, 0.3);
+			border-radius: 10px;
+			padding: 14px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.merge-section h4 {
+			font-size: 16px;
+		}
+
+		.merge-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 12px;
+		}
+
+		.merge-divider {
+			width: 2px;
+			background: rgba(148, 163, 184, 0.25);
+		}
+
+		.merge-options {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+
+		.merge-option-btn {
+			padding: 6px 12px;
+			border-radius: 999px;
+			border: 1px solid rgba(59, 130, 246, 0.4);
+			background: rgba(30, 41, 59, 0.7);
+			font-size: 13px;
+			cursor: pointer;
+			transition: background 0.12s ease, border-color 0.12s ease;
+		}
+
+		.merge-option-btn.active {
+			background: rgba(59, 130, 246, 0.25);
+			border-color: rgba(59, 130, 246, 0.6);
+		}
+
+		.merge-footer {
+			display: flex;
+			justify-content: flex-end;
+			gap: 12px;
+		}
+
+		.merge-footer button {
+			padding: 8px 16px;
+			border-radius: 999px;
+			border: none;
+			font-weight: 600;
+			cursor: pointer;
+		}
+
+		#merge-confirm {
+			background: linear-gradient(135deg, #22c55e, #16a34a);
+			color: #ecfdf5;
+		}
+
+		#merge-cancel {
+			background: rgba(148, 163, 184, 0.25);
+			color: #e2e8f0;
+		}
+
+		#coins-display {
+			font-size: 18px;
+			color: #fbbf24;
+		}
+
+		.shop-item {
+			background: rgba(51, 65, 85, 0.8);
+			border-radius: 8px;
+			padding: 12px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.shop-item .info {
+			flex: 1;
+		}
+
+		.shop-item .info .title {
+			font-weight: 600;
+			font-size: 14px;
+		}
+
+		.shop-item .info .desc {
+			font-size: 11px;
+			opacity: 0.7;
+		}
+
+		.shop-item button {
+			background: #22c55e;
+			border: none;
+			border-radius: 6px;
+			padding: 6px 12px;
+			color: white;
+			font-weight: 600;
+			cursor: pointer;
+			font-size: 12px;
+		}
+
+		.shop-item button:disabled {
+			background: #475569;
+			cursor: not-allowed;
+		}
+
+		#back-from-hangar {
+			margin-top: auto;
+			padding: 10px;
+			background: #ef4444;
+			border: none;
+			border-radius: 8px;
+			color: white;
+			font-weight: 600;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div id="ui">
+		<div>🔰 Level: <span id="level">1</span></div>
+		<div>🎯 Turn: <span id="turnOwner">You</span></div>
+		<div>🎲 Actions left: <span id="actionsLeft">3</span></div>
+		<div>💰 <span id="coins">0</span></div>
+	</div>
+
+	<div id="start-overlay">
+		<h1>THE BATTLEFIELD</h1>
+		<p>You and your squad hold the bottom of the battlefield. Enemy soldiers hold the top. Each side gets 3 actions per turn.</p>
+		<p id="hint">Controls: Click a friendly unit to select it, use the action bar (Move / Shoot / Heal), then click tiles or units inside that unit's range.</p>
+<div style="display: flex; gap: 16px;">
+<button id="start-btn" class="menu-btn">Start Battle</button>
+<button id="hangar-btn" class="menu-btn">Hangar</button>
+</div>
+</div>
+
+<div id="hangar-overlay">
+<div id="hangar-left">
+<h2>Your Squad</h2>
+<div class="unit-preview" id="squad-preview"></div>
+</div>
+<div id="hangar-right">
+<h3>Shop</h3>
+<div id="coins-display">💰 <span id="shop-coins">0</span></div>
+<div class="shop-item" id="shop-slot4">
+<div class="info">
+<div class="title">4th Slot</div>
+<div class="desc">Add 4th unit slot</div>
+</div>
+<button id="buy-slot4">$2000</button>
+</div>
+<div class="shop-item" id="shop-slot5">
+<div class="info">
+<div class="title">5th Slot</div>
+<div class="desc">Add 5th unit slot</div>
+</div>
+<button id="buy-slot5">$5000</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Tank</div>
+<div class="desc">High HP, high damage, medium move</div>
+</div>
+<button id="buy-tank">$500</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Jet</div>
+<div class="desc">Fast movement, medium HP</div>
+</div>
+<button id="buy-jet">$1000</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Helicopter</div>
+<div class="desc">Aerial strikes, wide movement</div>
+</div>
+<button id="buy-helicopter">$1500</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Sniper</div>
+<div class="desc">Extreme range, fragile</div>
+</div>
+<button id="buy-sniper">$800</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Medic</div>
+<div class="desc">Long-range healing support</div>
+</div>
+<button id="buy-medic">$600</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Shieldbearer</div>
+<div class="desc">Heavy armor, draws fire</div>
+</div>
+<button id="buy-shieldbearer">$900</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Drone</div>
+<div class="desc">Fast scout with burst damage</div>
+</div>
+<button id="buy-drone">$1200</button>
+</div>
+<div class="shop-item">
+<div class="info">
+<div class="title">Artillery</div>
+<div class="desc">Infinite range, no move, low HP</div>
+</div>
+<button id="buy-artillery">$300</button>
+</div>
+<div class="merge-controls">
+<button id="merge-btn">Merge</button>
+</div>
+<button id="back-from-hangar">Back to Menu</button>
+</div>
+</div>
+
+<div id="unit-change-overlay" class="modal-backdrop">
+<div class="hangar-modal">
+<header>
+<h3>Change Unit</h3>
+<button id="unit-change-close" class="modal-close" aria-label="Close">✕</button>
+</header>
+<div id="unit-change-current" class="unit-change-current"></div>
+<div id="unit-change-options" class="unit-change-grid"></div>
+</div>
+</div>
+
+<div id="merge-overlay" class="modal-backdrop">
+<div class="hangar-modal">
+<header>
+<h3>Merge Units</h3>
+<button id="merge-close" class="modal-close" aria-label="Close">✕</button>
+</header>
+<div id="merge-type-options" class="merge-options"></div>
+<div class="merge-body">
+<div class="merge-section">
+<h4>Current Units</h4>
+<div id="merge-left-grid" class="merge-grid"></div>
+</div>
+<div class="merge-divider"></div>
+<div class="merge-section">
+<h4>Result</h4>
+<div id="merge-right-grid" class="merge-grid"></div>
+</div>
+</div>
+<div class="merge-footer">
+<button id="merge-cancel">Cancel</button>
+<button id="merge-confirm">Merge</button>
+</div>
+</div>
+</div>
+
+<div id="game-over">
+<h2>Game Over</h2>
+<p>Final score: <span id="final-score">0</span></p>
+<button id="restart-btn">Play Again</button>
+</div>
+
+<div id="game-container">
+<canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const uiLevel = document.getElementById('level');
+const uiTurnOwner = document.getElementById('turnOwner');
+const uiActionsLeft = document.getElementById('actionsLeft');
+const uiCoins = document.getElementById('coins');
+const startOverlay = document.getElementById('start-overlay');
+const startBtn = document.getElementById('start-btn');
+const hangarBtn = document.getElementById('hangar-btn');
+const hangarOverlay = document.getElementById('hangar-overlay');
+const backFromHangar = document.getElementById('back-from-hangar');
+const gameOverScreen = document.getElementById('game-over');
+const restartBtn = document.getElementById('restart-btn');
+const finalScoreEl = document.getElementById('final-score');
+const shopCoinsEl = document.getElementById('shop-coins');
+const unitChangeOverlay = document.getElementById('unit-change-overlay');
+const unitChangeClose = document.getElementById('unit-change-close');
+const unitChangeCurrent = document.getElementById('unit-change-current');
+const unitChangeOptions = document.getElementById('unit-change-options');
+const mergeOverlay = document.getElementById('merge-overlay');
+const mergeClose = document.getElementById('merge-close');
+const mergeBtn = document.getElementById('merge-btn');
+const mergeTypeOptions = document.getElementById('merge-type-options');
+const mergeLeftGrid = document.getElementById('merge-left-grid');
+const mergeRightGrid = document.getElementById('merge-right-grid');
+const mergeCancel = document.getElementById('merge-cancel');
+const mergeConfirm = document.getElementById('merge-confirm');
+
+let keys = {};
+let gameRunning = false;
+let gridCols = 10;
+let gridRows = 8;
+let cellSize = 80;
+let level = 1;
+let currentSide = 'player';
+let actionsLeft = 3;
+let selectedIndex = 0;
+let coins = 500;
+let currentHangarEditIndex = null;
+let mergeCandidateInfo = [];
+let selectedMergeType = null;
+let maxSlots = 3;
+let ownedUnits = ['rifleman', 'machinegunner', 'artillery_unit'];
+
+const inventoryCounts = {};
+
+function adjustInventoryCount(unitType, delta) {
+if (!unitTypes[unitType]) return;
+const next = (inventoryCounts[unitType] || 0) + delta;
+if (next <= 0) {
+delete inventoryCounts[unitType];
+} else {
+inventoryCounts[unitType] = next;
+}
+}
+
+function getRosterCount(unitType, excludeIndex = null) {
+return ownedUnits.reduce((count, type, idx) => {
+if (excludeIndex != null && idx === excludeIndex) return count;
+return count + (type === unitType ? 1 : 0);
+}, 0);
+}
+
+function canAssignUnitType(unitType, slotIndex) {
+if (slotIndex == null || slotIndex < 0) return false;
+if (!unitTypes[unitType]) return false;
+const totalOwned = inventoryCounts[unitType] || 0;
+if (totalOwned <= 0) return false;
+const assignedElsewhere = getRosterCount(unitType, slotIndex);
+if (ownedUnits[slotIndex] === unitType) return true;
+return assignedElsewhere < totalOwned;
+}
+
+function getInventoryTypesForSelection(currentType) {
+const types = Object.keys(inventoryCounts);
+if (currentType && !types.includes(currentType) && unitTypes[currentType]) {
+types.push(currentType);
+}
+return types;
+}
+
+const playerSoldiers = [];
+const enemySoldiers = [];
+const coverTiles = [];
+const fires = [];
+const particles = [];
+const shotAnimations = [];
+const healAnimations = [];
+const muzzleFlashes = [];
+let turnCounter = 0;
+const ARTILLERY_COOLDOWN_ACTIONS = 5;
+let offsetX = 0;
+let offsetY = 0;
+let gridPixelWidth = 0;
+let gridPixelHeight = 0;
+let warningMessage = null;
+
+function resizeCanvas() {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+cellSize = Math.min(canvas.width / gridCols, canvas.height / gridRows);
+gridPixelWidth = cellSize * gridCols;
+gridPixelHeight = cellSize * gridRows;
+offsetX = (canvas.width - gridPixelWidth) / 2;
+offsetY = (canvas.height - gridPixelHeight) / 2;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+const unitTypes = {
+rifleman: {
+name: 'Rifleman',
+hp: 10,
+moveRange: 3,
+shootRange: 6,
+healRange: 2,
+damage: 5,
+canHeal: true,
+color: '#22c55e',
+darkColor: '#166534'
+},
+machinegunner: {
+name: 'Machine Gunner',
+hp: 15,
+moveRange: 2,
+shootRange: 5,
+healRange: 0,
+damage: 4,
+canHeal: false,
+color: '#f59e0b',
+darkColor: '#b45309',
+shotsPerAttack: 3
+},
+artillery_unit: {
+name: 'Artillery',
+hp: 6,
+moveRange: 0,
+shootRange: 99,
+healRange: 2,
+damage: 8,
+canHeal: true,
+color: '#8b5cf6',
+darkColor: '#6d28d9'
+},
+tank: {
+name: 'Tank',
+hp: 25,
+moveRange: 2,
+shootRange: 4,
+healRange: 0,
+damage: 10,
+canHeal: false,
+color: '#64748b',
+darkColor: '#334155'
+},
+jet: {
+name: 'Jet',
+hp: 12,
+moveRange: 5,
+shootRange: 5,
+healRange: 0,
+damage: 6,
+canHeal: false,
+color: '#06b6d4',
+darkColor: '#0891b2'
+},
+helicopter: {
+name: 'Helicopter',
+hp: 18,
+moveRange: 6,
+shootRange: 6,
+healRange: 0,
+damage: 7,
+canHeal: false,
+color: '#f87171',
+darkColor: '#b91c1c',
+renderAs: 'helicopter'
+},
+sniper: {
+name: 'Sniper',
+hp: 8,
+moveRange: 3,
+shootRange: 9,
+healRange: 0,
+damage: 9,
+canHeal: false,
+color: '#fde047',
+darkColor: '#ca8a04',
+renderAs: 'sniper'
+},
+medic: {
+name: 'Medic',
+hp: 11,
+moveRange: 3,
+shootRange: 4,
+healRange: 4,
+damage: 4,
+canHeal: true,
+color: '#14b8a6',
+darkColor: '#0f766e',
+renderAs: 'rifleman'
+},
+shieldbearer: {
+name: 'Shieldbearer',
+hp: 28,
+moveRange: 2,
+shootRange: 3,
+healRange: 0,
+damage: 7,
+canHeal: false,
+color: '#f97316',
+darkColor: '#c2410c',
+renderAs: 'machinegunner'
+},
+drone: {
+name: 'Recon Drone',
+hp: 9,
+moveRange: 7,
+shootRange: 5,
+healRange: 0,
+damage: 8,
+canHeal: false,
+color: '#60a5fa',
+darkColor: '#2563eb',
+renderAs: 'jet'
+}
+};
+
+unitTypes.rifleman_elite = {
+name: 'Elite Rifleman',
+hp: 15,
+moveRange: 2,
+shootRange: 6,
+healRange: 2,
+damage: 7,
+canHeal: true,
+color: '#34d399',
+darkColor: '#047857',
+renderAs: 'rifleman'
+};
+
+unitTypes.machinegunner_elite = {
+name: 'Elite Machine Gunner',
+hp: 22,
+moveRange: 1,
+shootRange: 5,
+healRange: 0,
+damage: 5,
+canHeal: false,
+color: '#fbbf24',
+darkColor: '#92400e',
+renderAs: 'machinegunner',
+shotsPerAttack: 3
+};
+
+unitTypes.artillery_elite = {
+name: 'Siege Artillery',
+hp: 9,
+moveRange: 0,
+shootRange: 99,
+healRange: 2,
+damage: 12,
+canHeal: true,
+color: '#a855f7',
+darkColor: '#5b21b6',
+renderAs: 'artillery_unit'
+};
+
+unitTypes.tank_elite = {
+name: 'Heavy Tank',
+hp: 36,
+moveRange: 1,
+shootRange: 4,
+healRange: 0,
+damage: 14,
+canHeal: false,
+color: '#94a3b8',
+darkColor: '#1f2937',
+renderAs: 'tank'
+};
+
+unitTypes.jet_elite = {
+name: 'Strike Jet',
+hp: 18,
+moveRange: 4,
+shootRange: 5,
+healRange: 0,
+damage: 8,
+canHeal: false,
+color: '#22d3ee',
+darkColor: '#0e7490',
+renderAs: 'jet'
+};
+
+unitTypes.helicopter_elite = {
+name: 'Gunship',
+hp: 28,
+moveRange: 5,
+shootRange: 7,
+healRange: 0,
+damage: 11,
+canHeal: false,
+color: '#fb7185',
+darkColor: '#9f1239',
+renderAs: 'helicopter'
+};
+
+unitTypes.sniper_elite = {
+name: 'Shadow Sniper',
+hp: 12,
+moveRange: 2,
+shootRange: 11,
+healRange: 0,
+damage: 14,
+canHeal: false,
+color: '#facc15',
+darkColor: '#854d0e',
+renderAs: 'sniper'
+};
+
+unitTypes.medic_elite = {
+name: 'Field Surgeon',
+hp: 15,
+moveRange: 3,
+shootRange: 4,
+healRange: 5,
+damage: 6,
+canHeal: true,
+color: '#2dd4bf',
+darkColor: '#0d9488',
+renderAs: 'rifleman'
+};
+
+unitTypes.shieldbearer_elite = {
+name: 'Bulwark',
+hp: 38,
+moveRange: 2,
+shootRange: 3,
+healRange: 0,
+damage: 10,
+canHeal: false,
+color: '#fb923c',
+darkColor: '#7c2d12',
+renderAs: 'machinegunner'
+};
+
+unitTypes.drone_elite = {
+name: 'Assault Drone',
+hp: 14,
+moveRange: 7,
+shootRange: 6,
+healRange: 0,
+damage: 11,
+canHeal: false,
+color: '#93c5fd',
+darkColor: '#1d4ed8',
+renderAs: 'jet'
+};
+
+const upgradeMap = {
+rifleman: 'rifleman_elite',
+machinegunner: 'machinegunner_elite',
+artillery_unit: 'artillery_elite',
+tank: 'tank_elite',
+jet: 'jet_elite',
+helicopter: 'helicopter_elite',
+sniper: 'sniper_elite',
+medic: 'medic_elite',
+shieldbearer: 'shieldbearer_elite',
+drone: 'drone_elite'
+};
+
+ownedUnits.forEach(type => adjustInventoryCount(type, 1));
+
+function makeSoldier(col, row, side, unitType = 'rifleman') {
+const stats = unitTypes[unitType] || unitTypes.rifleman;
+return {
+col,
+row,
+side,
+unitType,
+hp: stats.hp,
+maxHp: stats.hp,
+moveRange: stats.moveRange,
+shootRange: stats.shootRange,
+healRange: stats.healRange,
+damage: stats.damage,
+canHeal: stats.canHeal,
+alive: true,
+fromCol: col,
+fromRow: row,
+toCol: col,
+toRow: row,
+animT: 1,
+shotsDisabledUntil: 0,
+shotsPerAttack: stats.shotsPerAttack || 1
+};
+}
+
+function initLevel(lvl) {
+playerSoldiers.length = 0;
+enemySoldiers.length = 0;
+coverTiles.length = 0;
+fires.length = 0;
+particles.length = 0;
+turnCounter = 0;
+
+const unitsToSpawn = ownedUnits.slice(0, maxSlots);
+unitsToSpawn.forEach((unitType, i) => {
+const col = 2 + i * 2;
+playerSoldiers.push(makeSoldier(Math.min(col, gridCols - 2), gridRows - 1, 'player', unitType));
+});
+
+const enemyCount = 2 + lvl;
+const enemyTypes = ['rifleman', 'machinegunner', 'rifleman'];
+for (let i = 0; i < enemyCount; i++) {
+const c = 2 + i * 2;
+const eType = enemyTypes[i % enemyTypes.length];
+enemySoldiers.push(makeSoldier(Math.min(c, gridCols - 2), 0, 'enemy', eType));
+}
+
+for (let c = 1; c < gridCols - 1; c += 2) {
+coverTiles.push({ col: c, row: 3 });
+if (Math.random() < 0.4) {
+fires.push({ col: c, row: 3, t: Math.random() * Math.PI * 2 });
+}
+}
+
+currentSide = 'player';
+actionsLeft = 3;
+selectedIndex = 0;
+uiLevel.textContent = level;
+uiTurnOwner.textContent = 'You';
+uiActionsLeft.textContent = actionsLeft;
+updateCoinsUI();
+}
+
+function updateCoinsUI() {
+uiCoins.textContent = coins;
+shopCoinsEl.textContent = coins;
+}
+
+function soldierAt(col, row, sideFilter = null) {
+const all = playerSoldiers.concat(enemySoldiers);
+return all.find(s => s.alive && s.col === col && s.row === row && (!sideFilter || s.side === sideFilter));
+}
+
+function isCover(col, row) {
+return coverTiles.some(t => t.col === col && t.row === row);
+}
+
+function inBounds(col, row) {
+return col >= 0 && col < gridCols && row >= 0 && row < gridRows;
+}
+
+function spendAction() {
+if (!gameRunning) return;
+recordPlayerAction();
+actionsLeft--;
+if (actionsLeft <= 0) {
+endTurn();
+} else {
+uiActionsLeft.textContent = actionsLeft;
+}
+}
+
+function recordPlayerAction() {
+turnCounter++;
+}
+
+function endTurn() {
+if (!gameRunning) return;
+if (currentSide === 'player') {
+currentSide = 'enemy';
+uiTurnOwner.textContent = 'Enemy';
+actionsLeft = 3;
+uiActionsLeft.textContent = actionsLeft;
+setTimeout(() => enemyTakeTurn(), 400);
+} else {
+currentSide = 'player';
+uiTurnOwner.textContent = 'You';
+actionsLeft = 3;
+uiActionsLeft.textContent = actionsLeft;
+}
+}
+
+function canMoveTo(s, nc, nr) {
+if (!inBounds(nc, nr)) return false;
+if (soldierAt(nc, nr)) return false;
+if (isCover(nc, nr)) return false;
+const dist = Math.abs(nc - s.col) + Math.abs(nr - s.row);
+return dist > 0 && dist <= s.moveRange;
+}
+
+function moveSoldierTo(s, nc, nr) {
+if (!canMoveTo(s, nc, nr)) return false;
+s.fromCol = s.toCol = s.col;
+s.fromRow = s.toRow = s.row;
+s.col = nc;
+s.row = nr;
+s.toCol = nc;
+s.toRow = nr;
+s.animT = 0;
+return true;
+}
+
+function canShootAt(s, target) {
+if (!target || !target.alive) return false;
+if (target.side === s.side) return false;
+if (s.unitType === 'artillery_unit') {
+return true;
+}
+if (target.col !== s.col) return false;
+const dist = Math.abs(target.row - s.row);
+if (dist === 0 || dist > s.shootRange) return false;
+return true;
+}
+
+function shootAt(s, target) {
+if (!canShootAt(s, target)) return false;
+const now = turnCounter;
+if (s.unitType === 'artillery_unit' && now < s.shotsDisabledUntil) {
+return false;
+}
+const wasArtillery = s.unitType === 'artillery_unit';
+const stats = unitTypes[s.unitType] || unitTypes.rifleman;
+const shotsPerAttack = s.shotsPerAttack || (stats && stats.shotsPerAttack) || 1;
+const shotDamage = s.damage;
+const baseTime = performance.now();
+const burstInterval = 90;
+let fired = false;
+for (let i = 0; i < shotsPerAttack; i++) {
+if (!target.alive) break;
+fired = true;
+const shotStart = baseTime + i * burstInterval;
+const sx = offsetX + (s.col + 0.5) * cellSize;
+const sy = offsetY + (s.row + 0.5) * cellSize;
+muzzleFlashes.push({
+startTime: shotStart,
+x: sx,
+y: sy,
+friendly: s.side === 'player'
+});
+const tx = offsetX + (target.col + 0.5) * cellSize;
+const ty = offsetY + (target.row + 0.5) * cellSize;
+shotAnimations.push({
+startTime: shotStart,
+sx,
+sy,
+tx,
+ty,
+friendly: s.side === 'player'
+});
+target.hp -= shotDamage;
+spawnHitParticles(target.col, target.row, s.side === 'player');
+if (target.hp <= 0) {
+target.alive = false;
+if (target.side === 'player') {
+const deadIdx = playerSoldiers.indexOf(target);
+if (deadIdx === selectedIndex) {
+selectedIndex = -1;
+selectedAction = null;
+actionButtons = null;
+}
+} else if (s.side === 'player') {
+coins += 50;
+updateCoinsUI();
+}
+break;
+}
+}
+if (!fired) return false;
+if (wasArtillery) {
+applyArtillerySplash(s, target);
+s.shotsDisabledUntil = now + ARTILLERY_COOLDOWN_ACTIONS + 1;
+}
+return true;
+}
+
+function applyArtillerySplash(s, target) {
+const splashCoords = [
+{ c: target.col + 1, r: target.row },
+{ c: target.col - 1, r: target.row },
+{ c: target.col, r: target.row + 1 },
+{ c: target.col, r: target.row - 1 }
+];
+splashCoords.forEach(pos => {
+if (!inBounds(pos.c, pos.r)) return;
+const victim = soldierAt(pos.c, pos.r, s.side === 'player' ? 'enemy' : 'player');
+if (victim && victim.alive) {
+victim.hp -= Math.ceil(s.damage * 0.6);
+if (victim.hp <= 0) {
+victim.alive = false;
+if (victim.side === 'player') {
+const deadIdx = playerSoldiers.indexOf(victim);
+if (deadIdx === selectedIndex) {
+selectedIndex = -1;
+selectedAction = null;
+actionButtons = null;
+}
+} else {
+coins += 50;
+updateCoinsUI();
+}
+spawnHitParticles(victim.col, victim.row, s.side === 'player');
+}
+}
+});
+}
+
+function healFrom(s, target) {
+if (s.side !== 'player') return false;
+if (!s.canHeal) return false;
+if (!target || target.side !== 'player' || !target.alive) return false;
+const dist = Math.abs(target.col - s.col) + Math.abs(target.row - s.row);
+if (dist === 0 || dist > s.healRange) return false;
+if (target.hp >= target.maxHp) return false;
+target.hp = Math.min(target.maxHp, target.hp + 4);
+spawnHitParticles(target.col, target.row, true);
+const tx = offsetX + (target.col + 0.5) * cellSize;
+const ty = offsetY + (target.row + 0.5) * cellSize;
+healAnimations.push({
+startTime: performance.now(),
+tx,
+ty
+});
+return true;
+}
+
+function spawnHitParticles(col, row, friendly) {
+const cx = offsetX + (col + 0.5) * cellSize;
+const cy = offsetY + (row + 0.5) * cellSize;
+for (let i = 0; i < 12; i++) {
+particles.push({
+x: cx,
+y: cy,
+vx: (Math.random() - 0.5) * 4,
+vy: (Math.random() - 0.5) * 4,
+life: 40,
+color: friendly ? '#22c55e' : '#ef4444'
+});
+}
+}
+
+function updateParticles() {
+for (let i = particles.length - 1; i >= 0; i--) {
+const p = particles[i];
+p.x += p.vx;
+p.y += p.vy;
+p.vy += 0.1;
+p.life--;
+if (p.life <= 0) particles.splice(i, 1);
+}
+}
+
+function updateAnimations() {
+for (let i = shotAnimations.length - 1; i >= 0; i--) {
+const a = shotAnimations[i];
+const elapsed = (performance.now() - a.startTime) / 1000;
+if (elapsed > 0.4) shotAnimations.splice(i, 1);
+}
+for (let i = muzzleFlashes.length - 1; i >= 0; i--) {
+const a = muzzleFlashes[i];
+const elapsed = (performance.now() - a.startTime) / 1000;
+if (elapsed > 0.1) muzzleFlashes.splice(i, 1);
+}
+for (let i = healAnimations.length - 1; i >= 0; i--) {
+const a = healAnimations[i];
+const elapsed = (performance.now() - a.startTime) / 1000;
+if (elapsed > 0.6) healAnimations.splice(i, 1);
+}
+[playerSoldiers, enemySoldiers].forEach(arr => {
+arr.forEach(s => {
+if (!s.alive) return;
+if (s.animT != null && s.animT < 1) {
+s.animT += 0.04;
+if (s.animT > 1) s.animT = 1;
+}
+});
+});
+}
+
+let enemyActionQueue = [];
+function enemyTakeTurn() {
+enemyActionQueue = [];
+let actions = 3;
+const alive = enemySoldiers.filter(s => s.alive);
+
+while (actions > 0 && alive.length > 0) {
+const s = alive[Math.floor(Math.random() * alive.length)];
+let shot = false;
+for (const p of playerSoldiers) {
+if (!p.alive) continue;
+if (canShootAt(s, p)) {
+enemyActionQueue.push({ type: 'shoot', soldier: s, target: p });
+shot = true;
+break;
+}
+}
+if (shot) {
+actions--;
+continue;
+}
+const playersAlive = playerSoldiers.filter(p => p.alive);
+if (!playersAlive.length) break;
+const target = playersAlive[Math.floor(Math.random() * playersAlive.length)];
+const dc = Math.sign(target.col - s.col);
+const dr = Math.sign(target.row - s.row);
+let moved = false;
+if (dc !== 0 && canMoveTo(s, s.col + dc, s.row)) {
+enemyActionQueue.push({ type: 'move', soldier: s, nc: s.col + dc, nr: s.row });
+s.col += dc;
+moved = true;
+}
+if (!moved && dr !== 0 && canMoveTo(s, s.col, s.row + dr)) {
+enemyActionQueue.push({ type: 'move', soldier: s, nc: s.col, nr: s.row + dr });
+s.row += dr;
+moved = true;
+}
+if (moved) {
+actions--;
+continue;
+}
+actions--;
+}
+enemySoldiers.forEach(s => {
+s.col = s.toCol;
+s.row = s.toRow;
+});
+executeEnemyQueue(0);
+}
+
+function executeEnemyQueue(idx) {
+if (idx >= enemyActionQueue.length) {
+checkWinLose();
+if (gameRunning) {
+endTurn();
+}
+return;
+}
+const action = enemyActionQueue[idx];
+if (action.type === 'move') {
+moveSoldierTo(action.soldier, action.nc, action.nr);
+} else if (action.type === 'shoot') {
+shootAt(action.soldier, action.target);
+}
+setTimeout(() => executeEnemyQueue(idx + 1), 600);
+}
+
+function checkWinLose() {
+const anyPlayer = playerSoldiers.some(s => s.alive);
+const anyEnemy = enemySoldiers.some(s => s.alive);
+if (!anyPlayer) {
+gameRunning = false;
+finalScoreEl.textContent = 'Level ' + level;
+gameOverScreen.style.display = 'flex';
+} else if (!anyEnemy) {
+coins += 100 * level;
+updateCoinsUI();
+level++;
+uiLevel.textContent = level;
+initLevel(level);
+}
+}
+
+function update() {
+if (!gameRunning) return;
+updateParticles();
+updateAnimations();
+}
+
+function drawGrid() {
+const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+g.addColorStop(0, '#9b6a3a');
+g.addColorStop(0.5, '#73502b');
+g.addColorStop(1, '#3b2712');
+ctx.fillStyle = g;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+ctx.fillStyle = 'rgba(60, 40, 20, 0.3)';
+for (let i = 0; i < 50; i++) {
+const dx = (i * 137) % canvas.width;
+const dy = (i * 89) % canvas.height;
+ctx.beginPath();
+ctx.arc(dx, dy, 5 + (i % 8), 0, Math.PI * 2);
+ctx.fill();
+}
+
+const vg = ctx.createRadialGradient(
+canvas.width / 2, canvas.height / 2,
+Math.min(canvas.width, canvas.height) * 0.1,
+canvas.width / 2, canvas.height / 2,
+Math.max(canvas.width, canvas.height) * 0.7
+);
+vg.addColorStop(0, 'rgba(0,0,0,0)');
+vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+ctx.fillStyle = vg;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+ctx.strokeStyle = 'rgba(0,0,0,0.32)';
+for (let r = 0; r <= gridRows; r++) {
+const y = offsetY + r * cellSize;
+ctx.beginPath();
+ctx.moveTo(offsetX, y);
+ctx.lineTo(offsetX + gridPixelWidth, y);
+ctx.stroke();
+}
+for (let c = 0; c <= gridCols; c++) {
+const x = offsetX + c * cellSize;
+ctx.beginPath();
+ctx.moveTo(x, offsetY);
+ctx.lineTo(x, offsetY + gridPixelHeight);
+ctx.stroke();
+}
+
+coverTiles.forEach(t => {
+const x = offsetX + t.col * cellSize;
+const y = offsetY + t.row * cellSize;
+ctx.fillStyle = 'rgba(15,23,42,0.7)';
+ctx.beginPath();
+ctx.roundRect(x + 4, y + cellSize * 0.6, cellSize - 8, cellSize * 0.24, 6);
+ctx.fill();
+const bagH = cellSize * 0.12;
+for (let row = 0; row < 2; row++) {
+const yRow = y + cellSize * 0.55 - row * (bagH - 2);
+ctx.fillStyle = row === 0 ? '#d4b18a' : '#b08c63';
+ctx.beginPath();
+ctx.roundRect(x + 6, yRow, cellSize - 12, bagH, 6);
+ctx.fill();
+ctx.strokeStyle = '#8b7355';
+ctx.lineWidth = 1;
+ctx.beginPath();
+ctx.moveTo(x + 20, yRow + bagH / 2);
+ctx.lineTo(x + cellSize - 20, yRow + bagH / 2);
+ctx.stroke();
+}
+});
+
+fires.forEach(f => {
+f.t += 0.08;
+const x = offsetX + (f.col + 0.5) * cellSize;
+const y = offsetY + (f.row + 0.7) * cellSize;
+const h = 18 + Math.sin(f.t) * 6;
+const grad = ctx.createLinearGradient(x, y - h, x, y + 4);
+grad.addColorStop(0, '#fed7aa');
+grad.addColorStop(0.4, '#fb923c');
+grad.addColorStop(1, 'rgba(185,28,28,0.7)');
+ctx.fillStyle = grad;
+ctx.beginPath();
+ctx.moveTo(x, y - h);
+ctx.quadraticCurveTo(x + 10, y - h / 2, x + 4, y);
+ctx.quadraticCurveTo(x, y - h / 3, x - 4, y);
+ctx.quadraticCurveTo(x - 10, y - h / 2, x, y - h);
+ctx.fill();
+});
+}
+
+let actionButtons = null;
+let selectedAction = null;
+
+function drawSoldier(s, isSelected) {
+if (!s.alive) return;
+let drawCol = s.col;
+let drawRow = s.row;
+if (s.animT != null && s.animT < 1 && s.fromCol != null && s.fromRow != null) {
+const t = s.animT;
+drawCol = s.fromCol + (s.toCol - s.fromCol) * t;
+drawRow = s.fromRow + (s.toRow - s.fromRow) * t;
+}
+const x = offsetX + (drawCol + 0.5) * cellSize;
+const y = offsetY + (drawRow + 0.7) * cellSize;
+const stats = unitTypes[s.unitType] || unitTypes.rifleman;
+const renderKey = stats.renderAs || s.unitType;
+const mainColor = s.side === 'player' ? stats.color : '#ef4444';
+const darkColor = s.side === 'player' ? stats.darkColor : '#b91c1c';
+
+ctx.save();
+ctx.translate(x, y);
+
+if (renderKey === 'tank') {
+ctx.fillStyle = darkColor;
+ctx.fillRect(-20, -10, 40, 24);
+ctx.fillStyle = mainColor;
+ctx.fillRect(-18, -8, 36, 20);
+ctx.fillStyle = '#374151';
+ctx.beginPath();
+ctx.arc(0, 0, 10, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = '#1f2937';
+ctx.fillRect(s.side === 'player' ? 0 : -25, -3, 25, 6);
+ctx.fillStyle = '#111827';
+ctx.fillRect(-22, 12, 44, 6);
+} else if (renderKey === 'jet') {
+ctx.fillStyle = mainColor;
+ctx.beginPath();
+ctx.moveTo(0, -20);
+ctx.lineTo(15, 10);
+ctx.lineTo(0, 5);
+ctx.lineTo(-15, 10);
+ctx.closePath();
+ctx.fill();
+ctx.fillStyle = darkColor;
+ctx.beginPath();
+ctx.moveTo(-5, -5);
+ctx.lineTo(-25, 5);
+ctx.lineTo(-5, 5);
+ctx.closePath();
+ctx.fill();
+ctx.beginPath();
+ctx.moveTo(5, -5);
+ctx.lineTo(25, 5);
+ctx.lineTo(5, 5);
+ctx.closePath();
+ctx.fill();
+ctx.fillStyle = '#60a5fa';
+ctx.beginPath();
+ctx.ellipse(0, -10, 4, 6, 0, 0, Math.PI * 2);
+ctx.fill();
+} else if (renderKey === 'helicopter') {
+ctx.fillStyle = mainColor;
+ctx.fillRect(-22, -6, 44, 12);
+ctx.fillStyle = darkColor;
+ctx.fillRect(-6, -16, 12, 10);
+ctx.fillRect(-26, -2, 12, 4);
+ctx.fillRect(14, -2, 12, 4);
+ctx.fillStyle = '#38bdf8';
+ctx.fillRect(-14, -4, 28, 8);
+ctx.strokeStyle = '#e2e8f0';
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.moveTo(-32, -18);
+ctx.lineTo(32, -18);
+ctx.stroke();
+ctx.fillStyle = '#0f172a';
+ctx.fillRect(-18, 10, 36, 4);
+} else if (renderKey === 'artillery_unit') {
+ctx.fillStyle = darkColor;
+ctx.fillRect(-15, 0, 30, 12);
+ctx.fillStyle = '#374151';
+ctx.save();
+ctx.rotate(-0.4);
+ctx.fillRect(-5, -30, 10, 35);
+ctx.restore();
+ctx.fillStyle = '#111827';
+ctx.beginPath();
+ctx.arc(-12, 14, 6, 0, Math.PI * 2);
+ctx.arc(12, 14, 6, 0, Math.PI * 2);
+ctx.fill();
+} else if (renderKey === 'machinegunner') {
+ctx.fillStyle = '#1f2937';
+ctx.fillRect(-10, 4, 8, 16);
+ctx.fillRect(2, 4, 8, 16);
+ctx.fillStyle = darkColor;
+ctx.fillRect(-12, -18, 24, 26);
+ctx.fillStyle = mainColor;
+ctx.fillRect(-10, -16, 20, 16);
+ctx.fillStyle = '#854d0e';
+ctx.fillRect(-14, -8, 6, 12);
+ctx.fillStyle = '#e0c080';
+ctx.beginPath();
+ctx.arc(0, -24, 9, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = mainColor;
+ctx.beginPath();
+ctx.arc(0, -26, 10, Math.PI, 0);
+ctx.fill();
+ctx.fillStyle = '#111827';
+ctx.fillRect(s.side === 'player' ? 0 : -28, -10, 28, 5);
+ctx.fillStyle = '#4b5563';
+ctx.fillRect(s.side === 'player' ? 20 : -28, -8, 8, 3);
+} else if (renderKey === 'sniper') {
+ctx.fillStyle = '#1f2937';
+ctx.fillRect(-4, 4, 3, 14);
+ctx.fillRect(1, 4, 3, 14);
+ctx.fillStyle = darkColor;
+ctx.fillRect(-8, -16, 16, 20);
+ctx.fillStyle = mainColor;
+ctx.fillRect(-6, -14, 12, 12);
+ctx.fillStyle = '#e0c080';
+ctx.beginPath();
+ctx.arc(0, -22, 7, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = '#94a3b8';
+ctx.fillRect(-22, -10, 44, 3);
+ctx.fillStyle = '#475569';
+ctx.fillRect(6, -12, 10, 4);
+} else {
+ctx.fillStyle = '#1f2937';
+ctx.fillRect(-8, 4, 6, 14);
+ctx.fillRect(2, 4, 6, 14);
+ctx.fillStyle = darkColor;
+ctx.fillRect(-10, -16, 20, 24);
+ctx.fillStyle = mainColor;
+ctx.fillRect(-8, -14, 16, 14);
+ctx.fillStyle = darkColor;
+ctx.fillRect(-8, -14, 6, 14);
+ctx.fillStyle = '#e0c080';
+ctx.beginPath();
+ctx.arc(0, -22, 8, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillStyle = mainColor;
+ctx.beginPath();
+ctx.arc(0, -24, 9, Math.PI, 0);
+ctx.fill();
+ctx.fillStyle = '#111827';
+ctx.fillRect(s.side === 'player' ? 0 : -18, -8, 18, 3);
+ctx.fillStyle = '#6b5b4f';
+ctx.fillRect(s.side === 'player' ? 2 : -16, -9, 10, 2);
+}
+
+if (isSelected) {
+ctx.strokeStyle = '#fbbf24';
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.arc(0, 4, 22, 0, Math.PI * 2);
+ctx.stroke();
+}
+ctx.restore();
+
+const barW = cellSize * 0.55;
+const bx = x - barW / 2;
+const by = y - cellSize * 0.6;
+ctx.fillStyle = '#111827';
+ctx.fillRect(bx - 1, by - 1, barW + 2, 8);
+const ratio = s.hp / s.maxHp;
+const hpColor = ratio > 0.5 ? '#22c55e' : ratio > 0.25 ? '#f59e0b' : '#ef4444';
+ctx.fillStyle = hpColor;
+ctx.fillRect(bx, by, barW * ratio, 6);
+
+ctx.fillStyle = 'rgba(255,255,255,0.8)';
+ctx.font = '10px system-ui';
+ctx.textAlign = 'center';
+ctx.fillText(stats.name, x, by - 4);
+}
+
+function getRangeForAction(s, actionKey) {
+if (!s) return 0;
+if (actionKey === 'shoot') return s.shootRange;
+if (actionKey === 'heal') return s.healRange;
+return s.moveRange;
+}
+
+function drawRangeCircle(s, actionKey) {
+if (!s || !s.alive) return;
+const cx = offsetX + (s.col + 0.5) * cellSize;
+const cy = offsetY + (s.row + 0.5) * cellSize;
+let range = getRangeForAction(s, actionKey || 'move');
+if (range <= 0) return;
+let multiplier = 1.0;
+if (actionKey === 'heal') {
+multiplier = 1.2;
+} else if (actionKey === 'move') {
+multiplier = 1.1;
+}
+const radius = range * cellSize * multiplier;
+ctx.save();
+let circleColor = 'rgba(56,189,248,0.9)';
+if (actionKey === 'heal') circleColor = 'rgba(52,211,153,0.9)';
+if (actionKey === 'shoot') circleColor = 'rgba(248,113,113,0.9)';
+ctx.strokeStyle = circleColor;
+ctx.lineWidth = 2;
+ctx.setLineDash([10, 6]);
+ctx.beginPath();
+ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+ctx.stroke();
+ctx.setLineDash([]);
+ctx.restore();
+}
+
+function drawWarning() {
+if (!warningMessage) return;
+const now = performance.now();
+const elapsed = (now - warningMessage.startTime) / 1000;
+const totalDuration = 2.4;
+if (elapsed > totalDuration) {
+warningMessage = null;
+return;
+}
+let angleDeg = 0;
+if (elapsed < 0.15) {
+angleDeg = 20 * (elapsed / 0.15);
+} else if (elapsed < 0.3) {
+angleDeg = 20 - 40 * ((elapsed - 0.15) / 0.15);
+} else if (elapsed < 0.45) {
+angleDeg = -20 + 40 * ((elapsed - 0.3) / 0.15);
+} else if (elapsed < 1.5) {
+angleDeg = 0;
+} else if (elapsed < 1.65) {
+angleDeg = 20 * ((elapsed - 1.5) / 0.15);
+} else if (elapsed < 1.8) {
+angleDeg = 20 - 40 * ((elapsed - 1.65) / 0.15);
+} else if (elapsed < 1.95) {
+angleDeg = -20 + 40 * ((elapsed - 1.8) / 0.15);
+}
+const alpha = Math.max(0, 1 - elapsed / totalDuration);
+ctx.save();
+ctx.translate(warningMessage.x, warningMessage.y);
+ctx.rotate((angleDeg * Math.PI) / 180);
+ctx.fillStyle = 'rgba(248,113,113,' + alpha + ')';
+ctx.font = 'bold ' + Math.floor(cellSize * 0.28) + 'px system-ui';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('Too far, Cannot reach', 0, 0);
+ctx.restore();
+}
+
+function render() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+drawGrid();
+
+actionButtons = null;
+const selectedSoldier = currentSide === 'player' && selectedIndex >= 0 ? playerSoldiers[selectedIndex] : null;
+if (selectedSoldier && selectedSoldier.alive) {
+drawRangeCircle(selectedSoldier, selectedAction || 'move');
+}
+playerSoldiers.forEach((s, idx) => {
+const sel = currentSide === 'player' && idx === selectedIndex;
+drawSoldier(s, sel);
+if (sel && s.alive) {
+const sx = offsetX + (s.col + 0.5) * cellSize;
+const sy = offsetY + (s.row + 0.1) * cellSize;
+const barW = cellSize * 2.4;
+const barH = cellSize * 0.5;
+const bx = sx - barW / 2;
+const by = sy - barH - 8;
+ctx.save();
+ctx.fillStyle = 'rgba(15,23,42,0.95)';
+ctx.strokeStyle = 'rgba(148,163,184,0.9)';
+ctx.lineWidth = 1.5;
+ctx.beginPath();
+ctx.roundRect(bx, by, barW, barH, 8);
+ctx.fill();
+ctx.stroke();
+const boxW = barW / 3;
+const labels = [
+{ key: 'move', text: 'Move', icon: '👣' },
+{ key: 'shoot', text: 'Shoot', icon: '🎯' },
+{ key: 'heal', text: 'Heal', icon: '➕' }
+];
+actionButtons = {};
+labels.forEach((btn, i) => {
+const bx0 = bx + i * boxW;
+const by0 = by;
+const canUse = btn.key !== 'heal' || s.canHeal;
+if (selectedAction === btn.key && canUse) {
+ctx.fillStyle = 'rgba(55,65,81,0.9)';
+ctx.beginPath();
+ctx.roundRect(bx0 + 2, by0 + 2, boxW - 4, barH - 4, 6);
+ctx.fill();
+}
+ctx.fillStyle = canUse ? '#e5e7eb' : '#4b5563';
+ctx.font = Math.floor(cellSize * 0.18) + 'px system-ui';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText(btn.icon, bx0 + boxW / 2, by + barH * 0.35);
+ctx.fillText(btn.text, bx0 + boxW / 2, by + barH * 0.75);
+if (canUse) {
+actionButtons[btn.key] = { x: bx0, y: by0, w: boxW, h: barH };
+}
+});
+ctx.restore();
+}
+});
+enemySoldiers.forEach(s => drawSoldier(s, false));
+
+particles.forEach(p => {
+ctx.beginPath();
+ctx.globalAlpha = Math.max(0, p.life / 40);
+ctx.fillStyle = p.color;
+ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+ctx.fill();
+});
+ctx.globalAlpha = 1;
+
+muzzleFlashes.forEach(a => {
+const elapsed = (performance.now() - a.startTime) / 1000;
+const alpha = 1 - elapsed / 0.1;
+if (alpha > 0) {
+ctx.save();
+ctx.fillStyle = 'rgba(255,200,50,' + alpha + ')';
+ctx.beginPath();
+ctx.arc(a.x, a.y, 15 * alpha, 0, Math.PI * 2);
+ctx.fill();
+ctx.restore();
+}
+});
+
+shotAnimations.forEach(a => {
+const elapsed = (performance.now() - a.startTime) / 1000;
+const duration = 0.4;
+const t = Math.min(1, elapsed / duration);
+const alpha = 1 - t;
+const bx = a.sx + (a.tx - a.sx) * t;
+const by = a.sy + (a.ty - a.sy) * t;
+ctx.save();
+const grad = ctx.createLinearGradient(a.sx, a.sy, bx, by);
+grad.addColorStop(0, 'rgba(255,200,50,0)');
+grad.addColorStop(0.7, a.friendly ? 'rgba(96,165,250,0.6)' : 'rgba(248,113,113,0.6)');
+grad.addColorStop(1, a.friendly ? 'rgba(96,165,250,1)' : 'rgba(248,113,113,1)');
+ctx.strokeStyle = grad;
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.moveTo(a.sx, a.sy);
+ctx.lineTo(bx, by);
+ctx.stroke();
+ctx.fillStyle = '#fef08a';
+ctx.beginPath();
+ctx.arc(bx, by, 4, 0, Math.PI * 2);
+ctx.fill();
+ctx.restore();
+});
+
+healAnimations.forEach(a => {
+const elapsed = (performance.now() - a.startTime) / 1000;
+const t = Math.min(1, elapsed / 0.6);
+const radius = cellSize * (0.3 + 0.5 * t);
+const alpha = 1 - t;
+ctx.save();
+ctx.strokeStyle = 'rgba(52,211,153,' + alpha + ')';
+ctx.lineWidth = 4;
+ctx.beginPath();
+ctx.arc(a.tx, a.ty, radius, 0, Math.PI * 2);
+ctx.stroke();
+if (t < 0.5) {
+ctx.fillStyle = 'rgba(52,211,153,' + alpha + ')';
+ctx.fillRect(a.tx - 3, a.ty - 12, 6, 24);
+ctx.fillRect(a.tx - 12, a.ty - 3, 24, 6);
+}
+ctx.restore();
+});
+
+drawWarning();
+}
+
+function loop() {
+update();
+render();
+requestAnimationFrame(loop);
+}
+
+canvas.addEventListener('click', e => {
+if (!gameRunning || currentSide !== 'player') return;
+const rect = canvas.getBoundingClientRect();
+const scaleX = canvas.width / rect.width;
+const scaleY = canvas.height / rect.height;
+const x = (e.clientX - rect.left) * scaleX;
+const y = (e.clientY - rect.top) * scaleY;
+
+if (actionButtons) {
+for (const key of Object.keys(actionButtons)) {
+const b = actionButtons[key];
+if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
+selectedAction = key;
+return;
+}
+}
+}
+
+const localX = x - offsetX;
+const localY = y - offsetY;
+const col = Math.floor(localX / cellSize);
+const row = Math.floor(localY / cellSize);
+if (!inBounds(col, row)) return;
+
+const ownIdx = playerSoldiers.findIndex(s => s.alive && s.col === col && s.row === row);
+const selected = selectedIndex >= 0 ? playerSoldiers[selectedIndex] : null;
+if (ownIdx !== -1) {
+const clickedSoldier = playerSoldiers[ownIdx];
+if (selected && selected.alive && selectedAction === 'heal' && ownIdx !== selectedIndex) {
+const target = clickedSoldier;
+let acted = healFrom(selected, target);
+if (acted) {
+spendAction();
+checkWinLose();
+} else {
+const sx = offsetX + (selected.col + 0.5) * cellSize;
+const sy = offsetY + (selected.row + 0.5) * cellSize;
+const range = getRangeForAction(selected, 'heal');
+const radius = range * cellSize * 1.2;
+const dx = x - sx;
+const dy = y - sy;
+const dist = Math.hypot(dx, dy);
+if (dist > radius) {
+warningMessage = { x: x, y: y, startTime: performance.now() };
+}
+}
+return;
+}
+if (selectedIndex !== ownIdx) {
+selectedIndex = ownIdx;
+selectedAction = 'move';
+} else if (!selectedAction) {
+selectedAction = 'move';
+}
+return;
+}
+
+if (!selected || !selected.alive) return;
+if (!selectedAction) selectedAction = 'move';
+
+let acted = false;
+if (selectedAction === 'move') {
+acted = moveSoldierTo(selected, col, row);
+}
+if (selectedAction === 'shoot') {
+const target = soldierAt(col, row, 'enemy');
+if (target) {
+acted = shootAt(selected, target);
+}
+}
+if (selectedAction === 'heal') {
+const target = soldierAt(col, row, 'player');
+if (target && target !== selected) {
+acted = healFrom(selected, target);
+}
+}
+if (acted) {
+spendAction();
+checkWinLose();
+} else {
+const sx = offsetX + (selected.col + 0.5) * cellSize;
+const sy = offsetY + (selected.row + 0.5) * cellSize;
+const range = getRangeForAction(selected, selectedAction);
+let multiplier = selectedAction === 'heal' ? 1.2 : selectedAction === 'move' ? 1.1 : 1.0;
+const radius = range * cellSize * multiplier;
+const dx = x - sx;
+const dy = y - sy;
+const dist = Math.hypot(dx, dy);
+if (dist > radius) {
+warningMessage = { x: x, y: y, startTime: performance.now() };
+}
+}
+});
+
+startBtn.addEventListener('click', () => {
+startOverlay.style.display = 'none';
+gameOverScreen.style.display = 'none';
+level = 1;
+initLevel(level);
+gameRunning = true;
+});
+
+hangarBtn.addEventListener('click', () => {
+startOverlay.style.display = 'none';
+hangarOverlay.classList.add('show');
+updateHangarUI();
+});
+
+backFromHangar.addEventListener('click', () => {
+hangarOverlay.classList.remove('show');
+startOverlay.style.display = 'flex';
+});
+
+restartBtn.addEventListener('click', () => {
+gameOverScreen.style.display = 'none';
+level = 1;
+initLevel(level);
+gameRunning = true;
+});
+
+document.getElementById('buy-slot4').addEventListener('click', () => {
+if (coins >= 2000 && maxSlots < 4) {
+coins -= 2000;
+maxSlots = 4;
+updateCoinsUI();
+updateHangarUI();
+}
+});
+
+document.getElementById('buy-slot5').addEventListener('click', () => {
+if (coins >= 5000 && maxSlots < 5) {
+coins -= 5000;
+maxSlots = 5;
+updateCoinsUI();
+updateHangarUI();
+}
+});
+
+const buyTankBtn = document.getElementById('buy-tank');
+if (buyTankBtn) {
+buyTankBtn.addEventListener('click', () => {
+if (coins < 500) return;
+coins -= 500;
+adjustInventoryCount('tank', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('tank');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyJetBtn = document.getElementById('buy-jet');
+if (buyJetBtn) {
+buyJetBtn.addEventListener('click', () => {
+if (coins < 1000) return;
+coins -= 1000;
+adjustInventoryCount('jet', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('jet');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyArtilleryBtn = document.getElementById('buy-artillery');
+if (buyArtilleryBtn) {
+buyArtilleryBtn.addEventListener('click', () => {
+if (coins < 300) return;
+coins -= 300;
+adjustInventoryCount('artillery_unit', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('artillery_unit');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyHelicopterBtn = document.getElementById('buy-helicopter');
+if (buyHelicopterBtn) {
+buyHelicopterBtn.addEventListener('click', () => {
+if (coins < 1500) return;
+coins -= 1500;
+adjustInventoryCount('helicopter', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('helicopter');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buySniperBtn = document.getElementById('buy-sniper');
+if (buySniperBtn) {
+buySniperBtn.addEventListener('click', () => {
+if (coins < 800) return;
+coins -= 800;
+adjustInventoryCount('sniper', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('sniper');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyMedicBtn = document.getElementById('buy-medic');
+if (buyMedicBtn) {
+buyMedicBtn.addEventListener('click', () => {
+if (coins < 600) return;
+coins -= 600;
+adjustInventoryCount('medic', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('medic');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyShieldbearerBtn = document.getElementById('buy-shieldbearer');
+if (buyShieldbearerBtn) {
+buyShieldbearerBtn.addEventListener('click', () => {
+if (coins < 900) return;
+coins -= 900;
+adjustInventoryCount('shieldbearer', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('shieldbearer');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+const buyDroneBtn = document.getElementById('buy-drone');
+if (buyDroneBtn) {
+buyDroneBtn.addEventListener('click', () => {
+if (coins < 1200) return;
+coins -= 1200;
+adjustInventoryCount('drone', 1);
+if (ownedUnits.length < maxSlots) {
+ownedUnits.push('drone');
+}
+updateCoinsUI();
+updateHangarUI();
+});
+}
+
+if (unitChangeClose) {
+unitChangeClose.addEventListener('click', closeUnitChangeOverlay);
+}
+if (unitChangeOverlay) {
+unitChangeOverlay.addEventListener('click', e => {
+if (e.target === unitChangeOverlay) {
+closeUnitChangeOverlay();
+}
+});
+}
+
+if (mergeBtn) {
+mergeBtn.addEventListener('click', openMergeOverlay);
+}
+if (mergeClose) {
+mergeClose.addEventListener('click', closeMergeOverlay);
+}
+if (mergeCancel) {
+mergeCancel.addEventListener('click', closeMergeOverlay);
+}
+if (mergeOverlay) {
+mergeOverlay.addEventListener('click', e => {
+if (e.target === mergeOverlay) {
+closeMergeOverlay();
+}
+});
+}
+if (mergeConfirm) {
+mergeConfirm.addEventListener('click', performMerge);
+}
+
+document.addEventListener('keydown', e => {
+if (e.key === 'Escape') {
+if (mergeOverlay && mergeOverlay.classList.contains('show')) {
+closeMergeOverlay();
+return;
+}
+if (unitChangeOverlay && unitChangeOverlay.classList.contains('show')) {
+closeUnitChangeOverlay();
+}
+}
+});
+
+function updateHangarUI() {
+shopCoinsEl.textContent = coins;
+const slot4Btn = document.getElementById('buy-slot4');
+const slot5Btn = document.getElementById('buy-slot5');
+slot4Btn.disabled = maxSlots >= 4 || coins < 2000;
+slot4Btn.textContent = maxSlots >= 4 ? 'Owned' : '$2000';
+slot5Btn.disabled = maxSlots >= 5 || coins < 5000;
+slot5Btn.textContent = maxSlots >= 5 ? 'Owned' : '$5000';
+
+const tankBtn = document.getElementById('buy-tank');
+const jetBtn = document.getElementById('buy-jet');
+const artilleryBtn = document.getElementById('buy-artillery');
+const helicopterBtn = document.getElementById('buy-helicopter');
+const sniperBtn = document.getElementById('buy-sniper');
+const medicBtn = document.getElementById('buy-medic');
+const shieldbearerBtn = document.getElementById('buy-shieldbearer');
+const droneBtn = document.getElementById('buy-drone');
+if (tankBtn) tankBtn.disabled = coins < 500;
+if (jetBtn) jetBtn.disabled = coins < 1000;
+if (artilleryBtn) artilleryBtn.disabled = coins < 300;
+if (helicopterBtn) helicopterBtn.disabled = coins < 1500;
+if (sniperBtn) sniperBtn.disabled = coins < 800;
+if (medicBtn) medicBtn.disabled = coins < 600;
+if (shieldbearerBtn) shieldbearerBtn.disabled = coins < 900;
+if (droneBtn) droneBtn.disabled = coins < 1200;
+
+const preview = document.getElementById('squad-preview');
+preview.innerHTML = '';
+ownedUnits.forEach((unitType, idx) => {
+const stats = unitTypes[unitType] || unitTypes.rifleman;
+const card = document.createElement('div');
+card.className = 'unit-card clickable';
+card.setAttribute('role', 'button');
+card.setAttribute('aria-label', 'Change unit ' + stats.name);
+card.tabIndex = 0;
+const cvs = document.createElement('canvas');
+cvs.width = 80;
+cvs.height = 80;
+const pctx = cvs.getContext('2d');
+const previewType = unitTypes[unitType] ? unitType : 'rifleman';
+drawUnitPreview(pctx, previewType, 40, 50);
+card.appendChild(cvs);
+const name = document.createElement('div');
+name.className = 'name';
+name.textContent = stats.name;
+card.appendChild(name);
+const ownedTotal = inventoryCounts[unitType] || 0;
+const countLine = document.createElement('div');
+countLine.style.fontSize = '12px';
+countLine.style.opacity = '0.65';
+countLine.style.marginTop = '4px';
+countLine.textContent = 'Owned: ' + ownedTotal;
+card.appendChild(countLine);
+card.addEventListener('click', () => openUnitChangeOverlay(idx));
+card.addEventListener('keydown', e => {
+if (e.key === 'Enter' || e.key === ' ') {
+e.preventDefault();
+openUnitChangeOverlay(idx);
+}
+});
+preview.appendChild(card);
+});
+for (let i = ownedUnits.length; i < maxSlots; i++) {
+const card = document.createElement('div');
+card.className = 'unit-card';
+card.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center;color:#64748b;">Empty</div>';
+preview.appendChild(card);
+}
+
+updateMergeAvailability();
+}
+
+function formatUnitStats(stats) {
+const ref = stats || unitTypes.rifleman;
+const shots = ref.shotsPerAttack && ref.shotsPerAttack > 1 ? ref.shotsPerAttack : 1;
+const dmgDisplay = shots > 1 ? ref.damage + '×' + shots : ref.damage;
+return 'HP ' + ref.hp + ' • DMG ' + dmgDisplay + ' • Move ' + ref.moveRange;
+}
+
+function openUnitChangeOverlay(index) {
+if (index < 0 || index >= ownedUnits.length) return;
+if (!unitChangeOverlay || !unitChangeCurrent || !unitChangeOptions) return;
+currentHangarEditIndex = index;
+const unitType = ownedUnits[index];
+const stats = unitTypes[unitType] || unitTypes.rifleman;
+unitChangeCurrent.innerHTML = '';
+const canvas = document.createElement('canvas');
+canvas.width = 64;
+canvas.height = 64;
+const previewType = unitTypes[unitType] ? unitType : 'rifleman';
+drawUnitPreview(canvas.getContext('2d'), previewType, 32, 40);
+const details = document.createElement('div');
+details.className = 'details';
+const title = document.createElement('div');
+title.style.fontWeight = '600';
+title.textContent = stats.name;
+const statLine = document.createElement('div');
+statLine.style.opacity = '0.75';
+statLine.textContent = formatUnitStats(stats);
+details.appendChild(title);
+details.appendChild(statLine);
+const ownedLine = document.createElement('div');
+ownedLine.style.opacity = '0.65';
+ownedLine.textContent = 'Owned: ' + (inventoryCounts[unitType] || 0);
+details.appendChild(ownedLine);
+unitChangeCurrent.appendChild(canvas);
+unitChangeCurrent.appendChild(details);
+
+renderUnitChangeOptions(unitType);
+unitChangeOverlay.classList.add('show');
+}
+
+function renderUnitChangeOptions(currentType) {
+if (!unitChangeOptions) return;
+unitChangeOptions.innerHTML = '';
+const list = getInventoryTypesForSelection(currentType).filter(type => unitTypes[type]);
+list.sort((a, b) => unitTypes[a].name.localeCompare(unitTypes[b].name));
+list.forEach(type => {
+const stats = unitTypes[type];
+const option = document.createElement('div');
+option.className = 'unit-change-option';
+if (type === currentType) option.classList.add('selected');
+const canvas = document.createElement('canvas');
+canvas.width = 80;
+canvas.height = 80;
+drawUnitPreview(canvas.getContext('2d'), type, 40, 50);
+option.appendChild(canvas);
+const label = document.createElement('div');
+label.className = 'label';
+label.textContent = stats.name + ' ×' + (inventoryCounts[type] || 0);
+option.appendChild(label);
+const statLine = document.createElement('div');
+statLine.className = 'stats';
+statLine.textContent = formatUnitStats(stats);
+option.appendChild(statLine);
+const assignedElsewhere = getRosterCount(type, currentHangarEditIndex);
+const inCurrentSlot = currentType === type ? 1 : 0;
+const spare = Math.max(0, (inventoryCounts[type] || 0) - assignedElsewhere - inCurrentSlot);
+const spareLine = document.createElement('div');
+spareLine.className = 'stats';
+spareLine.style.opacity = '0.65';
+spareLine.textContent = 'Spare: ' + spare;
+option.appendChild(spareLine);
+const canUse = canAssignUnitType(type, currentHangarEditIndex);
+if (!canUse) {
+option.classList.add('disabled');
+} else {
+option.addEventListener('click', () => applyUnitChange(type));
+}
+unitChangeOptions.appendChild(option);
+});
+if (unitChangeOptions.children.length === 0) {
+const empty = document.createElement('div');
+empty.style.opacity = '0.7';
+empty.textContent = 'No units owned yet.';
+unitChangeOptions.appendChild(empty);
+}
+}
+
+function applyUnitChange(newType) {
+if (currentHangarEditIndex == null) return;
+const previous = ownedUnits[currentHangarEditIndex];
+if (!unitTypes[newType]) {
+closeUnitChangeOverlay();
+return;
+}
+if (!canAssignUnitType(newType, currentHangarEditIndex)) {
+return;
+}
+if (previous !== newType) {
+ownedUnits[currentHangarEditIndex] = newType;
+updateHangarUI();
+}
+closeUnitChangeOverlay();
+}
+
+function closeUnitChangeOverlay() {
+if (unitChangeOverlay) unitChangeOverlay.classList.remove('show');
+if (unitChangeOptions) unitChangeOptions.innerHTML = '';
+if (unitChangeCurrent) unitChangeCurrent.innerHTML = '';
+currentHangarEditIndex = null;
+}
+
+function updateMergeAvailability() {
+const counts = {};
+ownedUnits.forEach(type => {
+counts[type] = (counts[type] || 0) + 1;
+});
+mergeCandidateInfo = Object.keys(counts)
+.filter(type => counts[type] >= 3 && upgradeMap[type])
+.map(type => ({ type, count: counts[type], result: upgradeMap[type] }))
+.filter(info => unitTypes[info.result]);
+
+if (mergeBtn) {
+mergeBtn.disabled = mergeCandidateInfo.length === 0;
+mergeBtn.classList.toggle('available', mergeCandidateInfo.length > 0);
+}
+if (!mergeCandidateInfo.some(info => info.type === selectedMergeType)) {
+selectedMergeType = mergeCandidateInfo.length ? mergeCandidateInfo[0].type : null;
+}
+}
+
+function openMergeOverlay() {
+if (mergeCandidateInfo.length === 0) return;
+if (!mergeOverlay) return;
+renderMergeOverlay();
+mergeOverlay.classList.add('show');
+}
+
+function closeMergeOverlay() {
+if (!mergeOverlay) return;
+mergeOverlay.classList.remove('show');
+if (mergeTypeOptions) mergeTypeOptions.innerHTML = '';
+if (mergeLeftGrid) mergeLeftGrid.innerHTML = '';
+if (mergeRightGrid) mergeRightGrid.innerHTML = '';
+}
+
+function renderMergeOverlay() {
+if (!mergeTypeOptions || !mergeLeftGrid || !mergeRightGrid) return;
+mergeTypeOptions.innerHTML = '';
+mergeLeftGrid.innerHTML = '';
+mergeRightGrid.innerHTML = '';
+if (mergeCandidateInfo.length === 0) {
+if (mergeConfirm) mergeConfirm.disabled = true;
+return;
+}
+mergeCandidateInfo.forEach(info => {
+const btn = document.createElement('button');
+btn.className = 'merge-option-btn';
+if (info.type === selectedMergeType) btn.classList.add('active');
+btn.textContent = unitTypes[info.type].name + ' ×' + info.count;
+btn.addEventListener('click', () => {
+selectedMergeType = info.type;
+renderMergeOverlay();
+});
+mergeTypeOptions.appendChild(btn);
+});
+
+const activeInfo = mergeCandidateInfo.find(info => info.type === selectedMergeType) || mergeCandidateInfo[0];
+selectedMergeType = activeInfo ? activeInfo.type : null;
+if (mergeConfirm) mergeConfirm.disabled = !activeInfo;
+if (!activeInfo) return;
+
+for (let i = 0; i < 3; i++) {
+mergeLeftGrid.appendChild(createMergePreviewCard(activeInfo.type, 'Unit ' + (i + 1)));
+}
+mergeRightGrid.appendChild(createMergePreviewCard(activeInfo.result, 'Merged')); 
+}
+
+function createMergePreviewCard(unitType, labelText) {
+const wrapper = document.createElement('div');
+wrapper.className = 'unit-change-option';
+wrapper.style.cursor = 'default';
+wrapper.style.pointerEvents = 'none';
+const statsRef = unitTypes[unitType] || unitTypes.rifleman;
+const canvas = document.createElement('canvas');
+canvas.width = 100;
+canvas.height = 100;
+const previewType = unitTypes[unitType] ? unitType : 'rifleman';
+drawUnitPreview(canvas.getContext('2d'), previewType, 50, 60);
+wrapper.appendChild(canvas);
+const label = document.createElement('div');
+label.className = 'label';
+label.textContent = statsRef.name;
+wrapper.appendChild(label);
+const stats = document.createElement('div');
+stats.className = 'stats';
+stats.textContent = formatUnitStats(statsRef);
+wrapper.appendChild(stats);
+if (labelText) {
+const helper = document.createElement('div');
+helper.className = 'stats';
+helper.style.opacity = '0.6';
+helper.textContent = labelText;
+wrapper.appendChild(helper);
+}
+return wrapper;
+}
+
+function performMerge() {
+const info = mergeCandidateInfo.find(item => item.type === selectedMergeType);
+if (!info) return;
+const totalOwned = inventoryCounts[info.type] || 0;
+if (totalOwned < 3) {
+updateHangarUI();
+closeMergeOverlay();
+return;
+}
+const indices = [];
+for (let i = 0; i < ownedUnits.length && indices.length < 3; i++) {
+if (ownedUnits[i] === info.type) {
+indices.push(i);
+}
+}
+if (indices.length < 3) {
+updateHangarUI();
+closeMergeOverlay();
+return;
+}
+indices.sort((a, b) => b - a).forEach(idx => ownedUnits.splice(idx, 1));
+ownedUnits.push(info.result);
+adjustInventoryCount(info.type, -3);
+adjustInventoryCount(info.result, 1);
+updateHangarUI();
+closeMergeOverlay();
+}
+
+function drawUnitPreview(pctx, unitType, x, y) {
+const baseKey = unitTypes[unitType] ? unitType : 'rifleman';
+const stats = unitTypes[baseKey];
+const mainColor = stats.color;
+const darkColor = stats.darkColor;
+const renderKey = stats.renderAs || baseKey;
+pctx.save();
+pctx.translate(x, y);
+pctx.scale(0.8, 0.8);
+
+if (renderKey === 'tank') {
+pctx.fillStyle = darkColor;
+pctx.fillRect(-20, -10, 40, 24);
+pctx.fillStyle = mainColor;
+pctx.fillRect(-18, -8, 36, 20);
+pctx.fillStyle = '#374151';
+pctx.beginPath();
+pctx.arc(0, 0, 10, 0, Math.PI * 2);
+pctx.fill();
+pctx.fillStyle = '#1f2937';
+pctx.fillRect(0, -3, 25, 6);
+pctx.fillStyle = '#111827';
+pctx.fillRect(-22, 12, 44, 6);
+} else if (renderKey === 'jet') {
+pctx.fillStyle = mainColor;
+pctx.beginPath();
+pctx.moveTo(0, -20);
+pctx.lineTo(15, 10);
+pctx.lineTo(0, 5);
+pctx.lineTo(-15, 10);
+pctx.closePath();
+pctx.fill();
+pctx.fillStyle = darkColor;
+pctx.beginPath();
+pctx.moveTo(-5, -5);
+pctx.lineTo(-25, 5);
+pctx.lineTo(-5, 5);
+pctx.closePath();
+pctx.fill();
+pctx.beginPath();
+pctx.moveTo(5, -5);
+pctx.lineTo(25, 5);
+pctx.lineTo(5, 5);
+pctx.closePath();
+pctx.fill();
+pctx.fillStyle = '#60a5fa';
+pctx.beginPath();
+pctx.ellipse(0, -10, 4, 6, 0, 0, Math.PI * 2);
+pctx.fill();
+} else if (renderKey === 'helicopter') {
+pctx.fillStyle = mainColor;
+pctx.fillRect(-22, -6, 44, 12);
+pctx.fillStyle = darkColor;
+pctx.fillRect(-6, -16, 12, 10);
+pctx.fillRect(-26, -2, 12, 4);
+pctx.fillRect(14, -2, 12, 4);
+pctx.fillStyle = '#38bdf8';
+pctx.fillRect(-14, -4, 28, 8);
+pctx.strokeStyle = '#e2e8f0';
+pctx.lineWidth = 3;
+pctx.beginPath();
+pctx.moveTo(-32, -18);
+pctx.lineTo(32, -18);
+pctx.stroke();
+pctx.fillStyle = '#0f172a';
+pctx.fillRect(-18, 10, 36, 4);
+} else if (renderKey === 'artillery_unit') {
+pctx.fillStyle = darkColor;
+pctx.fillRect(-15, 0, 30, 12);
+pctx.fillStyle = '#374151';
+pctx.save();
+pctx.rotate(-0.4);
+pctx.fillRect(-5, -30, 10, 35);
+pctx.restore();
+pctx.fillStyle = '#111827';
+pctx.beginPath();
+pctx.arc(-12, 14, 6, 0, Math.PI * 2);
+pctx.arc(12, 14, 6, 0, Math.PI * 2);
+pctx.fill();
+} else if (renderKey === 'machinegunner') {
+pctx.fillStyle = '#1f2937';
+pctx.fillRect(-10, 4, 8, 16);
+pctx.fillRect(2, 4, 8, 16);
+pctx.fillStyle = darkColor;
+pctx.fillRect(-12, -18, 24, 26);
+pctx.fillStyle = mainColor;
+pctx.fillRect(-10, -16, 20, 16);
+pctx.fillStyle = '#854d0e';
+pctx.fillRect(-14, -8, 6, 12);
+pctx.fillStyle = '#e0c080';
+pctx.beginPath();
+pctx.arc(0, -24, 9, 0, Math.PI * 2);
+pctx.fill();
+pctx.fillStyle = mainColor;
+pctx.beginPath();
+pctx.arc(0, -26, 10, Math.PI, 0);
+pctx.fill();
+pctx.fillStyle = '#111827';
+pctx.fillRect(0, -10, 28, 5);
+} else if (renderKey === 'sniper') {
+pctx.fillStyle = '#1f2937';
+pctx.fillRect(-4, 4, 3, 14);
+pctx.fillRect(1, 4, 3, 14);
+pctx.fillStyle = darkColor;
+pctx.fillRect(-8, -16, 16, 20);
+pctx.fillStyle = mainColor;
+pctx.fillRect(-6, -14, 12, 12);
+pctx.fillStyle = '#e0c080';
+pctx.beginPath();
+pctx.arc(0, -22, 7, 0, Math.PI * 2);
+pctx.fill();
+pctx.fillStyle = '#94a3b8';
+pctx.fillRect(-22, -10, 44, 3);
+pctx.fillStyle = '#475569';
+pctx.fillRect(6, -12, 10, 4);
+} else {
+pctx.fillStyle = '#1f2937';
+pctx.fillRect(-8, 4, 6, 14);
+pctx.fillRect(2, 4, 6, 14);
+pctx.fillStyle = darkColor;
+pctx.fillRect(-10, -16, 20, 24);
+pctx.fillStyle = mainColor;
+pctx.fillRect(-8, -14, 16, 14);
+pctx.fillStyle = '#e0c080';
+pctx.beginPath();
+pctx.arc(0, -22, 8, 0, Math.PI * 2);
+pctx.fill();
+pctx.fillStyle = mainColor;
+pctx.beginPath();
+pctx.arc(0, -24, 9, Math.PI, 0);
+pctx.fill();
+pctx.fillStyle = '#111827';
+pctx.fillRect(0, -8, 18, 3);
+}
+pctx.restore();
+}
+
+initLevel(level);
+loop();
+</script>
+</body>
+</html>

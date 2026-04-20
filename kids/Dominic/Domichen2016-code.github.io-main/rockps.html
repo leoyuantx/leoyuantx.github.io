@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Rock Paper Scissors</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            gap: 2rem;
+            color: #f0f9ff;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: clamp(28px, 5vw, 52px);
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .player-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #p1, #p2 {
+            font-size: clamp(24px, 4vw, 40px);
+        }
+
+        #leftpic, #rightpic {
+            width: clamp(140px, 30vw, 420px);
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(10px);
+            display: block;
+            object-fit: cover;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #leftpic:hover, #rightpic:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        #btrestart {
+            display: none;
+            flex-direction: column;
+            gap: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(10px);
+            padding: 2rem 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            margin-top: 2rem;
+        }
+
+        #btrestart > div {
+            cursor: pointer;
+            padding: 0.8rem 1.6rem;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border-radius: 12px;
+            border: none;
+            color: #f0f9ff;
+            font-size: clamp(16px, 2vw, 20px);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        #btrestart > div:hover {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+            transform: translateY(-2px);
+        }
+
+        #btrestart button {
+            cursor: pointer;
+            padding: 0.8rem 1.6rem;
+            background: linear-gradient(90deg, #ec4899, #db2777);
+            border-radius: 12px;
+            border: none;
+            color: #f0f9ff;
+            font-size: clamp(16px, 2vw, 20px);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+
+        #btrestart button:hover {
+            background: linear-gradient(90deg, #db2777, #be185d);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.6);
+            transform: translateY(-2px);
+        }
+
+        #result {
+            font-size: clamp(20px, 3vw, 32px);
+            font-weight: 800;
+            text-align: center;
+            color: #fbbf24;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+
+        audio {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 100;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                gap: 2rem;
+            }
+            #btrestart {
+                padding: 1.5rem 1.2rem;
+            }
+            h1 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+                gap: 1.5rem;
+            }
+            .game-container {
+                gap: 1.5rem;
+            }
+            #leftpic, #rightpic {
+                width: 120px;
+            }
+        }
+    </style>
+    <script>
+        var leftChoice;
+        var rightChoice;
+        document.addEventListener('keyup', function(event){     
+            console.log(event.key);
+            if (event.key == "q") {
+                leftChoice = "rock"
+            } else if (event.key == "w"){
+                leftChoice = "paper"
+            } else if (event.key == "e") {
+                leftChoice = "scissor"
+            } else if (event.key == "i") {
+                rightChoice = "rock"
+            } else if (event.key == "o"){
+                rightChoice = "paper"     
+            } else if (event.key == "p") {
+                rightChoice = "scissor"
+            }
+
+            checkwinne()
+        }); 
+
+
+        function checkwinne() {
+            console.log("check" + leftChoice + rightChoice)
+            if (leftChoice=="rock" && rightChoice=="rock") {
+                setTimeout(() => {
+                    document.getElementById("result").innerHTML = "Draw"
+                }, 200);
+                
+                imagesL("rock.png")
+                imagesR("rock.png")
+            }
+            if (leftChoice=="scissor" && rightChoice=="scissor") {
+                setTimeout(() => {
+                    document.getElementById("result").innerHTML = "Draw"
+                }, 200);
+             
+             imagesL("scissors.jpg")
+             imagesR("scissors.jpg")
+            }
+            if  (leftChoice=="paper"  && rightChoice=="paper") {
+                setTimeout(() => {
+                    document.getElementById("result").innerHTML = "Draw"
+                }, 200);
+             
+             imagesL("paper.jpg")
+             imagesR("paper.jpg")
+            }
+            if  (leftChoice=="rock"   && rightChoice=="scissor"){
+             
+             setTimeout(() => {
+                document.getElementById("result").innerHTML = "Player 1 wins"
+                }, 200);
+             imagesL("rock.png")
+             imagesR("scissors.jpg") 
+            }
+            if  (leftChoice=="rock"   && rightChoice=="paper"){
+             setTimeout(() => {
+                document.getElementById("result").innerHTML = "Player 2 wins"   
+                }, 200);
+
+             imagesL("rock.png")
+             imagesR("paper.jpg")
+            }
+            if  (leftChoice=="paper"   && rightChoice=="rock"){
+             
+             setTimeout(() => {
+                document.getElementById("result").innerHTML = "Player 1 wins"
+                }, 200);
+             imagesL("paper.jpg")
+             imagesR("rock.png")
+            }
+            if  (leftChoice=="paper"   && rightChoice=="scissor"){
+             
+             setTimeout(() => {
+                document.getElementById("result").innerHTML = "Player 2 wins"
+                }, 200);
+             imagesL("paper.jpg")
+             imagesR("scissors.jpg")
+            }
+            if  (leftChoice=="scissor"   && rightChoice=="rock"){
+             
+             setTimeout(() => {
+                document.getElementById("result").innerHTML = "Player 2 wins"
+                }, 200);
+             imagesL("scissors.jpg")
+             imagesR("rock.png")
+            }
+            if  (leftChoice=="scissor"   && rightChoice=="paper"){
+             
+             setTimeout(() => {
+              document.getElementById("result").innerHTML = "player 1 wins"
+                }, 200);
+             imagesL("scissors.jpg")
+             imagesR("paper.jpg")
+            }
+
+            
+            showFeedbackAndRestart()
+             
+        } 
+            
+
+        function imagesL(newImageName) {
+            document.getElementById("leftpic").src = newImageName;
+  
+        }
+
+        function imagesR(newImageName) {
+            document.getElementById("rightpic").src = newImageName;
+        }
+
+        function showFeedbackAndRestart() {
+            // document.getElementById('p1').style.display = "none"
+            // document.getElementById('p2').style.display = "none"
+            // document.getElementById('leftpic').style.display = "none"
+            // document.getElementById('rightpic').style.display = "none"
+
+            document.getElementById("btrestart").style.display = "block";
+          
+        }
+
+        function refreshTheGame() {
+            window.location.reload();
+        }
+
+        function gohome(){
+            window.location.href = "./index.html";
+        }
+
+    </script>
+</head>
+<body>
+    <audio controls>
+        <source src="Relaxing_Music.mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+    <div class="game-container">
+        <div class="player-section">
+            <h1 id="p1">Player 1</h1>
+            <img id="leftpic" src="./cloud.jpeg" alt="Player 1 choice">
+        </div>
+        <div class="player-section">
+            <h1 id="p2">Player 2</h1>
+            <img id="rightpic" src="./cloud.jpeg" alt="Player 2 choice">
+        </div>
+    </div>
+    <div id="btrestart">
+        <div onclick="refreshTheGame()">Click here to play again</div>
+        <button onclick="gohome()">Back to Main Page</button>
+        <div id="result" onclick="rg()"></div>
+    </div>
+</body>
+</html>

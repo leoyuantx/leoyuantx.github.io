@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost catcher</title>
+    <style>
+        #img_ghost {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            left: 10px;
+            top: 10px;
+            transition: all 1s linear;
+        }
+    </style>
+    
+</head>
+<body>
+    <img id="img_ghost" src="./mole.png" alt="" onclick="moveGhost()">
+    <script>
+
+        function getRndInteger(min, max) {
+           return Math.floor(Math.random() * (max - min) ) + min;
+        }
+
+        function moveGhost(params) {
+            let ghost = document.getElementById("img_ghost")
+            
+            var randomLeft = getRndInteger(0, 1560)
+            var randomTop = getRndInteger(0, 730)
+            
+            ghost.style.top = randomTop+"px"
+            ghost.style.left = randomLeft+"px"
+        }
+    </script>
+</body>
+</html>

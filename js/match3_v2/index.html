@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三消游戏 V2.0 - Match 3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            gap: 30px;
+        }
+
+        .score, .moves, .target {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-area {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .tool-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tool-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .tool-btn.active {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            animation: tool-pulse 1s ease-in-out infinite;
+        }
+        
+        .tool-btn .tool-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tool-btn .tool-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #bdc3c7;
+            white-space: nowrap;
+        }
+        
+        @keyframes tool-pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(231, 76, 60, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.8); }
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 3px;
+            background: #2c3e50;
+            padding: 10px;
+            border-radius: 15px;
+            margin: 20px auto;
+            width: 480px;
+            height: 480px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.selected {
+            animation: pulse 0.5s infinite alternate;
+            border: 3px solid #fff;
+        }
+        
+        .cell.drag-source {
+            border: 3px solid #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+        
+        .cell.drag-target {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border: 3px solid #fff;
+        }
+        
+        .cell.drag-swap {
+            transition: transform 0.15s ease-out;
+            z-index: 50;
+        }
+
+        .cell.matched {
+            animation: explode 0.6s ease-out forwards;
+            z-index: 100;
+        }
+
+        .cell.falling {
+            animation: fall-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        .cell.new-gem {
+            animation: new-gem-enter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes explode {
+            0% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 1;
+                filter: brightness(1);
+            }
+            30% { 
+                transform: scale(1.4) rotate(10deg); 
+                opacity: 1;
+                filter: brightness(1.5);
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            }
+            60% { 
+                transform: scale(1.2) rotate(-5deg); 
+                opacity: 0.7;
+                filter: brightness(2);
+            }
+            100% { 
+                transform: scale(0) rotate(180deg); 
+                opacity: 0;
+                filter: brightness(3);
+            }
+        }
+        
+        @keyframes fall-bounce {
+            0% { 
+                transform: translateY(var(--fall-distance, -60px)) scale(1);
+                opacity: 0.8;
+            }
+            60% { 
+                transform: translateY(5px) scale(0.95, 1.05);
+            }
+            80% { 
+                transform: translateY(-3px) scale(1.02, 0.98);
+            }
+            100% { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes new-gem-enter {
+            0% { 
+                transform: translateY(-100px) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(10px) scale(1.1);
+                opacity: 1;
+            }
+            70% {
+                transform: translateY(-5px) scale(0.95);
+            }
+            100% { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* 消除时的粒子容器 */
+        .particle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: particle-fly 0.8s ease-out forwards;
+        }
+        
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* 连击效果 */
+        .combo-text {
+            position: fixed;
+            font-size: 2em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5), 0 0 20px currentColor;
+            pointer-events: none;
+            z-index: 2000;
+            animation: combo-pop 1s ease-out forwards;
+        }
+        
+        @keyframes combo-pop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 1;
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                transform: translate(-50%, -80%) scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        /* 闪光效果 */
+        .cell.shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.8) 50%,
+                transparent 60%
+            );
+            animation: shine-sweep 0.6s ease-out;
+        }
+        
+        @keyframes shine-sweep {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+
+
+        .gem-red { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .gem-blue { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .gem-green { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+        .gem-yellow { background: linear-gradient(45deg, #f1c40f, #f39c12); }
+        .gem-purple { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+        .gem-orange { background: linear-gradient(45deg, #e67e22, #d35400); }
+        
+        .gem-bomb {
+            background: linear-gradient(45deg, #8b2500, #c0392b, #8b2500);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+        }
+        
+        .gem-rainbow {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #f0932b, #eb4d4b, #6c5ce7);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+        }
+        
+        .gem-lightning {
+            background: linear-gradient(45deg, #1e3a5f, #2d5a87);
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.7);
+        }
+        
+        .gem-lightning-h {
+            background: linear-gradient(90deg, #1e3a5f, #3d7ab8, #1e3a5f);
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.7);
+        }
+        
+        .gem-lightning-h .rotated-emoji {
+            display: inline-block;
+            transform: rotate(90deg);
+        }
+        
+        .gem-lightning-v {
+            background: linear-gradient(0deg, #1e3a5f, #3d7ab8, #1e3a5f);
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.7);
+        }
+        
+        .lightning-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .lightning-tooltip.show {
+            opacity: 1;
+        }
+        
+
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #16a085, #1abc9c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .game-over p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 三消游戏 V2.0</h1>
+        
+        <div class="game-info">
+            <div class="score">
+                <div>分数</div>
+                <div id="score">0</div>
+            </div>
+            <div class="moves">
+                <div>步数</div>
+                <div id="moves">30</div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="tool-panel">
+                <button class="tool-btn" id="toolDestroy" onclick="activateDestroyTool()" title="消除单个格子">
+                    🎯
+                    <span class="tool-count" id="destroyCount">3</span>
+                    <span class="tool-label">消除</span>
+                </button>
+                <button class="tool-btn" id="toolSwap" onclick="activateSwapTool()" title="自由交换">
+                    🔄
+                    <span class="tool-count" id="swapCount">2</span>
+                    <span class="tool-label">交换</span>
+                </button>
+                <div style="height: 10px; border-top: 1px solid rgba(255,255,255,0.2); margin: 5px 0;"></div>
+                <button class="tool-btn" id="toolSpawnLightningH" onclick="activateSpawnLightningHTool()" title="生成横向闪电">
+                    <span style="display: inline-block; transform: rotate(90deg);">⚡</span>
+                    <span class="tool-count" id="spawnLightningHCount">2</span>
+                    <span class="tool-label">横闪电</span>
+                </button>
+                <button class="tool-btn" id="toolSpawnLightningV" onclick="activateSpawnLightningVTool()" title="生成纵向闪电">
+                    ⚡
+                    <span class="tool-count" id="spawnLightningVCount">2</span>
+                    <span class="tool-label">纵闪电</span>
+                </button>
+                <button class="tool-btn" id="toolSpawnBomb" onclick="activateSpawnBombTool()" title="生成炸弹">
+                    💣
+                    <span class="tool-count" id="spawnBombCount">2</span>
+                    <span class="tool-label">炸弹</span>
+                </button>
+                <button class="tool-btn" id="toolSpawnRainbow" onclick="activateSpawnRainbowTool()" title="生成彩虹">
+                    🌈
+                    <span class="tool-count" id="spawnRainbowCount">1</span>
+                    <span class="tool-label">彩虹</span>
+                </button>
+            </div>
+            <div class="game-board" id="gameBoard"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="newGame()">新游戏</button>
+            <button class="btn" onclick="showHint()">提示</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2 id="gameOverTitle">游戏结束</h2>
+            <p id="gameOverMessage">恭喜完成目标！</p>
+            <button class="btn" onclick="newGame()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 8;
+        const GEMS = ['💎', '💠', '🔶', '🔷', '⭐', '🌟'];
+        const GEM_CLASSES = ['gem-red', 'gem-blue', 'gem-green', 'gem-yellow', 'gem-purple', 'gem-orange'];
+        const SPECIAL_GEMS = {
+            BOMB: 6,      // 炸弹宝石 - 消除4个时生成
+            RAINBOW: 7,   // 彩虹宝石 - 消除5个时生成
+            LIGHTNING_H: 8, // 横向闪电宝石 - 横向四个时生成
+            LIGHTNING_V: 9  // 纵向闪电宝石 - 纵向四个时生成
+        };
+        const SPECIAL_SYMBOLS = {
+            [SPECIAL_GEMS.BOMB]: '💣',
+            [SPECIAL_GEMS.RAINBOW]: '🌈', 
+            [SPECIAL_GEMS.LIGHTNING_H]: '⚡', // 横向闪电 - 显示闪电符号
+            [SPECIAL_GEMS.LIGHTNING_V]: '⚡'  // 纵向闪电 - 显示闪电符号
+        };
+
+        let board = [];
+        let selectedCell = null;
+        let score = 0;
+        let moves = 30;
+        let gameActive = true;
+        let lastSwapPositions = null; // 记录最后一次交换的位置
+        
+        // 工具相关变量
+        let destroyToolCount = 3;
+        let swapToolCount = 2;
+        let spawnLightningHCount = 2;
+        let spawnLightningVCount = 2;
+        let spawnBombCount = 2;
+        let spawnRainbowCount = 1;
+        let activeToolMode = null; // 'destroy' | 'swap' | 'spawnLightningH' | 'spawnLightningV' | 'spawnBomb' | 'spawnRainbow' | null
+        let justPlacedSpecialGem = null; // 记录刚放置的特殊宝石位置，防止立即触发
+        
+        // 拖拽相关变量
+        let isDragging = false;
+        let dragStartCell = null;
+        let dragElement = null;
+        let mouseOffset = { x: 0, y: 0 };
+        let dragTarget = null;
+        let originalRect = null;
+        let adjacentPositions = [];
+
+        // 初始化游戏
+        function initGame() {
+            console.log('Initializing game...');
+            
+            try {
+                const gameBoard = document.getElementById('gameBoard');
+                if (!gameBoard) {
+                    console.error('Game board element not found!');
+                    return;
+                }
+                
+                gameBoard.innerHTML = '';
+                board = [];
+                
+                console.log('Creating game board with size:', BOARD_SIZE);
+                console.log('Available gems:', GEMS);
+                
+                // 创建游戏面板
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    board[row] = [];
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        // 先生成随机宝石
+                        const gemType = Math.floor(Math.random() * GEMS.length);
+                        board[row][col] = gemType;
+                        
+                        // 创建DOM元素
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // 设置宝石
+                        cell.textContent = GEMS[gemType];
+                        cell.classList.add(GEM_CLASSES[gemType]);
+                        
+                        // 添加事件监听器
+                        cell.addEventListener('click', handleCellClick);
+                        cell.addEventListener('mousedown', handleMouseDown);
+                        cell.addEventListener('dragstart', e => e.preventDefault()); // 禁用默认拖拽
+                        cell.addEventListener('mouseenter', handleCellMouseEnter);
+                        cell.addEventListener('mouseleave', handleCellMouseLeave);
+                        
+                        gameBoard.appendChild(cell);
+                        
+                        console.log(`Created cell at [${row}, ${col}] with gem ${GEMS[gemType]}`);
+                    }
+                }
+                
+                console.log('Board created, removing initial matches...');
+                
+                // 简单地移除初始的三消匹配
+                for (let attempts = 0; attempts < 50; attempts++) {
+                    let hasMatches = false;
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        for (let col = 0; col < BOARD_SIZE; col++) {
+                            if (wouldCreateMatch(row, col, board[row][col])) {
+                                board[row][col] = Math.floor(Math.random() * GEMS.length);
+                                hasMatches = true;
+                                
+                                // 更新DOM
+                                const cell = gameBoard.children[row * BOARD_SIZE + col];
+                                if (cell) {
+                                    cell.textContent = GEMS[board[row][col]];
+                                    // 移除所有宝石类
+                                    GEM_CLASSES.forEach(className => cell.classList.remove(className));
+                                    // 添加新的宝石类
+                                    cell.classList.add(GEM_CLASSES[board[row][col]]);
+                                }
+                            }
+                        }
+                    }
+                    if (!hasMatches) break;
+                }
+                
+                // 重置游戏状态
+                score = 0;
+                moves = 30;
+                gameActive = true;
+                selectedCell = null;
+                isDragging = false;
+                dragStartCell = null;
+                dragElement = null;
+                dragTarget = null;
+                originalRect = null;
+                adjacentPositions = [];
+                lastSwapPositions = null;
+                
+                // 重置工具次数
+                destroyToolCount = 3;
+                swapToolCount = 2;
+                spawnLightningHCount = 2;
+                spawnLightningVCount = 2;
+                spawnBombCount = 2;
+                spawnRainbowCount = 1;
+                activeToolMode = null;
+                updateToolDisplay();
+                
+                updateDisplay();
+                
+                console.log('Game initialized successfully!');
+                console.log('Board:', board);
+                console.log('Game board children count:', gameBoard.children.length);
+                
+            } catch (error) {
+                console.error('Error initializing game:', error);
+            }
+        }
+        
+        // 检查是否会立即形成三消
+        function wouldCreateMatch(row, col, gemType) {
+            // 检查水平方向
+            let horizontalCount = 1;
+            // 向左检查
+            for (let c = col - 1; c >= 0 && board[row] && board[row][c] === gemType; c--) {
+                horizontalCount++;
+            }
+            // 向右检查
+            for (let c = col + 1; c < BOARD_SIZE && board[row] && board[row][c] === gemType; c++) {
+                horizontalCount++;
+            }
+            if (horizontalCount >= 3) return true;
+
+            // 检查垂直方向
+            let verticalCount = 1;
+            // 向上检查
+            for (let r = row - 1; r >= 0 && board[r] && board[r][col] === gemType; r--) {
+                verticalCount++;
+            }
+            // 向下检查
+            for (let r = row + 1; r < BOARD_SIZE && board[r] && board[r][col] === gemType; r++) {
+                verticalCount++;
+            }
+            if (verticalCount >= 3) return true;
+
+            return false;
+        }
+
+        // 处理点击事件（仅用于特殊宝石）
+        function handleCellClick(event) {
+            if (!gameActive || isDragging) return;
+            
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const gemType = board[row][col];
+            
+            // 如果消除工具激活，消除点击的格子
+            if (activeToolMode === 'destroy') {
+                useDestroyTool(row, col);
+                return;
+            }
+            
+            // 如果生成横向闪电工具激活
+            if (activeToolMode === 'spawnLightningH') {
+                useSpawnLightningHTool(row, col);
+                return;
+            }
+            
+            // 如果生成纵向闪电工具激活
+            if (activeToolMode === 'spawnLightningV') {
+                useSpawnLightningVTool(row, col);
+                return;
+            }
+            
+            // 如果生成炸弹工具激活
+            if (activeToolMode === 'spawnBomb') {
+                useSpawnBombTool(row, col);
+                return;
+            }
+            
+            // 如果生成彩虹工具激活
+            if (activeToolMode === 'spawnRainbow') {
+                useSpawnRainbowTool(row, col);
+                return;
+            }
+            
+            console.log('Cell clicked:', row, col, 'gemType:', gemType, 'LIGHTNING_H:', SPECIAL_GEMS.LIGHTNING_H);
+            
+            // 检查是否是刚放置的特殊宝石，如果是则跳过触发
+            if (justPlacedSpecialGem && justPlacedSpecialGem.row === row && justPlacedSpecialGem.col === col) {
+                justPlacedSpecialGem = null;
+                return;
+            }
+            justPlacedSpecialGem = null;
+            
+            // 只处理特殊宝石的点击
+            if (gemType === SPECIAL_GEMS.BOMB) {
+                console.log('Activating bomb');
+                activateBomb(row, col);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                console.log('Activating rainbow');
+                activateRainbow(row, col);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                console.log('Activating horizontal lightning');
+                activateLightningH(row, col);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                console.log('Activating vertical lightning');
+                activateLightningV(row, col);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            }
+            
+            console.log('Not a special gem, gemType:', gemType);
+            // 普通宝石不再响应点击，改为拖拽
+        }
+
+        // 处理鼠标按下事件（开始拖拽）
+        function handleMouseDown(event) {
+            if (!gameActive || window.tempRainbowMode) return;
+            
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const gemType = board[row][col];
+            
+            // 消除工具激活时，不处理拖拽，让点击事件处理
+            if (activeToolMode === 'destroy' || activeToolMode === 'spawnLightningH' || 
+                activeToolMode === 'spawnLightningV' || activeToolMode === 'spawnBomb' || activeToolMode === 'spawnRainbow') {
+                return;
+            }
+            
+            event.preventDefault();
+            
+            isDragging = true;
+            dragStartCell = { row, col, element: cell };
+            
+            // 记录原始位置
+            originalRect = cell.getBoundingClientRect();
+            
+            // 计算相邻位置
+            adjacentPositions = [];
+            
+            // 上
+            if (row > 0) {
+                adjacentPositions.push({ row: row - 1, col: col, direction: 'up' });
+            }
+            // 下
+            if (row < BOARD_SIZE - 1) {
+                adjacentPositions.push({ row: row + 1, col: col, direction: 'down' });
+            }
+            // 左
+            if (col > 0) {
+                adjacentPositions.push({ row: row, col: col - 1, direction: 'left' });
+            }
+            // 右
+            if (col < BOARD_SIZE - 1) {
+                adjacentPositions.push({ row: row, col: col + 1, direction: 'right' });
+            }
+            
+            // 标记原始cell为选中状态
+            cell.classList.add('drag-source');
+            // 清除可能干扰拖拽动画的类
+            cell.classList.remove('falling', 'new-gem', 'matched');
+            cell.style.removeProperty('--fall-distance');
+            void cell.offsetWidth; // 强制重绘
+            
+            // 清除相邻格子的动画类
+            adjacentPositions.forEach(pos => {
+                const adjacentCell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (adjacentCell) {
+                    adjacentCell.classList.remove('falling', 'new-gem', 'matched');
+                    adjacentCell.style.removeProperty('--fall-distance');
+                    void adjacentCell.offsetWidth; // 强制重绘
+                }
+            });
+            
+            // 添加全局鼠标事件监听器
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        // 临时交换状态（用于拖拽预览）
+        let tempSwapped = false;
+        let tempSwapTarget = null;
+        
+        // 重置临时交换状态
+        function resetTempSwap() {
+            if (tempSwapped && dragStartCell && tempSwapTarget) {
+                dragStartCell.element.style.transform = '';
+                tempSwapTarget.style.transform = '';
+                dragStartCell.element.classList.remove('drag-swap');
+                tempSwapTarget.classList.remove('drag-swap');
+            }
+            tempSwapped = false;
+            tempSwapTarget = null;
+        }
+        
+        // 处理鼠标移动事件（拖拽过程）
+        function handleMouseMove(event) {
+            if (!isDragging) return;
+            
+            let currentTarget = null;
+            let currentDirection = null;
+            
+            // 计算从起始位置的偏移量
+            const deltaX = event.clientX - originalRect.left - originalRect.width / 2;
+            const deltaY = event.clientY - originalRect.top - originalRect.height / 2;
+            
+            // 设置最小拖拽阈值
+            const threshold = 15;
+            
+            // 根据拖拽方向确定目标（优先判断主要方向）
+            if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+                // 判断主要拖拽方向
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // 水平方向为主
+                    if (deltaX > threshold) {
+                        // 向右拖拽
+                        const pos = adjacentPositions.find(p => p.direction === 'right');
+                        if (pos) {
+                            currentTarget = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                            currentDirection = 'right';
+                        }
+                    } else if (deltaX < -threshold) {
+                        // 向左拖拽
+                        const pos = adjacentPositions.find(p => p.direction === 'left');
+                        if (pos) {
+                            currentTarget = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                            currentDirection = 'left';
+                        }
+                    }
+                } else {
+                    // 垂直方向为主
+                    if (deltaY > threshold) {
+                        // 向下拖拽
+                        const pos = adjacentPositions.find(p => p.direction === 'down');
+                        if (pos) {
+                            currentTarget = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                            currentDirection = 'down';
+                        }
+                    } else if (deltaY < -threshold) {
+                        // 向上拖拽
+                        const pos = adjacentPositions.find(p => p.direction === 'up');
+                        if (pos) {
+                            currentTarget = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                            currentDirection = 'up';
+                        }
+                    }
+                }
+            }
+            
+            // 清除之前的拖拽目标高亮
+            if (dragTarget && dragTarget !== currentTarget) {
+                dragTarget.classList.remove('drag-target');
+                // 重置临时交换
+                resetTempSwap();
+            }
+            
+            // 设置新的拖拽目标
+            if (currentTarget && currentTarget !== dragTarget) {
+                dragTarget = currentTarget;
+                currentTarget.classList.add('drag-target');
+                
+                // 执行临时视觉交换 (cell 55px + gap 3px = 58px)
+                const cellSize = 58;
+                let sourceTransform = '';
+                let targetTransform = '';
+                
+                switch(currentDirection) {
+                    case 'up':
+                        sourceTransform = `translateY(-${cellSize}px)`;
+                        targetTransform = `translateY(${cellSize}px)`;
+                        break;
+                    case 'down':
+                        sourceTransform = `translateY(${cellSize}px)`;
+                        targetTransform = `translateY(-${cellSize}px)`;
+                        break;
+                    case 'left':
+                        sourceTransform = `translateX(-${cellSize}px)`;
+                        targetTransform = `translateX(${cellSize}px)`;
+                        break;
+                    case 'right':
+                        sourceTransform = `translateX(${cellSize}px)`;
+                        targetTransform = `translateX(-${cellSize}px)`;
+                        break;
+                }
+                
+                dragStartCell.element.style.transform = sourceTransform;
+                currentTarget.style.transform = targetTransform;
+                dragStartCell.element.classList.add('drag-swap');
+                currentTarget.classList.add('drag-swap');
+                
+                tempSwapped = true;
+                tempSwapTarget = currentTarget;
+            } else if (!currentTarget && dragTarget) {
+                dragTarget.classList.remove('drag-target');
+                resetTempSwap();
+                dragTarget = null;
+            }
+        }
+        
+        // 处理鼠标抬起事件（结束拖拽）
+        function handleMouseUp(event) {
+            if (!isDragging) return;
+            
+            // 移除全局事件监听器
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            
+            // 移除原始cell的选中状态并清理样式
+            if (dragStartCell) {
+                dragStartCell.element.classList.remove('drag-source');
+                dragStartCell.element.style.transform = '';
+            }
+            
+            // 清理相邻格子的样式
+            adjacentPositions.forEach(pos => {
+                const adjacentCell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (adjacentCell) {
+                    adjacentCell.style.transform = '';
+                }
+            });
+            
+            if (dragTarget) {
+                dragTarget.classList.remove('drag-target');
+                dragTarget.style.transform = '';
+                
+                // 执行交换
+                const targetRow = parseInt(dragTarget.dataset.row);
+                const targetCol = parseInt(dragTarget.dataset.col);
+                
+                // 重置临时交换状态（因为真正的交换会重新渲染）
+                resetTempSwap();
+                
+                // 如果交换工具激活，使用工具交换（不检查匹配）
+                if (activeToolMode === 'swap') {
+                    useSwapTool(dragStartCell.row, dragStartCell.col, targetRow, targetCol);
+                } else {
+                    swapGems(dragStartCell.row, dragStartCell.col, targetRow, targetCol);
+                }
+            } else {
+                // 没有目标时也要重置临时交换
+                resetTempSwap();
+            }
+            
+            // 重置拖拽状态
+            isDragging = false;
+            dragStartCell = null;
+            dragTarget = null;
+            originalRect = null;
+            adjacentPositions = [];
+        }
+        
+        // 处理鼠标进入单元格事件
+        function handleCellMouseEnter(event) {
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const gemType = board[row][col];
+            
+            // 只为闪电宝石显示提示
+            if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                showLightningTooltip(event, '⚡ 消除整行');
+            } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                showLightningTooltip(event, '⚡ 消除整列');
+            }
+        }
+        
+        // 处理鼠标离开单元格事件
+        function handleCellMouseLeave(event) {
+            hideLightningTooltip();
+        }
+        
+        // 显示闪电提示
+        function showLightningTooltip(event, text) {
+            let tooltip = document.getElementById('lightning-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'lightning-tooltip';
+                tooltip.className = 'lightning-tooltip';
+                document.body.appendChild(tooltip);
+            }
+            
+            tooltip.textContent = text;
+            tooltip.style.left = (event.clientX + 10) + 'px';
+            tooltip.style.top = (event.clientY - 30) + 'px';
+            tooltip.classList.add('show');
+        }
+        
+        // 隐藏闪电提示
+        function hideLightningTooltip() {
+            const tooltip = document.getElementById('lightning-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('show');
+            }
+        }
+        
+        // 检查两个位置是否相邻
+        function isAdjacent(row1, col1, row2, col2) {
+            const rowDiff = Math.abs(row1 - row2);
+            const colDiff = Math.abs(col1 - col2);
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+
+        // 交换宝石
+        function swapGems(row1, col1, row2, col2) {
+            const gem1 = board[row1][col1];
+            const gem2 = board[row2][col2];
+            
+            // 检查是否有彩虹宝石参与交换
+            if (gem1 === SPECIAL_GEMS.RAINBOW) {
+                // 彩虹宝石被拖动，消除目标位置的同色宝石
+                activateRainbowDrag(row1, col1, gem2);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gem2 === SPECIAL_GEMS.RAINBOW) {
+                // 目标位置是彩虹宝石，消除拖动宝石的同色宝石
+                activateRainbowDrag(row2, col2, gem1);
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            }
+            
+            // 检查是否有炸弹宝石参与交换
+            if (gem1 === SPECIAL_GEMS.BOMB) {
+                // 炸弹被拖动到目标位置，以目标位置为中心爆炸
+                board[row1][col1] = gem2; // 把目标位置的宝石放到原位置
+                board[row2][col2] = -1; // 炸弹位置清空（会在activateBomb中处理）
+                updateBoard();
+                activateBomb(row2, col2); // 以目标位置为中心爆炸
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gem2 === SPECIAL_GEMS.BOMB) {
+                // 目标位置是炸弹，以炸弹位置为中心爆炸
+                board[row2][col2] = -1; // 炸弹位置清空
+                updateBoard();
+                activateBomb(row2, col2); // 以炸弹原位置为中心爆炸
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            }
+            
+            // 检查是否有横向闪电宝石参与交换
+            if (gem1 === SPECIAL_GEMS.LIGHTNING_H) {
+                // 横向闪电被拖动到目标位置，以目标位置的行消除
+                board[row1][col1] = gem2;
+                board[row2][col2] = -1;
+                updateBoard();
+                activateLightningH(row2, col2); // 以目标位置为中心消除整行
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gem2 === SPECIAL_GEMS.LIGHTNING_H) {
+                // 目标位置是横向闪电，以拖动宝石的原位置行为基准消除
+                board[row2][col2] = -1;
+                updateBoard();
+                activateLightningH(row1, col2); // 以row1的行为基准
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            }
+            
+            // 检查是否有纵向闪电宝石参与交换
+            if (gem1 === SPECIAL_GEMS.LIGHTNING_V) {
+                // 纵向闪电被拖动到目标位置，以目标位置的列消除
+                board[row1][col1] = gem2;
+                board[row2][col2] = -1;
+                updateBoard();
+                activateLightningV(row2, col2); // 以目标位置为中心消除整列
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            } else if (gem2 === SPECIAL_GEMS.LIGHTNING_V) {
+                // 目标位置是纵向闪电，以拖动宝石的原位置列为基准消除
+                board[row2][col2] = -1;
+                updateBoard();
+                activateLightningV(row2, col1); // 以col1的列为基准
+                moves--;
+                updateDisplay();
+                checkGameEnd();
+                return;
+            }
+            
+            // 普通交换逻辑
+            const temp = board[row1][col1];
+            board[row1][col1] = board[row2][col2];
+            board[row2][col2] = temp;
+            
+            // 记录交换位置供特殊宝石生成使用
+            lastSwapPositions = [{ row: row1, col: col1 }, { row: row2, col: col2 }];
+            
+            updateBoard();
+            
+            // 检查是否有匹配
+            const matchResult1 = findMatches(row1, col1);
+            const matchResult2 = findMatches(row2, col2);
+            
+            if (matchResult1.matches.length > 0 || matchResult2.matches.length > 0) {
+                // 有效移动
+                moves--;
+                processMatches();
+            } else {
+                // 无效移动，先显示交换动画再撤销
+                setTimeout(() => {
+                    // 再次交换回来（交换两次等于恢复原状）
+                    const temp2 = board[row1][col1];
+                    board[row1][col1] = board[row2][col2];
+                    board[row2][col2] = temp2;
+                    lastSwapPositions = null; // 清除无效交换记录
+                    updateBoard();
+                }, 150);
+            }
+            
+            updateDisplay();
+            checkGameEnd();
+        }
+
+        // 查找匹配的宝石
+        function findMatches(row, col) {
+            const gemType = board[row][col];
+            const matches = [];
+            let matchDirection = null;
+            let horizontalLength = 0;
+            let verticalLength = 0;
+            
+            // 水平方向匹配
+            const horizontalMatches = [{ row, col }];
+            // 向左
+            for (let c = col - 1; c >= 0 && board[row][c] === gemType; c--) {
+                horizontalMatches.push({ row, col: c });
+            }
+            // 向右
+            for (let c = col + 1; c < BOARD_SIZE && board[row][c] === gemType; c++) {
+                horizontalMatches.push({ row, col: c });
+            }
+            if (horizontalMatches.length >= 3) {
+                matches.push(...horizontalMatches);
+                horizontalLength = horizontalMatches.length;
+                if (horizontalMatches.length >= 4) {
+                    matchDirection = 'horizontal';
+                }
+            }
+            
+            // 垂直方向匹配
+            const verticalMatches = [{ row, col }];
+            // 向上
+            for (let r = row - 1; r >= 0 && board[r][col] === gemType; r--) {
+                verticalMatches.push({ row: r, col });
+            }
+            // 向下
+            for (let r = row + 1; r < BOARD_SIZE && board[r][col] === gemType; r++) {
+                verticalMatches.push({ row: r, col });
+            }
+            if (verticalMatches.length >= 3) {
+                matches.push(...verticalMatches);
+                verticalLength = verticalMatches.length;
+                if (verticalMatches.length >= 4) {
+                    matchDirection = 'vertical';
+                }
+            }
+            
+            return { matches, direction: matchDirection, horizontalLength, verticalLength };
+        }
+
+        // 检查T形和十字形匹配
+        function checkTShapeMatch(row, col) {
+            const gemType = board[row][col];
+            if (gemType === -1) return { isT: false, totalMatches: 0 };
+            
+            // 计算横向匹配数量
+            let horizontalCount = 1;
+            // 向左
+            for (let c = col - 1; c >= 0 && board[row] && board[row][c] === gemType; c--) {
+                horizontalCount++;
+            }
+            // 向右
+            for (let c = col + 1; c < BOARD_SIZE && board[row] && board[row][c] === gemType; c++) {
+                horizontalCount++;
+            }
+            
+            // 计算纵向匹配数量
+            let verticalCount = 1;
+            // 向上
+            for (let r = row - 1; r >= 0 && board[r] && board[r][col] === gemType; r--) {
+                verticalCount++;
+            }
+            // 向下
+            for (let r = row + 1; r < BOARD_SIZE && board[r] && board[r][col] === gemType; r++) {
+                verticalCount++;
+            }
+            
+            // 检查是否形成T形或十字形
+            // T形：横向至少3个 + 纵向至少3个，且当前点是交汇点
+            const isHorizontalValid = horizontalCount >= 3;
+            const isVerticalValid = verticalCount >= 3;
+            const isT = isHorizontalValid && isVerticalValid;
+            
+            // 总匹配数（去掉重复计算的中心点）
+            const totalMatches = isT ? (horizontalCount + verticalCount - 1) : 0;
+            
+            return {
+                isT: isT,
+                horizontalCount: horizontalCount,
+                verticalCount: verticalCount,
+                totalMatches: totalMatches
+            };
+        }
+
+        // 连击计数器
+        let comboCount = 0;
+        
+        // 创建粒子效果
+        function createParticles(cell, color) {
+            const rect = cell.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const particleCount = 12;
+            const colors = [
+                '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7', '#ffffff'
+            ];
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = 40 + Math.random() * 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.cssText = `
+                    left: ${centerX}px;
+                    top: ${centerY}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    --tx: ${tx}px;
+                    --ty: ${ty}px;
+                    box-shadow: 0 0 6px currentColor;
+                `;
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 800);
+            }
+        }
+        
+        // 显示连击文字
+        function showComboText(count, x, y) {
+            if (count < 2) return;
+            
+            const comboText = document.createElement('div');
+            comboText.className = 'combo-text';
+            
+            const comboMessages = {
+                2: { text: 'Good!', color: '#4ecdc4' },
+                3: { text: 'Great!', color: '#f9ca24' },
+                4: { text: 'Awesome!', color: '#f0932b' },
+                5: { text: 'Amazing!', color: '#eb4d4b' },
+                6: { text: 'Incredible!', color: '#6c5ce7' }
+            };
+            
+            const msg = comboMessages[Math.min(count, 6)];
+            comboText.textContent = `${msg.text} x${count}`;
+            comboText.style.cssText = `
+                left: ${x}px;
+                top: ${y}px;
+                color: ${msg.color};
+            `;
+            
+            document.body.appendChild(comboText);
+            
+            setTimeout(() => {
+                if (comboText.parentNode) {
+                    comboText.parentNode.removeChild(comboText);
+                }
+            }, 1000);
+        }
+        
+        // 处理所有匹配
+        function processMatches() {
+            let allMatches = [];
+            let matchDirections = new Map(); // 记录匹配方向
+            let matchLengths = new Map(); // 记录匹配长度
+            let tShapeMatches = new Map(); // 记录T形和十字形匹配
+            
+            // 查找所有匹配
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const matchResult = findMatches(row, col);
+                    if (matchResult.matches.length > 0) {
+                        allMatches.push(...matchResult.matches);
+                        if (matchResult.direction) {
+                            matchDirections.set(`${row}-${col}`, matchResult.direction);
+                            // 记录对应方向的匹配长度
+                            const length = matchResult.direction === 'horizontal' 
+                                ? matchResult.horizontalLength 
+                                : matchResult.verticalLength;
+                            matchLengths.set(`${row}-${col}`, length);
+                        }
+                        
+                        // 检查T形和十字形匹配（只对有匹配的位置检查）
+                        const tShapeResult = checkTShapeMatch(row, col);
+                        if (tShapeResult.isT) {
+                            tShapeMatches.set(`${row}-${col}`, tShapeResult);
+                        }
+                    }
+                }
+            }
+            
+            // 去重
+            const uniqueMatches = [];
+            allMatches.forEach(match => {
+                if (!uniqueMatches.find(m => m.row === match.row && m.col === match.col)) {
+                    uniqueMatches.push(match);
+                }
+            });
+            
+            if (uniqueMatches.length > 0) {
+                // 增加连击计数
+                comboCount++;
+                
+                // 计算消除中心点用于显示连击文字
+                let avgX = 0, avgY = 0;
+                
+                // 显示消除动画和粒子效果
+                uniqueMatches.forEach((match, index) => {
+                    const cell = document.querySelector(`[data-row="${match.row}"][data-col="${match.col}"]`);
+                    if (cell) {
+                        // 延迟添加动画，形成波浪效果
+                        setTimeout(() => {
+                            // 先清除可能残留的下落动画类，避免动画冲突
+                            cell.classList.remove('falling', 'new-gem');
+                            cell.style.removeProperty('--fall-distance');
+                            // 强制重绘，确保动画能正常触发
+                            void cell.offsetWidth;
+                            cell.classList.add('matched');
+                            createParticles(cell);
+                        }, index * 50);
+                        
+                        const rect = cell.getBoundingClientRect();
+                        avgX += rect.left + rect.width / 2;
+                        avgY += rect.top + rect.height / 2;
+                    }
+                });
+                
+                // 显示连击文字
+                avgX /= uniqueMatches.length;
+                avgY /= uniqueMatches.length;
+                setTimeout(() => {
+                    showComboText(comboCount, avgX, avgY);
+                }, 200);
+                
+                // 计算分数和特殊效果
+                let baseScore = uniqueMatches.length * 10;
+                let bonusScore = 0;
+                let specialGemType = null;
+                let specialPosition = null;
+                
+                // 优先检查5连直线（生成彩虹）
+                for (let [key, direction] of matchDirections) {
+                    const length = matchLengths.get(key);
+                    if (length >= 5) {
+                        console.log('Creating rainbow gem (from 5+ line match)');
+                        bonusScore = 50;
+                        specialGemType = SPECIAL_GEMS.RAINBOW;
+                        showSpecialEffect('🌈 彩虹宝石！消除所有同色宝石！', '#ff6b6b');
+                        
+                        // 使用交换位置作为特殊宝石位置
+                        if (lastSwapPositions) {
+                            const [row, col] = key.split('-').map(Number);
+                            const matchedSwapPos = lastSwapPositions.find(pos => 
+                                uniqueMatches.some(match => match.row === pos.row && match.col === pos.col)
+                            );
+                            specialPosition = matchedSwapPos || { row, col };
+                        } else {
+                            const [row, col] = key.split('-').map(Number);
+                            specialPosition = { row, col };
+                        }
+                        break;
+                    }
+                }
+                
+                // 如果没有5连直线，检查T形和十字形匹配（5个宝石形成炸弹）
+                if (!specialGemType) {
+                    for (let [key, tResult] of tShapeMatches) {
+                        if (tResult.totalMatches >= 5) {
+                            console.log('Creating bomb from T-shape or cross match');
+                            bonusScore = Math.max(bonusScore, 40);
+                            specialGemType = SPECIAL_GEMS.BOMB;
+                            showSpecialEffect('💣 炸弹宝石！消除3x3区域！', '#e74c3c');
+                            const [row, col] = key.split('-').map(Number);
+                            specialPosition = { row, col }; // T形的中心点
+                            break;
+                        }
+                    }
+                }
+                
+                // 如果没有5连和T形，检查4连直线匹配（生成闪电）
+                if (!specialGemType) {
+                    for (let [key, direction] of matchDirections) {
+                        const length = matchLengths.get(key);
+                        if (length === 4) {
+                            if (direction === 'horizontal') {
+                                console.log('Creating vertical lightning gem (from horizontal 4-match)');
+                                bonusScore = Math.max(bonusScore, 30);
+                                specialGemType = SPECIAL_GEMS.LIGHTNING_V; // 横向匹配生成纵向闪电
+                                showSpecialEffect('⚡ 纵向闪电！消除整列！', '#ffd700');
+                            } else if (direction === 'vertical') {
+                                console.log('Creating horizontal lightning gem (from vertical 4-match)');
+                                bonusScore = Math.max(bonusScore, 30);
+                                specialGemType = SPECIAL_GEMS.LIGHTNING_H; // 纵向匹配生成横向闪电
+                                showSpecialEffect('⚡ 横向闪电！消除整行！', '#ffd700');
+                            }
+                            
+                            // 使用交换位置作为特殊宝石位置
+                            if (lastSwapPositions) {
+                                const [row, col] = key.split('-').map(Number);
+                                const matchedSwapPos = lastSwapPositions.find(pos => 
+                                    uniqueMatches.some(match => match.row === pos.row && match.col === pos.col)
+                                );
+                                specialPosition = matchedSwapPos || { row, col };
+                            } else {
+                                const [row, col] = key.split('-').map(Number);
+                                specialPosition = { row, col };
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                score += baseScore + bonusScore;
+                
+                // 延迟后移除匹配的宝石并填充新的
+                const animationDelay = 600 + uniqueMatches.length * 50;
+                setTimeout(() => {
+                    removeMatches(uniqueMatches);
+                    
+                    // 如果有特殊宝石，在指定位置放置
+                    if (specialGemType && specialPosition) {
+                        console.log('Placing special gem:', specialGemType, 'at position:', specialPosition);
+                        board[specialPosition.row][specialPosition.col] = specialGemType;
+                    }
+                    
+                    // 执行下落并获取下落信息
+                    const fallInfo = dropGems();
+                    
+                    // 记录需要添加新宝石的位置
+                    const newGemPositions = [];
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        for (let col = 0; col < BOARD_SIZE; col++) {
+                            if (board[row][col] === -1) {
+                                newGemPositions.push({ row, col });
+                            }
+                        }
+                    }
+                    
+                    fillEmpty();
+                    updateBoardWithAnimation(fallInfo, newGemPositions);
+                    
+                    // 继续检查新的匹配
+                    setTimeout(() => {
+                        processMatches();
+                    }, 500);
+                }, animationDelay);
+            } else {
+                // 没有匹配时重置连击计数
+                comboCount = 0;
+            }
+        }
+
+        // 移除匹配的宝石
+        function removeMatches(matches) {
+            matches.forEach(match => {
+                board[match.row][match.col] = -1; // 标记为空
+            });
+        }
+
+        // 宝石下落，返回下落信息
+        function dropGems() {
+            const fallInfo = []; // 记录下落信息 { toRow, col, distance }
+            
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                let writePos = BOARD_SIZE - 1;
+                for (let row = BOARD_SIZE - 1; row >= 0; row--) {
+                    if (board[row][col] !== -1) {
+                        if (writePos !== row) {
+                            // 记录下落信息
+                            fallInfo.push({
+                                toRow: writePos,
+                                col: col,
+                                distance: writePos - row
+                            });
+                            board[writePos][col] = board[row][col];
+                            board[row][col] = -1;
+                        }
+                        writePos--;
+                    }
+                }
+            }
+            
+            return fallInfo;
+        }
+
+        // 填充空位
+        function fillEmpty() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (board[row][col] === -1) {
+                        board[row][col] = Math.floor(Math.random() * GEMS.length);
+                    }
+                }
+            }
+        }
+
+        // 更新游戏面板显示
+        function updateBoard() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    const gemType = board[row][col];
+                    
+                    // 清除动画类
+                    cell.classList.remove('matched', 'falling', 'new-gem', 'shine');
+                    
+                    // 确保事件监听器存在（防止动态更新时丢失）
+                    if (!cell.hasAttribute('data-events-added')) {
+                        cell.addEventListener('mouseenter', handleCellMouseEnter);
+                        cell.addEventListener('mouseleave', handleCellMouseLeave);
+                        cell.setAttribute('data-events-added', 'true');
+                    }
+                    
+                    if (gemType !== -1) {
+                        // 检查是否是特殊宝石
+                        if (SPECIAL_SYMBOLS[gemType]) {
+                            console.log('Displaying special gem:', gemType, 'symbol:', SPECIAL_SYMBOLS[gemType], 'at:', row, col);
+                            // 水平闪电显示旋转的emoji
+                            if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                                cell.innerHTML = '<span class="rotated-emoji">⚡</span>';
+                            } else {
+                                cell.textContent = SPECIAL_SYMBOLS[gemType];
+                            }
+                            let specialClass = '';
+                            switch(gemType) {
+                                case SPECIAL_GEMS.BOMB: specialClass = 'gem-bomb'; break;
+                                case SPECIAL_GEMS.RAINBOW: specialClass = 'gem-rainbow'; break;
+                                case SPECIAL_GEMS.LIGHTNING_H: specialClass = 'gem-lightning-h'; break;
+                                case SPECIAL_GEMS.LIGHTNING_V: specialClass = 'gem-lightning-v'; break;
+                            }
+                            cell.className = 'cell ' + specialClass;
+                            console.log('Applied class:', specialClass);
+                        } else {
+                            cell.textContent = GEMS[gemType];
+                            cell.className = 'cell ' + GEM_CLASSES[gemType];
+                        }
+                    } else {
+                        cell.textContent = '';
+                        cell.className = 'cell';
+                    }
+                }
+            }
+        }
+        
+        // 带动画的面板更新
+        function updateBoardWithAnimation(fallInfo, newGemPositions) {
+            // 创建一个Map来快速查找下落信息
+            const fallMap = new Map();
+            fallInfo.forEach(info => {
+                fallMap.set(`${info.toRow}-${info.col}`, info.distance);
+            });
+            
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    const gemType = board[row][col];
+                    
+                    // 清除之前的动画类
+                    cell.classList.remove('matched', 'falling', 'new-gem', 'shine');
+                    cell.style.removeProperty('--fall-distance');
+                    
+                    // 确保事件监听器存在
+                    if (!cell.hasAttribute('data-events-added')) {
+                        cell.addEventListener('mouseenter', handleCellMouseEnter);
+                        cell.addEventListener('mouseleave', handleCellMouseLeave);
+                        cell.setAttribute('data-events-added', 'true');
+                    }
+                    
+                    if (gemType !== -1) {
+                        // 检查是否是新生成的宝石
+                        const isNewGem = newGemPositions.some(pos => pos.row === row && pos.col === col);
+                        
+                        // 检查是否是下落的宝石
+                        const fallDistance = fallMap.get(`${row}-${col}`);
+                        
+                        // 检查是否是特殊宝石
+                        if (SPECIAL_SYMBOLS[gemType]) {
+                            // 水平闪电显示旋转的emoji
+                            if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                                cell.innerHTML = '<span class="rotated-emoji">⚡</span>';
+                            } else {
+                                cell.textContent = SPECIAL_SYMBOLS[gemType];
+                            }
+                            let specialClass = '';
+                            switch(gemType) {
+                                case SPECIAL_GEMS.BOMB: specialClass = 'gem-bomb'; break;
+                                case SPECIAL_GEMS.RAINBOW: specialClass = 'gem-rainbow'; break;
+                                case SPECIAL_GEMS.LIGHTNING_H: specialClass = 'gem-lightning-h'; break;
+                                case SPECIAL_GEMS.LIGHTNING_V: specialClass = 'gem-lightning-v'; break;
+                            }
+                            cell.className = 'cell ' + specialClass;
+                            // 特殊宝石添加闪光效果
+                            setTimeout(() => cell.classList.add('shine'), 100);
+                        } else {
+                            cell.textContent = GEMS[gemType];
+                            cell.className = 'cell ' + GEM_CLASSES[gemType];
+                        }
+                        
+                        // 添加动画类
+                        if (isNewGem) {
+                            // 新宝石从上方掉落
+                            cell.classList.add('new-gem');
+                        } else if (fallDistance) {
+                            // 已存在的宝石下落
+                            cell.style.setProperty('--fall-distance', `-${fallDistance * 58}px`);
+                            cell.classList.add('falling');
+                        }
+                    } else {
+                        cell.textContent = '';
+                        cell.className = 'cell';
+                    }
+                }
+            }
+        }
+
+        // 更新显示信息
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('moves').textContent = moves;
+        }
+
+        // 检查是否有可能的移动
+        function hasPossibleMoves() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    // 尝试与右边交换
+                    if (col < BOARD_SIZE - 1) {
+                        const temp = board[row][col];
+                        board[row][col] = board[row][col + 1];
+                        board[row][col + 1] = temp;
+                        
+                        if (findMatches(row, col).matches.length > 0 || findMatches(row, col + 1).matches.length > 0) {
+                            // 撤销交换
+                            board[row][col + 1] = board[row][col];
+                            board[row][col] = temp;
+                            return true;
+                        }
+                        
+                        // 撤销交换
+                        board[row][col + 1] = board[row][col];
+                        board[row][col] = temp;
+                    }
+                    
+                    // 尝试与下面交换
+                    if (row < BOARD_SIZE - 1) {
+                        const temp = board[row][col];
+                        board[row][col] = board[row + 1][col];
+                        board[row + 1][col] = temp;
+                        
+                        if (findMatches(row, col).matches.length > 0 || findMatches(row + 1, col).matches.length > 0) {
+                            // 撤销交换
+                            board[row + 1][col] = board[row][col];
+                            board[row][col] = temp;
+                            return true;
+                        }
+                        
+                        // 撤销交换
+                        board[row + 1][col] = board[row][col];
+                        board[row][col] = temp;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // 打乱面板
+        function shuffleBoard() {
+            for (let i = 0; i < 100; i++) {
+                const row1 = Math.floor(Math.random() * BOARD_SIZE);
+                const col1 = Math.floor(Math.random() * BOARD_SIZE);
+                const row2 = Math.floor(Math.random() * BOARD_SIZE);
+                const col2 = Math.floor(Math.random() * BOARD_SIZE);
+                
+                const temp = board[row1][col1];
+                board[row1][col1] = board[row2][col2];
+                board[row2][col2] = temp;
+            }
+            updateBoard();
+        }
+
+        // 显示提示
+        function showHint() {
+            if (!gameActive) return;
+            
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    // 检查右边
+                    if (col < BOARD_SIZE - 1) {
+                        const temp = board[row][col];
+                        board[row][col] = board[row][col + 1];
+                        board[row][col + 1] = temp;
+                        
+                        if (findMatches(row, col).matches.length > 0 || findMatches(row, col + 1).matches.length > 0) {
+                            // 撤销并高亮提示
+                            board[row][col + 1] = board[row][col];
+                            board[row][col] = temp;
+                            
+                            const cell1 = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            const cell2 = document.querySelector(`[data-row="${row}"][data-col="${col + 1}"]`);
+                            
+                            cell1.style.border = '3px solid #ff6b6b';
+                            cell2.style.border = '3px solid #ff6b6b';
+                            
+                            setTimeout(() => {
+                                cell1.style.border = '';
+                                cell2.style.border = '';
+                            }, 2000);
+                            
+                            return;
+                        }
+                        
+                        // 撤销交换
+                        board[row][col + 1] = board[row][col];
+                        board[row][col] = temp;
+                    }
+                    
+                    // 检查下面
+                    if (row < BOARD_SIZE - 1) {
+                        const temp = board[row][col];
+                        board[row][col] = board[row + 1][col];
+                        board[row + 1][col] = temp;
+                        
+                        if (findMatches(row, col).matches.length > 0 || findMatches(row + 1, col).matches.length > 0) {
+                            // 撤销并高亮提示
+                            board[row + 1][col] = board[row][col];
+                            board[row][col] = temp;
+                            
+                            const cell1 = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            const cell2 = document.querySelector(`[data-row="${row + 1}"][data-col="${col}"]`);
+                            
+                            cell1.style.border = '3px solid #ff6b6b';
+                            cell2.style.border = '3px solid #ff6b6b';
+                            
+                            setTimeout(() => {
+                                cell1.style.border = '';
+                                cell2.style.border = '';
+                            }, 2000);
+                            
+                            return;
+                        }
+                        
+                        // 撤销交换
+                        board[row + 1][col] = board[row][col];
+                        board[row][col] = temp;
+                    }
+                }
+            }
+        }
+
+        // 检查游戏结束
+        function checkGameEnd() {
+            if (moves <= 0) {
+                if (!hasPossibleMoves()) {
+                    shuffleBoard();
+                    moves = 5; // 给予额外移动
+                } else {
+                    gameActive = false;
+                    document.getElementById('gameOverTitle').textContent = '🎮 游戏结束';
+                    document.getElementById('gameOverMessage').textContent = `步数用完了！最终分数：${score}`;
+                    document.getElementById('gameOver').style.display = 'flex';
+                }
+            } else if (!hasPossibleMoves()) {
+                shuffleBoard();
+            }
+            
+            updateDisplay();
+        }
+
+        // 激活炸弹宝石 - 消除3x3区域
+        function activateBomb(centerRow, centerCol) {
+            const toRemove = new Set(); // 使用Set避免重复
+            const lightningHPositions = []; // 路径上的横向闪电
+            const lightningVPositions = []; // 路径上的纵向闪电
+            const rainbowPositions = []; // 路径上的彩虹
+            const bombPositions = [{ row: centerRow, col: centerCol }]; // 所有炸弹位置（包括触发的）
+            const processedBombs = new Set(); // 已处理的炸弹
+            
+            // 显示爆炸效果提示
+            showSpecialEffect('💣 爆炸！', '#e74c3c');
+            
+            // 先标记炸弹位置为已处理
+            board[centerRow][centerCol] = -1;
+            processedBombs.add(`${centerRow}-${centerCol}`);
+            
+            // 递归收集所有连锁炸弹的区域
+            while (bombPositions.length > 0) {
+                const bomb = bombPositions.shift();
+                
+                for (let row = Math.max(0, bomb.row - 1); row <= Math.min(BOARD_SIZE - 1, bomb.row + 1); row++) {
+                    for (let col = Math.max(0, bomb.col - 1); col <= Math.min(BOARD_SIZE - 1, bomb.col + 1); col++) {
+                        const gemType = board[row][col];
+                        const key = `${row}-${col}`;
+                        
+                        // 检测特殊宝石
+                        if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                            lightningHPositions.push({ row, col });
+                            board[row][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                            lightningVPositions.push({ row, col });
+                            board[row][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                            rainbowPositions.push({ row, col });
+                            board[row][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.BOMB && !processedBombs.has(key)) {
+                            // 发现新炸弹，加入队列
+                            bombPositions.push({ row, col });
+                            processedBombs.add(key);
+                            board[row][col] = -1;
+                        }
+                        
+                        toRemove.add(key);
+                    }
+                }
+            }
+            
+            // 同时添加闪电的行/列
+            lightningHPositions.forEach(lightning => {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    toRemove.add(`${lightning.row}-${c}`);
+                }
+            });
+            
+            lightningVPositions.forEach(lightning => {
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    toRemove.add(`${r}-${lightning.col}`);
+                }
+            });
+            
+            // 同时添加彩虹消除的同色宝石
+            rainbowPositions.forEach(rainbow => {
+                const directions = [
+                    { row: rainbow.row - 1, col: rainbow.col },
+                    { row: rainbow.row + 1, col: rainbow.col },
+                    { row: rainbow.row, col: rainbow.col - 1 },
+                    { row: rainbow.row, col: rainbow.col + 1 }
+                ];
+                const adjacentGems = [];
+                directions.forEach(pos => {
+                    if (pos.row >= 0 && pos.row < BOARD_SIZE && pos.col >= 0 && pos.col < BOARD_SIZE) {
+                        const gemType = board[pos.row][pos.col];
+                        if (gemType >= 0 && gemType < GEMS.length) {
+                            adjacentGems.push(gemType);
+                        }
+                    }
+                });
+                
+                let targetGemType;
+                if (adjacentGems.length > 0) {
+                    targetGemType = adjacentGems[Math.floor(Math.random() * adjacentGems.length)];
+                } else {
+                    targetGemType = Math.floor(Math.random() * GEMS.length);
+                }
+                
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === targetGemType) {
+                            toRemove.add(`${r}-${c}`);
+                        }
+                    }
+                }
+            });
+            
+            // 转换为数组
+            const toRemoveArray = Array.from(toRemove).map(key => {
+                const [row, col] = key.split('-').map(Number);
+                return { row, col };
+            });
+            
+            // 添加消除动画和粒子效果
+            toRemoveArray.forEach((pos, i) => {
+                const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (cell) {
+                    const delay = Math.min(i * 20, 200); // 限制最大延迟
+                    setTimeout(((c) => {
+                        return () => {
+                            c.classList.remove('falling', 'new-gem', 'matched');
+                            c.style.removeProperty('--fall-distance');
+                            void c.offsetWidth;
+                            c.classList.add('matched');
+                            createParticles(c);
+                        };
+                    })(cell), delay);
+                }
+            });
+            
+            score += toRemoveArray.length * 15;
+            
+            // 等待动画完成后执行下落和填充
+            setTimeout(() => {
+                removeMatches(toRemoveArray);
+                
+                const fallInfo = dropGems();
+                
+                const newGemPositions = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === -1) {
+                            newGemPositions.push({ row, col });
+                        }
+                    }
+                }
+                
+                fillEmpty();
+                updateBoardWithAnimation(fallInfo, newGemPositions);
+                
+                setTimeout(() => {
+                    processMatches();
+                }, 500);
+            }, 600);
+        }
+        
+        // 激活彩虹宝石 - 消除所有同色宝石
+        function activateRainbow(row, col) {
+            // 让用户选择要消除的颜色（点击任意宝石）
+            showSpecialEffect('🌈 点击任意宝石消除所有同色！', '#ff6b6b');
+            
+            // 临时修改点击处理
+            const originalHandler = handleCellClick;
+            window.tempRainbowMode = true;
+            
+            // 重新绑定点击事件
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.onclick = function(e) {
+                    if (!window.tempRainbowMode) return;
+                    
+                    const targetRow = parseInt(e.target.dataset.row);
+                    const targetCol = parseInt(e.target.dataset.col);
+                    const targetGemType = board[targetRow][targetCol];
+                    
+                    if (targetGemType >= 0 && targetGemType < GEMS.length) {
+                        const toRemove = [];
+                        
+                        // 找到所有相同颜色的宝石
+                        for (let r = 0; r < BOARD_SIZE; r++) {
+                            for (let c = 0; c < BOARD_SIZE; c++) {
+                                if (board[r][c] === targetGemType) {
+                                    toRemove.push({ row: r, col: c });
+                                }
+                            }
+                        }
+                        
+                        // 也移除彩虹宝石本身
+                        toRemove.push({ row, col });
+                        
+                        // 添加消除动画和粒子效果
+                        for (let i = 0; i < toRemove.length; i++) {
+                            const posRow = toRemove[i].row;
+                            const posCol = toRemove[i].col;
+                            const cell = document.querySelector(`[data-row="${posRow}"][data-col="${posCol}"]`);
+                            if (cell) {
+                                const delay = i * 40;
+                                setTimeout(((c) => {
+                                    return () => {
+                                        // 先清除可能残留的动画类
+                                        c.classList.remove('falling', 'new-gem', 'matched');
+                                        c.style.removeProperty('--fall-distance');
+                                        void c.offsetWidth; // 强制重绘
+                                        c.classList.add('matched');
+                                        createParticles(c);
+                                    };
+                                })(cell), delay);
+                            }
+                        }
+                        
+                        score += toRemove.length * 20;
+                        
+                        // 等待动画完成后再执行下落和填充
+                        setTimeout(() => {
+                            removeMatches(toRemove);
+                            const fallInfo = dropGems();
+                            
+                            const newGemPositions = [];
+                            for (let r = 0; r < BOARD_SIZE; r++) {
+                                for (let c = 0; c < BOARD_SIZE; c++) {
+                                    if (board[r][c] === -1) {
+                                        newGemPositions.push({ row: r, col: c });
+                                    }
+                                }
+                            }
+                            
+                            fillEmpty();
+                            updateBoardWithAnimation(fallInfo, newGemPositions);
+                            
+                            setTimeout(() => {
+                                processMatches();
+                            }, 500);
+                        }, 600 + toRemove.length * 40);
+                        
+                        // 恢复原始点击处理
+                        window.tempRainbowMode = false;
+                        document.querySelectorAll('.cell').forEach(c => {
+                            c.onclick = originalHandler;
+                        });
+                    }
+                };
+            });
+        }
+        
+        // 激活彩虹宝石（拖动版本）- 直接消除指定颜色的宝石
+        function activateRainbowDrag(rainbowRow, rainbowCol, targetGemType) {
+            console.log('Rainbow drag activated, target gem type:', targetGemType);
+            
+            if (targetGemType >= 0 && targetGemType < GEMS.length) {
+                const toRemove = [];
+                
+                showSpecialEffect(`🌈 消除所有${GEMS[targetGemType]}！`, '#ff6b6b');
+                
+                // 找到所有相同颜色的宝石
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === targetGemType) {
+                            toRemove.push({ row: r, col: c });
+                        }
+                    }
+                }
+                
+                // 也移除彩虹宝石本身
+                toRemove.push({ row: rainbowRow, col: rainbowCol });
+                
+                // 添加消除动画和粒子效果
+                for (let i = 0; i < toRemove.length; i++) {
+                    const pos = toRemove[i];
+                    const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                    if (cell) {
+                        const delay = i * 40;
+                        setTimeout(((c) => {
+                            return () => {
+                                // 先清除可能残留的动画类
+                                c.classList.remove('falling', 'new-gem', 'matched');
+                                c.style.removeProperty('--fall-distance');
+                                void c.offsetWidth; // 强制重绘
+                                c.classList.add('matched');
+                                createParticles(c);
+                            };
+                        })(cell), delay);
+                    }
+                }
+                
+                score += toRemove.length * 20;
+                
+                // 等待动画完成后再执行下落和填充
+                setTimeout(() => {
+                    removeMatches(toRemove);
+                    const fallInfo = dropGems();
+                    
+                    const newGemPositions = [];
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        for (let col = 0; col < BOARD_SIZE; col++) {
+                            if (board[row][col] === -1) {
+                                newGemPositions.push({ row, col });
+                            }
+                        }
+                    }
+                    
+                    fillEmpty();
+                    updateBoardWithAnimation(fallInfo, newGemPositions);
+                    
+                    setTimeout(() => {
+                        processMatches();
+                    }, 500);
+                }, 600 + toRemove.length * 40);
+            }
+        }
+        
+        // 自动激活彩虹宝石（被炸弹/闪电触发时）- 随机选择周围的宝石颜色
+        function activateRainbowAuto(rainbowRow, rainbowCol) {
+            // 获取上下左右四个相邻位置的普通宝石
+            const adjacentGems = [];
+            const directions = [
+                { row: rainbowRow - 1, col: rainbowCol }, // 上
+                { row: rainbowRow + 1, col: rainbowCol }, // 下
+                { row: rainbowRow, col: rainbowCol - 1 }, // 左
+                { row: rainbowRow, col: rainbowCol + 1 }  // 右
+            ];
+            
+            directions.forEach(pos => {
+                if (pos.row >= 0 && pos.row < BOARD_SIZE && pos.col >= 0 && pos.col < BOARD_SIZE) {
+                    const gemType = board[pos.row][pos.col];
+                    // 只选择普通宝石（0-5）
+                    if (gemType >= 0 && gemType < GEMS.length) {
+                        adjacentGems.push({ row: pos.row, col: pos.col, gemType });
+                    }
+                }
+            });
+            
+            // 如果没有相邻的普通宝石，随机选一个颜色
+            let targetGemType;
+            if (adjacentGems.length > 0) {
+                const randomIndex = Math.floor(Math.random() * adjacentGems.length);
+                targetGemType = adjacentGems[randomIndex].gemType;
+            } else {
+                targetGemType = Math.floor(Math.random() * GEMS.length);
+            }
+            
+            const toRemove = [];
+            
+            showSpecialEffect(`🌈 消除所有${GEMS[targetGemType]}！`, '#ff6b6b');
+            
+            // 找到所有相同颜色的宝石
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] === targetGemType) {
+                        toRemove.push({ row: r, col: c });
+                    }
+                }
+            }
+            
+            // 也移除彩虹宝石本身
+            toRemove.push({ row: rainbowRow, col: rainbowCol });
+            
+            // 添加消除动画和粒子效果
+            for (let i = 0; i < toRemove.length; i++) {
+                const pos = toRemove[i];
+                const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (cell) {
+                    const delay = i * 40;
+                    setTimeout(((c) => {
+                        return () => {
+                            c.classList.remove('falling', 'new-gem', 'matched');
+                            c.style.removeProperty('--fall-distance');
+                            void c.offsetWidth;
+                            c.classList.add('matched');
+                            createParticles(c);
+                        };
+                    })(cell), delay);
+                }
+            }
+            
+            score += toRemove.length * 20;
+            
+            // 等待动画完成后再执行下落和填充
+            setTimeout(() => {
+                removeMatches(toRemove);
+                const fallInfo = dropGems();
+                
+                const newGemPositions = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === -1) {
+                            newGemPositions.push({ row, col });
+                        }
+                    }
+                }
+                
+                fillEmpty();
+                updateBoardWithAnimation(fallInfo, newGemPositions);
+                
+                setTimeout(() => {
+                    processMatches();
+                }, 500);
+            }, 600 + toRemove.length * 40);
+        }
+        
+        // 激活横向闪电宝石 - 只消除整行
+        function activateLightningH(triggerRow, triggerCol) {
+            const toRemove = new Set(); // 使用Set避免重复
+            const bombPositions = []; // 炸弹位置（用于同时触发3x3）
+            const rainbowPositions = []; // 彩虹位置（用于同时触发同色消除）
+            const processedRows = new Set(); // 已处理的行
+            const processedCols = new Set(); // 已处理的列
+            const pendingRows = [triggerRow]; // 待处理的行
+            const pendingCols = []; // 待处理的列
+            
+            showSpecialEffect('⚡ 横向闪电！', '#ffd700');
+            
+            // 先标记闪电位置为已处理（避免重复触发）
+            board[triggerRow][triggerCol] = -1;
+            
+            // 使用队列处理所有连锁的闪电
+            while (pendingRows.length > 0 || pendingCols.length > 0) {
+                // 处理待处理的行
+                while (pendingRows.length > 0) {
+                    const row = pendingRows.shift();
+                    if (processedRows.has(row)) continue;
+                    processedRows.add(row);
+                    
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const gemType = board[row][c];
+                        
+                        if (gemType === SPECIAL_GEMS.BOMB) {
+                            bombPositions.push({ row, col: c });
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                            rainbowPositions.push({ row, col: c });
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                            // 纵向闪电，添加到待处理列
+                            if (!processedCols.has(c)) {
+                                pendingCols.push(c);
+                            }
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                            // 另一个横向闪电在同一行，已经会被消除
+                            board[row][c] = -1;
+                        }
+                        
+                        toRemove.add(`${row}-${c}`);
+                    }
+                }
+                
+                // 处理待处理的列
+                while (pendingCols.length > 0) {
+                    const col = pendingCols.shift();
+                    if (processedCols.has(col)) continue;
+                    processedCols.add(col);
+                    
+                    for (let r = 0; r < BOARD_SIZE; r++) {
+                        const gemType = board[r][col];
+                        
+                        if (gemType === SPECIAL_GEMS.BOMB) {
+                            bombPositions.push({ row: r, col });
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                            rainbowPositions.push({ row: r, col });
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                            // 横向闪电，添加到待处理行
+                            if (!processedRows.has(r)) {
+                                pendingRows.push(r);
+                            }
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                            // 另一个纵向闪电在同一列，已经会被消除
+                            board[r][col] = -1;
+                        }
+                        
+                        toRemove.add(`${r}-${col}`);
+                    }
+                }
+            }
+            
+            // 同时添加炸弹的3x3区域
+            bombPositions.forEach(bomb => {
+                for (let row = Math.max(0, bomb.row - 1); row <= Math.min(BOARD_SIZE - 1, bomb.row + 1); row++) {
+                    for (let col = Math.max(0, bomb.col - 1); col <= Math.min(BOARD_SIZE - 1, bomb.col + 1); col++) {
+                        toRemove.add(`${row}-${col}`);
+                    }
+                }
+            });
+            
+            // 同时添加彩虹消除的同色宝石
+            rainbowPositions.forEach(rainbow => {
+                // 获取彩虹周围的普通宝石颜色
+                const directions = [
+                    { row: rainbow.row - 1, col: rainbow.col },
+                    { row: rainbow.row + 1, col: rainbow.col },
+                    { row: rainbow.row, col: rainbow.col - 1 },
+                    { row: rainbow.row, col: rainbow.col + 1 }
+                ];
+                const adjacentGems = [];
+                directions.forEach(pos => {
+                    if (pos.row >= 0 && pos.row < BOARD_SIZE && pos.col >= 0 && pos.col < BOARD_SIZE) {
+                        const gemType = board[pos.row][pos.col];
+                        if (gemType >= 0 && gemType < GEMS.length) {
+                            adjacentGems.push(gemType);
+                        }
+                    }
+                });
+                
+                let targetGemType;
+                if (adjacentGems.length > 0) {
+                    targetGemType = adjacentGems[Math.floor(Math.random() * adjacentGems.length)];
+                } else {
+                    targetGemType = Math.floor(Math.random() * GEMS.length);
+                }
+                
+                // 添加所有同色宝石
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === targetGemType) {
+                            toRemove.add(`${r}-${c}`);
+                        }
+                    }
+                }
+            });
+            
+            // 转换为数组
+            const toRemoveArray = Array.from(toRemove).map(key => {
+                const [row, col] = key.split('-').map(Number);
+                return { row, col };
+            });
+            
+            // 添加消除动画和粒子效果
+            toRemoveArray.forEach(pos => {
+                const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (cell) {
+                    // 计算延迟：行内格子从中心扩散，其他区域格子稍微延迟
+                    let delay;
+                    if (pos.row === triggerRow) {
+                        delay = Math.abs(pos.col - triggerCol) * 50;
+                    } else {
+                        delay = 100;
+                    }
+                    setTimeout(((c) => {
+                        return () => {
+                            c.classList.remove('falling', 'new-gem', 'matched');
+                            c.style.removeProperty('--fall-distance');
+                            void c.offsetWidth;
+                            c.classList.add('matched');
+                            createParticles(c);
+                        };
+                    })(cell), delay);
+                }
+            });
+            
+            score += toRemoveArray.length * 25;
+            
+            // 等待动画完成后执行下落和填充
+            setTimeout(() => {
+                removeMatches(toRemoveArray);
+                
+                const fallInfo = dropGems();
+                
+                const newGemPositions = [];
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === -1) {
+                            newGemPositions.push({ row: r, col: c });
+                        }
+                    }
+                }
+                
+                fillEmpty();
+                updateBoardWithAnimation(fallInfo, newGemPositions);
+                
+                setTimeout(() => {
+                    processMatches();
+                }, 500);
+            }, 600 + BOARD_SIZE * 50);
+        }
+        
+        // 激活纵向闪电宝石 - 只消除整列
+        function activateLightningV(triggerRow, triggerCol) {
+            const toRemove = new Set(); // 使用Set避免重复
+            const bombPositions = []; // 炸弹位置（用于同时触发3x3）
+            const rainbowPositions = []; // 彩虹位置（用于同时触发同色消除）
+            const processedRows = new Set(); // 已处理的行
+            const processedCols = new Set(); // 已处理的列
+            const pendingRows = []; // 待处理的行
+            const pendingCols = [triggerCol]; // 待处理的列
+            
+            showSpecialEffect('⚡ 纵向闪电！', '#ffd700');
+            
+            // 先标记闪电位置为已处理（避免重复触发）
+            board[triggerRow][triggerCol] = -1;
+            
+            // 使用队列处理所有连锁的闪电
+            while (pendingRows.length > 0 || pendingCols.length > 0) {
+                // 处理待处理的列
+                while (pendingCols.length > 0) {
+                    const col = pendingCols.shift();
+                    if (processedCols.has(col)) continue;
+                    processedCols.add(col);
+                    
+                    for (let r = 0; r < BOARD_SIZE; r++) {
+                        const gemType = board[r][col];
+                        
+                        if (gemType === SPECIAL_GEMS.BOMB) {
+                            bombPositions.push({ row: r, col });
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                            rainbowPositions.push({ row: r, col });
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                            // 横向闪电，添加到待处理行
+                            if (!processedRows.has(r)) {
+                                pendingRows.push(r);
+                            }
+                            board[r][col] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                            // 另一个纵向闪电在同一列，已经会被消除
+                            board[r][col] = -1;
+                        }
+                        
+                        toRemove.add(`${r}-${col}`);
+                    }
+                }
+                
+                // 处理待处理的行
+                while (pendingRows.length > 0) {
+                    const row = pendingRows.shift();
+                    if (processedRows.has(row)) continue;
+                    processedRows.add(row);
+                    
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const gemType = board[row][c];
+                        
+                        if (gemType === SPECIAL_GEMS.BOMB) {
+                            bombPositions.push({ row, col: c });
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.RAINBOW) {
+                            rainbowPositions.push({ row, col: c });
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_V) {
+                            // 纵向闪电，添加到待处理列
+                            if (!processedCols.has(c)) {
+                                pendingCols.push(c);
+                            }
+                            board[row][c] = -1;
+                        } else if (gemType === SPECIAL_GEMS.LIGHTNING_H) {
+                            // 另一个横向闪电在同一行，已经会被消除
+                            board[row][c] = -1;
+                        }
+                        
+                        toRemove.add(`${row}-${c}`);
+                    }
+                }
+            }
+            
+            // 同时添加炸弹的3x3区域
+            bombPositions.forEach(bomb => {
+                for (let row = Math.max(0, bomb.row - 1); row <= Math.min(BOARD_SIZE - 1, bomb.row + 1); row++) {
+                    for (let col = Math.max(0, bomb.col - 1); col <= Math.min(BOARD_SIZE - 1, bomb.col + 1); col++) {
+                        toRemove.add(`${row}-${col}`);
+                    }
+                }
+            });
+            
+            // 同时添加彩虹消除的同色宝石
+            rainbowPositions.forEach(rainbow => {
+                // 获取彩虹周围的普通宝石颜色
+                const directions = [
+                    { row: rainbow.row - 1, col: rainbow.col },
+                    { row: rainbow.row + 1, col: rainbow.col },
+                    { row: rainbow.row, col: rainbow.col - 1 },
+                    { row: rainbow.row, col: rainbow.col + 1 }
+                ];
+                const adjacentGems = [];
+                directions.forEach(pos => {
+                    if (pos.row >= 0 && pos.row < BOARD_SIZE && pos.col >= 0 && pos.col < BOARD_SIZE) {
+                        const gemType = board[pos.row][pos.col];
+                        if (gemType >= 0 && gemType < GEMS.length) {
+                            adjacentGems.push(gemType);
+                        }
+                    }
+                });
+                
+                let targetGemType;
+                if (adjacentGems.length > 0) {
+                    targetGemType = adjacentGems[Math.floor(Math.random() * adjacentGems.length)];
+                } else {
+                    targetGemType = Math.floor(Math.random() * GEMS.length);
+                }
+                
+                // 添加所有同色宝石
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === targetGemType) {
+                            toRemove.add(`${r}-${c}`);
+                        }
+                    }
+                }
+            });
+            
+            // 转换为数组
+            const toRemoveArray = Array.from(toRemove).map(key => {
+                const [row, col] = key.split('-').map(Number);
+                return { row, col };
+            });
+            
+            // 添加消除动画和粒子效果
+            toRemoveArray.forEach(pos => {
+                const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (cell) {
+                    // 计算延迟：列内格子从中心扩散，其他区域格子稍微延迟
+                    let delay;
+                    if (pos.col === triggerCol) {
+                        delay = Math.abs(pos.row - triggerRow) * 50;
+                    } else {
+                        delay = 100;
+                    }
+                    setTimeout(((c) => {
+                        return () => {
+                            c.classList.remove('falling', 'new-gem', 'matched');
+                            c.style.removeProperty('--fall-distance');
+                            void c.offsetWidth;
+                            c.classList.add('matched');
+                            createParticles(c);
+                        };
+                    })(cell), delay);
+                }
+            });
+            
+            score += toRemoveArray.length * 25;
+            
+            // 等待动画完成后执行下落和填充
+            setTimeout(() => {
+                removeMatches(toRemoveArray);
+                
+                const fallInfo = dropGems();
+                
+                const newGemPositions = [];
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === -1) {
+                            newGemPositions.push({ row: r, col: c });
+                        }
+                    }
+                }
+                
+                fillEmpty();
+                updateBoardWithAnimation(fallInfo, newGemPositions);
+                
+                setTimeout(() => {
+                    processMatches();
+                }, 500);
+            }, 600 + BOARD_SIZE * 50);
+        }
+        
+        // 显示特殊效果提示
+        function showSpecialEffect(message, color) {
+            // const effect = document.createElement('div');
+            // effect.style.cssText = `
+            //     position: fixed;
+            //     top: 50%;
+            //     left: 50%;
+            //     transform: translate(-50%, -50%);
+            //     background: ${color};
+            //     color: white;
+            //     padding: 20px 40px;
+            //     border-radius: 15px;
+            //     font-size: 1.5em;
+            //     font-weight: bold;
+            //     z-index: 1000;
+            //     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            // `;
+            // effect.textContent = message;
+            // document.body.appendChild(effect);
+            
+            // setTimeout(() => {
+            //     document.body.removeChild(effect);
+            // }, 2000);
+        }
+        
+        // 更新工具显示
+        function updateToolDisplay() {
+            document.getElementById('destroyCount').textContent = destroyToolCount;
+            document.getElementById('swapCount').textContent = swapToolCount;
+            document.getElementById('spawnLightningHCount').textContent = spawnLightningHCount;
+            document.getElementById('spawnLightningVCount').textContent = spawnLightningVCount;
+            document.getElementById('spawnBombCount').textContent = spawnBombCount;
+            document.getElementById('spawnRainbowCount').textContent = spawnRainbowCount;
+            
+            // 更新按钮状态
+            document.getElementById('toolDestroy').classList.toggle('active', activeToolMode === 'destroy');
+            document.getElementById('toolSwap').classList.toggle('active', activeToolMode === 'swap');
+            document.getElementById('toolSpawnLightningH').classList.toggle('active', activeToolMode === 'spawnLightningH');
+            document.getElementById('toolSpawnLightningV').classList.toggle('active', activeToolMode === 'spawnLightningV');
+            document.getElementById('toolSpawnBomb').classList.toggle('active', activeToolMode === 'spawnBomb');
+            document.getElementById('toolSpawnRainbow').classList.toggle('active', activeToolMode === 'spawnRainbow');
+            
+            // 禁用没有次数的工具
+            document.getElementById('toolDestroy').style.opacity = destroyToolCount > 0 ? '1' : '0.5';
+            document.getElementById('toolSwap').style.opacity = swapToolCount > 0 ? '1' : '0.5';
+            document.getElementById('toolSpawnLightningH').style.opacity = spawnLightningHCount > 0 ? '1' : '0.5';
+            document.getElementById('toolSpawnLightningV').style.opacity = spawnLightningVCount > 0 ? '1' : '0.5';
+            document.getElementById('toolSpawnBomb').style.opacity = spawnBombCount > 0 ? '1' : '0.5';
+            document.getElementById('toolSpawnRainbow').style.opacity = spawnRainbowCount > 0 ? '1' : '0.5';
+        }
+        
+        // 激活消除工具
+        function activateDestroyTool() {
+            if (destroyToolCount <= 0) {
+                showSpecialEffect('⚠️ 消除工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'destroy') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消消除工具', '#95a5a6');
+            } else {
+                activeToolMode = 'destroy';
+                showSpecialEffect('🎯 点击格子消除', '#e74c3c');
+            }
+            updateToolDisplay();
+        }
+        
+        // 激活交换工具
+        function activateSwapTool() {
+            if (swapToolCount <= 0) {
+                showSpecialEffect('⚠️ 交换工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'swap') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消交换工具', '#95a5a6');
+            } else {
+                activeToolMode = 'swap';
+                showSpecialEffect('🔄 拖动格子进行自由交换', '#3498db');
+            }
+            updateToolDisplay();
+        }
+        
+        // 激活生成横向闪电工具
+        function activateSpawnLightningHTool() {
+            if (spawnLightningHCount <= 0) {
+                showSpecialEffect('⚠️ 横向闪电工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'spawnLightningH') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消横向闪电工具', '#95a5a6');
+            } else {
+                activeToolMode = 'spawnLightningH';
+                showSpecialEffect('⚡ 点击格子生成横向闪电', '#ffd700');
+            }
+            updateToolDisplay();
+        }
+        
+        // 激活生成纵向闪电工具
+        function activateSpawnLightningVTool() {
+            if (spawnLightningVCount <= 0) {
+                showSpecialEffect('⚠️ 纵向闪电工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'spawnLightningV') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消纵向闪电工具', '#95a5a6');
+            } else {
+                activeToolMode = 'spawnLightningV';
+                showSpecialEffect('⚡ 点击格子生成纵向闪电', '#ffd700');
+            }
+            updateToolDisplay();
+        }
+        
+        // 激活生成炸弹工具
+        function activateSpawnBombTool() {
+            if (spawnBombCount <= 0) {
+                showSpecialEffect('⚠️ 炸弹工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'spawnBomb') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消炸弹工具', '#95a5a6');
+            } else {
+                activeToolMode = 'spawnBomb';
+                showSpecialEffect('💣 点击格子生成炸弹', '#e74c3c');
+            }
+            updateToolDisplay();
+        }
+        
+        // 激活生成彩虹工具
+        function activateSpawnRainbowTool() {
+            if (spawnRainbowCount <= 0) {
+                showSpecialEffect('⚠️ 彩虹工具已用完！', '#ff9800');
+                return;
+            }
+            
+            if (activeToolMode === 'spawnRainbow') {
+                activeToolMode = null;
+                showSpecialEffect('❌ 已取消彩虹工具', '#95a5a6');
+            } else {
+                activeToolMode = 'spawnRainbow';
+                showSpecialEffect('🌈 点击格子生成彩虹', '#ff6b6b');
+            }
+            updateToolDisplay();
+        }
+        
+        // 使用消除工具
+        function useDestroyTool(row, col) {
+            if (destroyToolCount <= 0) return;
+            
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (cell) {
+                cell.classList.add('matched');
+                createParticles(cell);
+            }
+            
+            board[row][col] = -1;
+            destroyToolCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            
+            score += 10;
+            updateDisplay();
+            
+            setTimeout(() => {
+                const fallInfo = dropGems();
+                const newGemPositions = [];
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (board[r][c] === -1) {
+                            newGemPositions.push({ row: r, col: c });
+                        }
+                    }
+                }
+                fillEmpty();
+                updateBoardWithAnimation(fallInfo, newGemPositions);
+                
+                setTimeout(() => {
+                    processMatches();
+                }, 500);
+            }, 400);
+            
+            showSpecialEffect('🎯 消除成功！', '#e74c3c');
+        }
+        
+        // 使用交换工具
+        function useSwapTool(row1, col1, row2, col2) {
+            if (swapToolCount <= 0) return;
+            
+            // 直接交换，不检查匹配
+            const temp = board[row1][col1];
+            board[row1][col1] = board[row2][col2];
+            board[row2][col2] = temp;
+            
+            swapToolCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            updateBoard();
+            
+            showSpecialEffect('🔄 交换成功！', '#3498db');
+            
+            // 检查是否有匹配
+            setTimeout(() => {
+                processMatches();
+            }, 300);
+        }
+        
+        // 使用生成横向闪电工具
+        function useSpawnLightningHTool(row, col) {
+            if (spawnLightningHCount <= 0) return;
+            
+            board[row][col] = SPECIAL_GEMS.LIGHTNING_H;
+            justPlacedSpecialGem = { row, col }; // 记录刚放置的位置
+            
+            spawnLightningHCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            updateBoard();
+            
+            showSpecialEffect('⚡ 横向闪电已生成！', '#ffd700');
+        }
+        
+        // 使用生成纵向闪电工具
+        function useSpawnLightningVTool(row, col) {
+            if (spawnLightningVCount <= 0) return;
+            
+            board[row][col] = SPECIAL_GEMS.LIGHTNING_V;
+            justPlacedSpecialGem = { row, col }; // 记录刚放置的位置
+            
+            spawnLightningVCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            updateBoard();
+            
+            showSpecialEffect('⚡ 纵向闪电已生成！', '#ffd700');
+        }
+        
+        // 使用生成炸弹工具
+        function useSpawnBombTool(row, col) {
+            if (spawnBombCount <= 0) return;
+            
+            board[row][col] = SPECIAL_GEMS.BOMB;
+            justPlacedSpecialGem = { row, col }; // 记录刚放置的位置
+            
+            spawnBombCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            updateBoard();
+            
+            showSpecialEffect('💣 炸弹已生成！', '#e74c3c');
+        }
+        
+        
+        // 使用生成彩虹工具
+        function useSpawnRainbowTool(row, col) {
+            if (spawnRainbowCount <= 0) return;
+            
+            board[row][col] = SPECIAL_GEMS.RAINBOW;
+            justPlacedSpecialGem = { row, col }; // 记录刚放置的位置
+            
+            spawnRainbowCount--;
+            activeToolMode = null;
+            updateToolDisplay();
+            updateBoard();
+            
+            showSpecialEffect('🌈 彩虹已生成！', '#ff6b6b');
+        }
+        
+        // 开始新游戏
+        function newGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            window.tempRainbowMode = false;
+            
+            // 清理任何进行中的拖拽操作
+            if (isDragging) {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                if (dragElement) {
+                    document.body.removeChild(dragElement);
+                }
+            }
+            
+            isDragging = false;
+            dragStartCell = null;
+            dragElement = null;
+            dragTarget = null;
+            originalRect = null;
+            adjacentPositions = [];
+            
+            initGame();
+        }
+
+        // 页面加载完成后初始化游戏
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>

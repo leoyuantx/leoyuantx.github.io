@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blow the box</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #gun {
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+        }
+
+        #bullet {
+            position: absolute;
+            top: 46%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+        }
+
+        #box {
+            position: absolute;
+            top: 50%;
+            left: 80%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <img id="gun" src="./images/gun.png" alt="Gun">
+    <img id="box" src="./images/box.png" alt="Box">
+    <img id="bullet" src="./images/bullet.png" alt="">
+    <script>
+        const box = document.getElementById('box');
+        let direction = 1;
+        let position = 50;
+
+        function animateBox() {
+            position += direction/2;
+            if (position >= 80 || position <= 20) {
+                direction *= -1;
+            }
+            box.style.top = position + '%';
+            requestAnimationFrame(animateBox);
+        }
+
+        animateBox();
+
+        const bullet = document.getElementById('bullet');
+        let bulletPosition = 25;
+        let bulletDirection = 1;
+
+        function animateBullet() {
+            bulletPosition += bulletDirection / 2;
+            if (bulletPosition >= 90) {
+                bulletPosition = 25;
+            }
+            bullet.style.left = bulletPosition + '%';
+            const bulletRect = bullet.getBoundingClientRect();
+            const boxRect = box.getBoundingClientRect();
+
+            if (
+                bulletRect.right > boxRect.left &&
+                bulletRect.left < boxRect.right &&
+                bulletRect.bottom > boxRect.top &&
+                bulletRect.top < boxRect.bottom
+            ) {
+                console.log('Bullet overlaps with box');
+            }
+            requestAnimationFrame(animateBullet);
+        }
+
+        animateBullet();
+
+        let isDragging = false;
+        let startX, startY;
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI) / 3;
+                document.getElementById('gun').style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+    </script>
+</body>
+</html>

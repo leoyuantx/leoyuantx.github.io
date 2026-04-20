@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angry Birds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+            border: 3px solid #333;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to bottom, #90EE90, #228B22);
+            border-top: 2px solid #1a6b1a;
+        }
+
+        .bird {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border-radius: 50%;
+            bottom: 100px;
+            left: 50px;
+        }
+
+        .bird::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: black;
+            border-radius: 50%;
+            top: 8px;
+            right: 5px;
+        }
+
+        .bird::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-top: 5px solid orange;
+            border-bottom: 5px solid orange;
+            right: -8px;
+            top: 10px;
+        }
+
+        .slingshot {
+            position: absolute;
+            bottom: 95px;
+            left: 40px;
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(to right, #8B4513, #A0522D);
+            border-radius: 5px;
+        }
+
+        .slingshot::before,
+        .slingshot::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 50px;
+            background: #333;
+            top: 50%;
+        }
+
+        .slingshot::before {
+            left: 10px;
+            transform: translateY(-50%) rotate(-30deg);
+        }
+
+        .slingshot::after {
+            right: 10px;
+            transform: translateY(-50%) rotate(30deg);
+        }
+
+        .pig {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: radial-gradient(circle at 30% 30%, #90EE90, #228B22);
+            border-radius: 50%;
+            bottom: 100px;
+        }
+
+        .pig::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: black;
+            border-radius: 50%;
+            top: 10px;
+            left: 8px;
+        }
+
+        .pig::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: black;
+            border-radius: 50%;
+            top: 10px;
+            right: 8px;
+        }
+
+        .wood {
+            position: absolute;
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            border: 1px solid #654321;
+        }
+
+        .wood.horizontal {
+            height: 15px;
+            width: 80px;
+        }
+
+        .wood.vertical {
+            width: 15px;
+            height: 80px;
+        }
+
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .instruction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 20;
+            display: none;
+        }
+
+        .instruction.show {
+            display: block;
+        }
+
+        .instruction h2 {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #FFD700;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #FFA500;
+        }
+
+        /* Drag UX enhancements */
+        #overlay {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .band {
+            stroke: #5a381e;
+            stroke-width: 6;
+            stroke-linecap: round;
+            opacity: 0.9;
+            display: none;
+        }
+
+        #trail {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .trail-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 3px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div class="slingshot"></div>
+        <div class="bird" id="bird"></div>
+        <div class="ground"></div>
+        <div id="structures"></div>
+        <div id="pigs"></div>
+        <svg id="overlay">
+            <line id="bandLeft" class="band" x1="0" y1="0" x2="0" y2="0"></line>
+            <line id="bandRight" class="band" x1="0" y1="0" x2="0" y2="0"></line>
+        </svg>
+        <div id="trail"></div>
+        <div class="info">
+            <div>Score: <span id="score">0</span></div>
+            <div>Pigs: <span id="pigsLeft">3</span></div>
+        </div>
+        <div class="instruction" id="instruction">
+            <h2>Angry Birds</h2>
+            <p>Click and drag the bird, then release to launch!</p>
+            <p>Destroy all the pigs to win!</p>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const bird = document.getElementById('bird');
+        const structures = document.getElementById('structures');
+        const pigs = document.getElementById('pigs');
+        const scoreSpan = document.getElementById('score');
+        const pigsLeftSpan = document.getElementById('pigsLeft');
+        const instruction = document.getElementById('instruction');
+        const overlay = document.getElementById('overlay');
+        const bandLeft = document.getElementById('bandLeft');
+        const bandRight = document.getElementById('bandRight');
+        const trail = document.getElementById('trail');
+
+        let score = 0;
+        let birdLaunched = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        // Drag configuration
+        const ANCHOR = { x: 50, y: 370 }; // initial bird position
+        const MAX_PULL = 75; // max pixels to pull from anchor
+        const POWER = 0.35; // base velocity scaling from pull
+
+        function computePowerScale(dist) {
+            const t = Math.min(dist / MAX_PULL, 1);
+            return POWER * (0.2 + 0.8 * t * t);
+        }
+
+        class Bird {
+            constructor() {
+                this.x = 50;
+                this.y = 370;
+                this.vx = 0;
+                this.vy = 0;
+                this.width = 30;
+                this.height = 30;
+                this.gravity = 0.3;
+                this.damping = 0.985;
+            }
+
+            update() {
+                if (birdLaunched) {
+                    this.vy += this.gravity;
+                    this.vx *= this.damping;
+                    this.vy *= this.damping;
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    bird.style.left = this.x + 'px';
+                    bird.style.top = this.y + 'px';
+
+                    // Check if bird is out of bounds
+                    if (this.x > 800 || this.y > 500) {
+                        resetBird();
+                    }
+                }
+            }
+
+            draw() {
+                bird.style.left = this.x + 'px';
+                bird.style.top = this.y + 'px';
+            }
+        }
+
+        class Pig {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 35;
+                this.height = 35;
+                this.alive = true;
+            }
+
+            draw() {
+                let pigEl = document.createElement('div');
+                pigEl.className = 'pig';
+                pigEl.style.left = this.x + 'px';
+                pigEl.style.top = this.y + 'px';
+                pigEl.dataset.pigId = Math.random();
+                this.element = pigEl;
+                pigs.appendChild(pigEl);
+            }
+
+            checkCollision(birdX, birdY) {
+                return (
+                    birdX < this.x + this.width &&
+                    birdX + 30 > this.x &&
+                    birdY < this.y + this.height &&
+                    birdY + 30 > this.y
+                );
+            }
+        }
+
+        class Wood {
+            constructor(x, y, horizontal) {
+                this.x = x;
+                this.y = y;
+                this.horizontal = horizontal;
+                this.width = horizontal ? 80 : 15;
+                this.height = horizontal ? 15 : 80;
+                this.health = 100;
+            }
+
+            draw() {
+                let woodEl = document.createElement('div');
+                woodEl.className = 'wood ' + (this.horizontal ? 'horizontal' : 'vertical');
+                woodEl.style.left = this.x + 'px';
+                woodEl.style.top = this.y + 'px';
+                woodEl.dataset.woodId = Math.random();
+                this.element = woodEl;
+                this.elementId = woodEl.dataset.woodId;
+                structures.appendChild(woodEl);
+            }
+
+            checkCollision(birdX, birdY) {
+                return (
+                    birdX < this.x + this.width &&
+                    birdX + 30 > this.x &&
+                    birdY < this.y + this.height &&
+                    birdY + 30 > this.y
+                );
+            }
+
+            damage() {
+                this.health -= 50;
+                if (this.health <= 0 && this.element) {
+                    this.element.remove();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        let gameObjects = {
+            bird: null,
+            pigs: [],
+            woods: []
+        };
+
+        function createLevel() {
+            structures.innerHTML = '';
+            pigs.innerHTML = '';
+
+            // Create pigs
+            gameObjects.pigs = [
+                new Pig(600, 365),
+                new Pig(700, 365),
+                new Pig(650, 300)
+            ];
+
+            gameObjects.pigs.forEach(pig => pig.draw());
+
+            // Create wooden structures
+            gameObjects.woods = [
+                new Wood(500, 380, true),
+                new Wood(500, 350, false),
+                new Wood(560, 350, false),
+                new Wood(500, 270, true),
+                new Wood(560, 270, true)
+            ];
+
+            gameObjects.woods.forEach(wood => wood.draw());
+
+            pigsLeftSpan.textContent = gameObjects.pigs.length;
+        }
+
+        function createBird() {
+            gameObjects.bird = new Bird();
+            gameObjects.bird.draw();
+        }
+
+        function resetBird() {
+            birdLaunched = false;
+            gameObjects.bird = new Bird();
+            gameObjects.bird.draw();
+            clearBands();
+            clearTrajectory();
+        }
+
+        function checkCollisions() {
+            if (!birdLaunched) return;
+
+            // Check pig collisions
+            gameObjects.pigs = gameObjects.pigs.filter(pig => {
+                if (pig.alive && pig.checkCollision(gameObjects.bird.x, gameObjects.bird.y)) {
+                    pig.alive = false;
+                    if (pig.element) pig.element.remove();
+                    score += 100;
+                    scoreSpan.textContent = score;
+                    return false;
+                }
+                return true;
+            });
+
+            pigsLeftSpan.textContent = gameObjects.pigs.length;
+
+            // Check wood collisions
+            gameObjects.woods = gameObjects.woods.filter(wood => {
+                if (wood.checkCollision(gameObjects.bird.x, gameObjects.bird.y)) {
+                    if (wood.damage()) {
+                        score += 10;
+                        scoreSpan.textContent = score;
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // Check if all pigs are destroyed
+            if (gameObjects.pigs.length === 0) {
+                setTimeout(() => {
+                    alert('You won! Final Score: ' + score);
+                }, 500);
+            }
+        }
+
+        function gameLoop() {
+            if (birdLaunched) {
+                gameObjects.bird.update();
+                checkCollisions();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Helper: clamp desired bird CENTER to a circle around anchor
+        function clampCenterToAnchor(cx, cy) {
+            const dx = cx - ANCHOR.x;
+            const dy = cy - ANCHOR.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist === 0) {
+                return { cx: ANCHOR.x, cy: ANCHOR.y, dx: 0, dy: 0 };
+            }
+            const factor = Math.min(dist, MAX_PULL) / dist;
+            const clampedDx = dx * factor;
+            const clampedDy = dy * factor;
+            return {
+                cx: ANCHOR.x + clampedDx,
+                cy: ANCHOR.y + clampedDy,
+                dx: clampedDx,
+                dy: clampedDy
+            };
+        }
+
+        // Helper: bands visualize slingshot
+        function setBands(targetCenterX, targetCenterY) {
+            const forkY = ANCHOR.y - 5;
+            const leftX = ANCHOR.x - 10;
+            const rightX = ANCHOR.x + 10;
+            bandLeft.setAttribute('x1', leftX);
+            bandLeft.setAttribute('y1', forkY);
+            bandLeft.setAttribute('x2', targetCenterX);
+            bandLeft.setAttribute('y2', targetCenterY);
+            bandRight.setAttribute('x1', rightX);
+            bandRight.setAttribute('y1', forkY);
+            bandRight.setAttribute('x2', targetCenterX);
+            bandRight.setAttribute('y2', targetCenterY);
+            bandLeft.style.display = 'block';
+            bandRight.style.display = 'block';
+        }
+
+        function clearBands() {
+            bandLeft.style.display = 'none';
+            bandRight.style.display = 'none';
+        }
+
+        // Helper: predicted trajectory dots
+        function showTrajectory(dx, dy) {
+            trail.innerHTML = '';
+            const gravity = gameObjects.bird?.gravity ?? 0.5;
+            const damping = gameObjects.bird?.damping ?? 0.99;
+            const scale = computePowerScale(Math.hypot(dx, dy));
+            let vx = -dx * scale;
+            let vy = -dy * scale;
+            let x = ANCHOR.x;
+            let y = ANCHOR.y;
+            for (let i = 0; i < 20; i++) {
+                vx *= damping;
+                vy = vy * damping + gravity;
+                x += vx;
+                y += vy;
+                const dot = document.createElement('div');
+                dot.className = 'trail-dot';
+                dot.style.left = x + 'px';
+                dot.style.top = y + 'px';
+                trail.appendChild(dot);
+            }
+        }
+
+        function clearTrajectory() {
+            trail.innerHTML = '';
+        }
+
+        // Pointer-based drag handlers (mouse + touch)
+        bird.addEventListener('pointerdown', (e) => {
+            if (!birdLaunched) {
+                isDragging = true;
+                bird.setPointerCapture?.(e.pointerId);
+                const rect = gameContainer.getBoundingClientRect();
+                const px = e.clientX - rect.left;
+                const py = e.clientY - rect.top;
+                const centerX = gameObjects.bird.x + gameObjects.bird.width / 2;
+                const centerY = gameObjects.bird.y + gameObjects.bird.height / 2;
+                dragOffsetX = px - centerX;
+                dragOffsetY = py - centerY;
+            }
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (isDragging && !birdLaunched) {
+                const rect = gameContainer.getBoundingClientRect();
+                const px = e.clientX - rect.left;
+                const py = e.clientY - rect.top;
+                const desiredCx = px - dragOffsetX;
+                const desiredCy = py - dragOffsetY;
+                const clamped = clampCenterToAnchor(desiredCx, desiredCy);
+                gameObjects.bird.x = clamped.cx - gameObjects.bird.width / 2;
+                gameObjects.bird.y = clamped.cy - gameObjects.bird.height / 2;
+                gameObjects.bird.draw();
+                setBands(clamped.cx, clamped.cy);
+                showTrajectory(clamped.dx, clamped.dy);
+            }
+        });
+
+        document.addEventListener('pointerup', (e) => {
+            if (isDragging && !birdLaunched) {
+                const centerX = gameObjects.bird.x + gameObjects.bird.width / 2;
+                const centerY = gameObjects.bird.y + gameObjects.bird.height / 2;
+                const dx = centerX - ANCHOR.x;
+                const dy = centerY - ANCHOR.y;
+                const scale = computePowerScale(Math.hypot(dx, dy));
+                gameObjects.bird.vx = -dx * scale;
+                gameObjects.bird.vy = -dy * scale;
+                birdLaunched = true;
+                isDragging = false;
+                clearBands();
+                clearTrajectory();
+            }
+        });
+
+        function startGame() {
+            instruction.classList.remove('show');
+            score = 0;
+            scoreSpan.textContent = score;
+            createLevel();
+            createBird();
+            gameLoop();
+        }
+
+        // Show instruction on load
+        window.addEventListener('load', () => {
+            instruction.classList.add('show');
+        });
+    </script>
+</body>
+</html>

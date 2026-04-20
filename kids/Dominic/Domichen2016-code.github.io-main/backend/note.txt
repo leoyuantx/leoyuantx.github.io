@@ -1,0 +1,20 @@
+modularization
+- JS files
+
+storage / data persistence
+- local
+- remote
+
+API call
+- requests / different types of requests
+- response / json
+
+Ask a function to return something
+- immediate return
+- Slow and Asynchronous return
+
+Firebase setup
+
+Firebase deployment
+
+Github collaboration

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        #left_paddle {
+            position: absolute;
+            width: 20px;
+            height: 100px;
+            background-color: blue;
+            left: 50px;
+            top: 50px;
+        }
+        #right_paddle {
+            position: absolute;
+            width: 20px;
+            height: 100px;
+            background-color: red;
+            right: 300px;
+            top: 300px;
+        }
+        #ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="left_paddle"></div>
+    <div id="right_paddle"></div>
+    <div id="ball"></div>
+
+    <script>
+        let ball = document.getElementById('ball');
+        let ballX = window.innerWidth / 2;
+        let ballY = window.innerHeight / 2;
+        let ballSpeedX = 4;
+        let ballSpeedY = 3;
+
+        function moveBall() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // Bounce off left/right walls
+            if (ballX <= 0 || ballX + 20 >= window.innerWidth) {
+                ballSpeedX = -ballSpeedX;
+            }
+            // Bounce off top/bottom walls
+            if (ballY <= 0 || ballY + 20 >= window.innerHeight) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+            ball.style.transform = ''; // Remove centering transform
+        }
+
+
+        let leftPaddle = document.getElementById('left_paddle');
+        let rightPaddle = document.getElementById('right_paddle');
+        let leftPaddleY = 50;
+        let rightPaddleY = 300;
+        const paddleSpeed = 10;
+        const paddleHeight = 100;
+
+        // Update paddle positions visually
+        function updatePaddles() {
+            leftPaddle.style.top = leftPaddleY + 'px';
+            rightPaddle.style.top = rightPaddleY + 'px';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            // Left paddle: 'q' (up), 'a' (down)
+            if (e.key === 'q' || e.key === 'Q') {
+                leftPaddleY = Math.max(0, leftPaddleY - paddleSpeed);
+            }
+            if (e.key === 'a' || e.key === 'A') {
+                leftPaddleY = Math.min(window.innerHeight - paddleHeight, leftPaddleY + paddleSpeed);
+            }
+            // Right paddle: 'o' (up), 'l' (down)
+            if (e.key === 'o' || e.key === 'O') {
+                rightPaddleY = Math.max(0, rightPaddleY - paddleSpeed);
+            }
+            if (e.key === 'l' || e.key === 'L') {
+                rightPaddleY = Math.min(window.innerHeight - paddleHeight, rightPaddleY + paddleSpeed);
+            }
+            updatePaddles();
+        });
+
+        function checkPaddleCollision() {
+            // Left paddle collision
+            let leftPaddleRect = leftPaddle.getBoundingClientRect();
+            let ballRect = ball.getBoundingClientRect();
+            if (
+                ballRect.left < leftPaddleRect.right &&
+                ballRect.right > leftPaddleRect.left &&
+                ballRect.top < leftPaddleRect.bottom &&
+                ballRect.bottom > leftPaddleRect.top
+            ) {
+                ballSpeedX = Math.abs(ballSpeedX);
+            }
+
+            // Right paddle collision
+            let rightPaddleRect = rightPaddle.getBoundingClientRect();
+            if (
+                ballRect.right > rightPaddleRect.left &&
+                ballRect.left < rightPaddleRect.right &&
+                ballRect.top < rightPaddleRect.bottom &&
+                ballRect.bottom > rightPaddleRect.top
+            ) {
+                ballSpeedX = -Math.abs(ballSpeedX);
+            }
+        }
+
+        const moveBallAndCheckCollision = function() {
+            moveBall();
+            checkPaddleCollision();
+        };
+
+        setInterval(moveBallAndCheckCollision, 16);
+    </script>
+</body>
+</html>

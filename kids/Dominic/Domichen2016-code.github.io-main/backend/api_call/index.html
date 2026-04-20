@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather API Call</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f0f4f8;
+        }
+        h1 { color: #333; }
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        #result {
+            margin-top: 20px;
+            padding: 16px;
+            background: #fff;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: none;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather API</h1>
+    <button onclick="fetchWeather()">Get Weather</button>
+    <div id="result"></div>
+
+    <script>
+         async function fetchWeather() {
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.textContent = "Loading...";
+
+            const api_url = "https://api.open-meteo.com/v1/forecast?latitude=32.8726&longitude=-96.7685&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m";
+
+            try {
+                console.log("111");
+                const response = await fetch(api_url);
+                console.log("222");
+                const data = await response.json();
+                console.log("333");
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                console.log("444");
+            } catch (error) {
+                resultDiv.textContent = "Error: " + error.message;
+            }
+
+            // fetch(api_url)
+            //     .then(response => response.json())
+            //     .then(data => 
+            //         {
+            //             console.log(data)
+            //             const prettifiedJson = JSON.stringify(data, null, 2);
+            //             resultDiv.textContent = data.current.temperature_2m;
+            //         } 
+            //     )
+            //     .catch(error => console.error(error));
+        }
+    </script>
+</body>
+</html>

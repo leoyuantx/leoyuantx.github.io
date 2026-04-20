@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title> Tic Tac Toe </title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem 1rem;
+            background-image: url("flower-JS-tictactoe.webp");
+            background-size: cover;
+            background-position: center;
+            color: #222;
+        }
+
+        /* Page header / intro */
+        #intro {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+            font-size: clamp(1rem, 2.2vw, 1.25rem);
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+
+        audio { margin: 0.75rem 0; }
+
+        /* Board container */
+        .board {
+            display: none;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f6ff 100%);
+            padding: 1rem;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(46,61,73,0.12);
+            display: grid;
+            grid-template-columns: repeat(3, minmax(70px, 1fr));
+            gap: clamp(8px, 1.2vw, 14px);
+            width: min(680px, 96vw);
+            max-width: 680px;
+            margin: 0.75rem auto 2.5rem;
+        }
+
+        /* Grid cell */
+        .box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+            border: 3px solid rgba(255,165,0,0.9);
+            background: linear-gradient(180deg, #fff 0%, #fff9f0 100%);
+            font-size: clamp(36px, 8vw, 96px);
+            font-family: 'Bradley Hand', cursive;
+            color: #2b2b2b;
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+            user-select: none;
+        }
+
+        .box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(102,102,102,0.12);
+            background: linear-gradient(180deg, #fff7e6 0%, #fff2e0 100%);
+        }
+
+        /* Final message overlay */
+        #final_message {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 12%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 14px 48px rgba(0,0,0,0.14);
+            text-align: center;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            color: #0b57a4;
+            font-size: clamp(1.1rem, 3.6vw, 2rem);
+            z-index: 60;
+            min-width: 260px;
+        }
+
+        #play_again {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: calc(12% + 5rem);
+            transform: translateX(-50%);
+            z-index: 60;
+        }
+
+        #play_again > div,
+        #play_again button {
+            display: inline-block;
+            background: linear-gradient(135deg,#ffb366 0%,#ff6b6b 100%);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 8px 26px rgba(255,107,107,0.22);
+        }
+
+        /* Music control in corner */
+        #music {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 120;
+            background: rgba(255,255,255,0.85);
+            padding: 6px 8px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        /* Feedback and restart (kept hidden until used) */
+        #feedback, #btrestart { display: none; }
+
+        /* Responsive tweaks */
+        @media (max-width: 600px) {
+            .board { gap: 8px; }
+            .box { font-size: clamp(28px, 12vw, 72px); border-width: 2.5px; }
+            #final_message { top: 8%; font-size: clamp(1rem, 4vw, 1.25rem); }
+            #play_again { top: calc(8% + 4.5rem); }
+        }
+
+        @media (max-width: 380px) {
+            body { padding: 1rem; }
+            .board { width: 96vw; }
+            .box { font-size: clamp(24px, 14vw, 56px); }
+        }
+    </style>
+
+    <script>
+        var whoseTurn = "X";
+        var isgamedone = false;
+        function showrestart(params) {
+            // var x = document.getElementById("btrestart");
+            // x.style.display = "block";
+        }
+
+        function checkWinner() {
+            // check 8 lines
+            // row 1
+            console.log(document.getElementById("b00").innerHTML);
+            console.log(document.getElementById("b01").innerHTML);
+            console.log(document.getElementById("b02").innerHTML);
+            if (document.getElementById("b00").innerHTML != ""
+                && document.getElementById("b00").innerHTML == document.getElementById("b01").innerHTML 
+                && document.getElementById("b00").innerHTML == document.getElementById("b02").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // row 2
+            if (document.getElementById("b10").innerHTML != ""
+                && document.getElementById("b10").innerHTML == document.getElementById("b11").innerHTML 
+                && document.getElementById("b10").innerHTML == document.getElementById("b12").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // row 3
+            if (document.getElementById("b20").innerHTML != ""
+                && document.getElementById("b20").innerHTML == document.getElementById("b21").innerHTML 
+                && document.getElementById("b20").innerHTML == document.getElementById("b22").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+
+            // col 1
+            if (document.getElementById("b00").innerHTML != ""
+                && document.getElementById("b10").innerHTML == document.getElementById("b00").innerHTML 
+                && document.getElementById("b20").innerHTML == document.getElementById("b00").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // col 2
+            if (document.getElementById("b01").innerHTML != ""
+                && document.getElementById("b11").innerHTML == document.getElementById("b01").innerHTML 
+                && document.getElementById("b21").innerHTML == document.getElementById("b11").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // col 3
+            if (document.getElementById("b02").innerHTML != ""
+                && document.getElementById("b12").innerHTML == document.getElementById("b02").innerHTML 
+                && document.getElementById("b22").innerHTML == document.getElementById("b02").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // diag 1
+            if (document.getElementById("b00").innerHTML != ""
+                && document.getElementById("b11").innerHTML == document.getElementById("b22").innerHTML 
+                && document.getElementById("b22").innerHTML == document.getElementById("b00").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+            // diag 2
+            if (document.getElementById("b02").innerHTML != ""
+                && document.getElementById("b11").innerHTML == document.getElementById("b02").innerHTML 
+                && document.getElementById("b20").innerHTML == document.getElementById("b11").innerHTML) {
+                alertwinne("Winner is " + whoseTurn);
+            }
+
+            if (!isgamedone 
+            && document.getElementById("b00").innerHTML != "" 
+            && document.getElementById("b01").innerHTML != ""
+            && document.getElementById("b02").innerHTML != ""
+            && document.getElementById("b10").innerHTML != ""
+            && document.getElementById("b11").innerHTML != ""
+            && document.getElementById("b12").innerHTML != ""
+            && document.getElementById("b20").innerHTML != ""
+            && document.getElementById("b21").innerHTML != ""
+            && document.getElementById("b22").innerHTML != ""
+            ) {
+                console.log("im in the if block");
+                alerttttdraw()
+            }
+        }
+        function alertwinne() {
+            isgamedone = true;
+            console.log("this is alertwinne function");
+            document.getElementById("play_again").style.display = "block"
+            document.getElementById("final_message").style.display = "block"
+            document.getElementById("final_message").innerHTML = "The winner is " + whoseTurn + "!!!"
+            document.getElementById("board").style.display= "none";
+            // document.getElementById("feedback").style.display = "block";
+            showrestart()
+        }
+
+        function alerttttdraw(params) {
+            isgamedone = true;
+            document.getElementById("final_message").style.display = "block"
+             //        
+
+            document.getElementById("final_message").innerHTML = 'alertttt youre game is drawed <div onclick="restart()">click here to play again </div> <button onclick="gohome()">Back to Main Page</button>';
+            document.getElementById("board").style.display= "none";
+            document.getElementById("feedback").style.display = "block";
+            showrestart()
+        }
+        function markTheBox(id) {
+            document.getElementById("intro").style.display = "none";
+            if (document.getElementById(id).innerHTML == "") {
+                document.getElementById(id).innerHTML = whoseTurn;
+
+            }else{
+                return
+            }
+            checkWinner();
+
+            if (whoseTurn == "X") {
+                whoseTurn = "O";
+            } else {
+                whoseTurn = "X";
+            }
+            
+        }
+
+        function clicking() {
+            // things after // are all comment
+            // step 1, hide intro message
+            document.getElementById("intro").style.display = "none";
+
+            // step 2, hide this "start your game" div
+            document.getElementById("gamey").style.display = "none";
+
+            // step 3, show the game board
+            document.getElementById("board").style.display = "block";
+        }
+        function restart() {
+            //step 1, hide restart div
+            // document.getElementById("btrestart").style.display = "none";
+            //step 2, hide final_message div
+            // document.getElementById("final_message").style.display = " none"
+            //step 3, hide feedback form
+            //document.getElementById("feedback").style.display = "none";
+            //step 4, show board
+           //document.getElementById("board").style.display = "block";
+
+           location.reload();
+        }
+
+        function gohome() {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body>
+    <div id="intro">Hi I am DC,today you will play tic-tac-toe in this page
+        <br>
+        today you will play 3by3 tic-tac-toe
+        <br>
+        click start to play tic-tac-toe
+    </div>
+    
+        <audio id="music" controls>
+                <source src="Relaxing_Music.mp3" type="audio/mpeg">
+                Your browser does not support the audio tag.
+            </audio>
+    
+    <div class="board" id="board">
+        <div class="row">
+            <div class="box" onclick="markTheBox(this.id)" id="b00"></div>
+            <div class="box" onclick="markTheBox(this.id)" id="b01"></div>
+            <div  class="box" onclick="markTheBox(this.id)" id="b02"></div>
+        
+        </div>
+    
+        <div class="row">
+    
+            <div onclick="markTheBox(this.id)" id="b10" class="box"></div>
+            <div  onclick="markTheBox(this.id)" id="b11" class="box"></div>
+            <div  onclick="markTheBox(this.id)" id="b12" class="box"></div>
+        </div>
+    
+        <div  class="row">
+            <div  onclick="markTheBox(this.id)" id="b20" class="box"></div>
+            <div  onclick="markTheBox(this.id)" id="b21" class="box"></div>
+            <div  onclick="markTheBox(this.id)" id="b22" class="box"></div>
+        </div>
+    </div>
+
+    <div id="final_message">
+        <button onclick="gohome()">Back to Main Page</button>
+    </div>
+    <div id="play_again">
+        <div onclick="restart()">click here to play again </div>
+        <button onclick="gohome()">Back to Main Page</button>
+    </div>
+    <!-- start button removed per user request -->
+
+</body>
+</html>

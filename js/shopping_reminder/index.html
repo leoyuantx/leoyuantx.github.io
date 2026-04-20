@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Reminder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffecd2;
+            min-height: 100vh;
+            margin: 0;
+            padding: 6px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        header {
+            background: #ff9a9e;
+            padding: 20px 20px 18px;
+            text-align: center;
+        }
+        header h1 {
+            color: #fff;
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            text-shadow: 0 2px 8px rgba(255, 100, 100, 0.3);
+        }
+        
+        main {
+            padding: 0 6px 20px;
+        }
+        #reminder-list-section h2, #add-item-section h2 {
+            margin: 0 0 14px 0;
+            font-size: 1.1em;
+            color: #555;
+            font-weight: 700;
+        }
+        #reminder-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .reminder-item {
+            background: linear-gradient(145deg, #f8fafc 0%, #fff 100%);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            padding: 12px;
+            transition: all 0.25s ease;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(148, 163, 184, 0.1);
+        }
+        .reminder-item:active {
+            transform: scale(0.98);
+        }
+        .reminder-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .reminder-name {
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #444;
+            font-size: 0.95em;
+        }
+        .reminder-value {
+            font-size: 0.95em;
+            flex-shrink: 0;
+        }
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .edit-btn {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            color: #16a34a;
+            cursor: pointer;
+            font-size: 0.85em;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-height: 36px;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .edit-btn:hover, .edit-btn:active {
+            background: #dcfce7;
+            border-color: #86efac;
+            transform: scale(1.02);
+        }
+        .delete-btn {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 0.85em;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-height: 36px;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .delete-btn:hover, .delete-btn:active {
+            background: #fee2e2;
+            border-color: #f87171;
+            transform: scale(1.02);
+        }
+        .reminder-days {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .refill-text, .consume-text {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 10px;
+        }
+        .refill-text {
+            background: #e0f2fe;
+        }
+        .refill-text.urgent {
+            background: #fecaca;
+            color: #dc2626 !important;
+        }
+        .consume-text {
+            background: #fef3c7;
+        }
+        .consume-text.urgent {
+            background: #fecaca;
+            color: #dc2626 !important;
+        }
+
+        #item-filter {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #ffe0e0;
+            border-radius: 12px;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background: #fffafa;
+            font-family: inherit;
+        }
+        #item-filter:focus {
+            outline: none;
+            border-color: #ffb8b8;
+            box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.2);
+            background: #fff;
+        }
+        #item-filter::placeholder {
+            color: #ccc;
+        }
+        #add-item-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        #add-item-form input, #add-item-form select {
+            flex: 1 1 120px;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #add-item-form input[type="radio"] {
+            flex: none !important;
+            width: 18px !important;
+            height: 18px !important;
+            margin: 0 !important;
+            cursor: pointer;
+        }
+        #add-item-form fieldset {
+            flex-basis: 100%;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        #add-item-form fieldset legend {
+            padding: 0 5px;
+            font-weight: bold;
+        }
+        #add-item-form fieldset > div {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #add-item-form fieldset label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal;
+            flex: 0 1 auto;
+            gap: 5px;
+        }
+        #add-item-form fieldset label input {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+        #add-item-form fieldset label span {
+            margin: 0;
+        }
+        #add-item-form > button {
+            flex: 1 1 60px;
+            background: #fb923c;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 0;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+            transition: all 0.2s;
+        }
+        #add-item-form > button:hover {
+            background: #f97316;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 146, 60, 0.4);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 200, 200, 0.5);
+            backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+            padding: 4px;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px 24px 20px 20px;
+            padding: 24px 20px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 -10px 40px rgba(255, 154, 158, 0.25);
+            max-height: 96vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: #555;
+            font-weight: 700;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .modal-input-group {
+            margin-bottom: 16px;
+        }
+        .modal-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #666;
+        }
+        .modal-input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ffe0e0;
+            border-radius: 14px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .modal-input-group input:focus {
+            outline: none;
+            border-color: #ffb8b8;
+            box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.2);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            width: 100%;
+            align-items: center;
+        }
+        .modal-buttons button {
+            flex: 1;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            height: 50px;
+            font-family: inherit;
+            font-size: 1em;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .modal-buttons .cancel-btn {
+            background: #f5f5f5;
+            color: #888;
+        }
+        .modal-buttons .cancel-btn:hover, .modal-buttons .cancel-btn:active {
+            background: #eee;
+        }
+        .modal-buttons .confirm-btn {
+            background: #2dd4bf;
+            color: white;
+        }
+        .modal-buttons .confirm-btn:hover, .modal-buttons .confirm-btn:active {
+            background: #14b8a6;
+        }
+        .add-item-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .bottom-action-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 100;
+        }
+        .fab {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+            color: white;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(129, 140, 248, 0.5);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .fab:hover, .fab:active {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(129, 140, 248, 0.6);
+        }
+        .bottom-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .search-btn {
+            background: white;
+            color: #666;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .search-btn:hover, .search-btn:active {
+            background: #eef2ff;
+            transform: scale(1.05);
+        }
+        .search-btn.active {
+            background: #6366f1;
+            color: white;
+            transform: scale(1.1);
+        }
+        .search-btn.active:active {
+            background: #4f46e5;
+            transform: scale(1.05);
+        }
+        .consume-btn {
+            background: white;
+            color: #b45309;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .consume-btn:hover, .consume-btn:active {
+            background: #fffbeb;
+            transform: scale(1.05);
+        }
+        .consume-btn.active {
+            background: #f59e0b;
+            color: white;
+            transform: scale(1.1);
+        }
+        .consume-btn.active:active {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+        .form-group {
+            flex-basis: 100%;
+            margin: 6px 0;
+            padding: 12px;
+            background: linear-gradient(145deg, #fff8f8, #fff);
+            border-radius: 18px;
+            border: 2px solid #ffe8e8;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #666;
+            font-size: 0.95em;
+        }
+        .form-group label::before {
+            margin-right: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ffe0e0;
+            border-radius: 14px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: all 0.2s;
+            background: white;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #ffb8b8;
+            box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.2);
+        }
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .preset-row-break {
+            flex-basis: 100%;
+            height: 0;
+        }
+        .preset-btn {
+            flex: 1 1 28%;
+            min-width: 0;
+            padding: 12px 8px;
+            background: #f5f3ff;
+            border: 2px solid #d8ccf0;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #7c6a9a;
+            min-height: 48px;
+            font-family: inherit;
+            text-align: center;
+        }
+        .preset-btn:hover, .preset-btn:active {
+            background: #ede9fe;
+            border-color: #c4b0e8;
+            transform: scale(1.02);
+            color: #6d5a8a;
+        }
+        .preset-btn.selected {
+            background: #a78bfa;
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.35);
+        }
+        .selected-value {
+            margin-top: 12px;
+            font-size: 0.9em;
+            color: #999;
+            text-align: center;
+        }
+        .selected-value span {
+            font-weight: 700;
+            color: #ff9a9e;
+        }
+        #add-item-form button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.35);
+            min-height: 54px;
+            font-family: inherit;
+        }
+        #add-item-form button[type="submit"]:hover, #add-item-form button[type="submit"]:active {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 154, 158, 0.45);
+        }
+        #item-name {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid #ffe0e0;
+            border-radius: 16px;
+            font-size: 1em;
+            transition: all 0.2s;
+            background: #fffafa;
+            font-family: inherit;
+        }
+        #item-name:focus {
+            outline: none;
+            border-color: #ffb8b8;
+            box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.2);
+            background: white;
+        }
+        #item-name::placeholder {
+            color: #ccc;
+        }
+        /* Mobile-first: base styles are already mobile */
+        /* Larger screens */
+        @media (min-width: 480px) {
+            body {
+                padding: 20px;
+            }
+            .container {
+                border-radius: 28px;
+            }
+            main {
+                padding: 0 24px 24px;
+            }
+        }
+        /* Safe area for notched phones */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            body {
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <main>
+            <section id="reminder-list-section">
+                <input type="text" id="item-filter" placeholder="🔍 Search in my list..." oninput="renderList()" style="display:none;" />
+                <ul id="reminder-list"></ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="bottom-action-bar">
+        <button class="bottom-btn search-btn" onclick="toggleSearch()">🔍</button>
+        <button class="fab" onclick="openAddItemModal()">+</button>
+        <button class="bottom-btn consume-btn" onclick="sortByBestBy()">⏰</button>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <form id="add-item-form" class="add-item-form">
+                <input type="text" id="item-name" placeholder="🛒 Item name (e.g. Milk)" required />
+                
+                <div class="form-group">
+                    <label>🔄 Remind me to refill after:</label>
+                    <div class="preset-buttons" id="refill-presets">
+                        <button type="button" class="preset-btn" data-days="7">1 week</button>
+                        <button type="button" class="preset-btn" data-days="14">2 weeks</button>
+                        <button type="button" class="preset-btn" data-days="21">3 weeks</button>
+                        <div class="preset-row-break"></div>
+                        <button type="button" class="preset-btn" data-days="28">4 weeks</button>
+                        <button type="button" class="preset-btn" data-days="90">3 months</button>
+                        <button type="button" class="preset-btn" data-days="180">6 months</button>
+                    </div>
+                    <input type="hidden" id="refill-days" />
+                </div>
+                
+                <div class="form-group">
+                    <label>⏰ Remind me to consume within:</label>
+                    <div class="preset-buttons" id="consume-presets">
+                        <button type="button" class="preset-btn" data-days="3">3 days</button>
+                        <button type="button" class="preset-btn" data-days="5">5 days</button>
+                        <button type="button" class="preset-btn" data-days="8">8 days</button>
+                        <div class="preset-row-break"></div>
+                        <button type="button" class="preset-btn" data-days="14">2 weeks</button>
+                        <button type="button" class="preset-btn" data-days="30">1 month</button>
+                        <button type="button" class="preset-btn" data-days="60">2 months</button>
+                    </div>
+                    <input type="hidden" id="consume-days" />
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="confirm-btn">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+        </main>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">✏️ Edit Item</h3>
+            
+            <!-- Edit Refill Days -->
+            <div id="edit-refill-section" style="display:none; margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 700; color: #555;">🔄 Refill after:</label>
+                <div class="preset-buttons" id="edit-refill-presets">
+                    <button type="button" class="preset-btn" data-days="7">1 week</button>
+                    <button type="button" class="preset-btn" data-days="14">2 weeks</button>
+                    <button type="button" class="preset-btn" data-days="21">3 weeks</button>
+                    <div class="preset-row-break"></div>
+                    <button type="button" class="preset-btn" data-days="28">4 weeks</button>
+                    <button type="button" class="preset-btn" data-days="90">3 months</button>
+                    <button type="button" class="preset-btn" data-days="180">6 months</button>
+                </div>
+                <input type="hidden" id="edit-refill-days" />
+            </div>
+
+            <!-- Edit Consume Days -->
+            <div id="edit-consume-section" style="display:none; margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 700; color: #555;">⏰ Consume within:</label>
+                <div class="preset-buttons" id="edit-consume-presets">
+                    <button type="button" class="preset-btn" data-days="3">3 days</button>
+                    <button type="button" class="preset-btn" data-days="5">5 days</button>
+                    <button type="button" class="preset-btn" data-days="8">8 days</button>
+                    <div class="preset-row-break"></div>
+                    <button type="button" class="preset-btn" data-days="14">2 weeks</button>
+                    <button type="button" class="preset-btn" data-days="30">1 month</button>
+                    <button type="button" class="preset-btn" data-days="60">2 months</button>
+                </div>
+                <input type="hidden" id="edit-consume-days" />
+            </div>
+
+            <!-- Text Input as fallback (for delete confirmation) -->
+            <div class="modal-input-group" id="text-input-section" style="display:none;">
+                <label id="modal-label">Value:</label>
+                <input type="text" id="modal-input" />
+            </div>
+
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="confirm-btn" onclick="confirmModal()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        // In-memory Data
+        const SHOPPING_LIST_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/fetchShoppingList';
+        const DELETE_ITEM_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/deleteItem';
+        const UPDATE_ITEM_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/updateItem';
+        const ADD_ITEM_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/addShoppingItem';
+
+        let items = [];
+
+        function loadItems() {
+            return items;
+        }
+
+        function saveItems(newItems) {
+            items = newItems;
+        }
+
+        function showSuccessToast(message) {
+            Toastify({
+                text: message,
+                duration: 2200,
+                gravity: 'top',
+                position: 'center',
+                stopOnFocus: true,
+                style: {
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    borderRadius: '10px',
+                    fontWeight: '700'
+                }
+            }).showToast();
+        }
+
+        function showErrorToast(message) {
+            Toastify({
+                text: message,
+                duration: 2600,
+                gravity: 'top',
+                position: 'center',
+                stopOnFocus: true,
+                style: {
+                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    borderRadius: '10px',
+                    fontWeight: '700'
+                }
+            }).showToast();
+        }
+
+        async function fetchItemsFromApi() {
+            try {
+                const response = await fetch(SHOPPING_LIST_API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const fetchedItems = Array.isArray(data.items) ? data.items : [];
+                const normalizedItems = fetchedItems
+                    .map((item) => ({
+                        id: item.id,
+                        name: item.name,
+                        refill: Number(item.refill),
+                        consume: Number(item.consume),
+                    }))
+                    .filter((item) => item.name && Number.isFinite(item.refill) && Number.isFinite(item.consume));
+
+                saveItems(normalizedItems);
+            } catch (error) {
+                console.error('Failed to fetch shopping list from API:', error);
+                showErrorToast('Could not load shopping list from server.');
+                saveItems([]);
+            }
+        }
+
+        // Add Item Modal functions
+        window.openAddItemModal = function() {
+            document.getElementById('add-modal').classList.add('active');
+            document.getElementById('item-name').focus();
+        };
+
+        window.closeAddModal = function() {
+            document.getElementById('add-modal').classList.remove('active');
+            // Reset form
+            document.getElementById('add-item-form').reset();
+            document.querySelectorAll('#add-modal .preset-btn').forEach(btn => btn.classList.remove('selected'));
+            // document.getElementById('refill-selected').textContent = '';
+            // document.getElementById('consume-selected').textContent = '';
+        };
+
+        function getRefillText(item) {
+            const days = item.refill;
+            return days === 1 ? '1 day' : `${days} days`;
+        }
+
+        function getConsumeText(item) {
+            if (item.consume === -1) return 'No limit';
+            const days = item.consume;
+            return days === 1 ? '1 day' : `${days} days`;
+        }
+
+        function getRefillColor(days) {
+            if (days <= 7) return '#ef4444'; // red - urgent
+            else if (days <= 14) return '#f97316'; // orange - soon
+            else if (days <= 28) return '#eab308'; // yellow - moderate
+            else return '#22c55e'; // green - plenty of time
+        }
+
+        function getConsumeColor(days) {
+            if (days <= 3) return '#ef4444'; // red - urgent
+            else if (days <= 7) return '#f97316'; // orange - soon
+            else if (days <= 14) return '#eab308'; // yellow - moderate
+            else return '#22c55e'; // green - plenty of time
+        }
+
+        function renderList() {
+            const list = document.getElementById('reminder-list');
+            if (!list) return;
+            list.innerHTML = '';
+            const allItems = loadItems();
+            const filterInput = document.getElementById('item-filter');
+            const filterText = filterInput ? filterInput.value.toLowerCase().trim() : '';
+            
+            allItems.forEach((item, idx) => {
+                // Skip items that don't match filter
+                if (filterText && !item.name.toLowerCase().includes(filterText)) {
+                    return;
+                }
+                
+                const li = document.createElement('li');
+                li.className = 'reminder-item';
+                
+                const consumeText = item.consume === -1 ? '' : `, ${getConsumeText(item)} to consume`;
+                
+                li.innerHTML = `
+                    <div class="reminder-info">
+                        <span class="reminder-name">${item.name}</span>
+                        <div class="item-actions">
+                            <button class="edit-btn" onclick="editItem(${idx})">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deleteItem(${idx})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                    <div class="reminder-days">
+                        <div class="refill-text${item.refill <= 7 ? ' urgent' : ''}" style="color: ${getRefillColor(item.refill)}">${getRefillText(item)} to refill</div>
+                        ${item.consume !== -1 ? `<div class="consume-text${item.consume <= 7 ? ' urgent' : ''}" style="color: ${getConsumeColor(item.consume)}">${getConsumeText(item)} to consume</div>` : ''}
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        window.editItem = function(idx) {
+            const allItems = loadItems();
+            const item = allItems[idx];
+            window.allModalItems = allItems;
+            openModal('refill', `✏️ Update ${item.name}`, item);
+        };
+
+        window.deleteItem = function(idx) {
+            const allItems = loadItems();
+            const targetItem = allItems[idx];
+            const itemName = targetItem.name;
+            const modal = document.getElementById('modal');
+            const titleEl = document.getElementById('modal-title');
+            const labelEl = document.getElementById('modal-label');
+            const inputEl = document.getElementById('modal-input');
+            
+            titleEl.textContent = `🗑️ Delete ${itemName}?`;
+            labelEl.textContent = 'This action cannot be undone.';
+            inputEl.style.display = 'none';
+            
+            window.modalCallback = async function() {
+                if (!targetItem.id) {
+                    showErrorToast('This item has no id and cannot be deleted from server.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${DELETE_ITEM_API_URL}?id=${encodeURIComponent(targetItem.id)}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    allItems.splice(idx, 1);
+                    saveItems(allItems);
+                    renderList();
+                    showSuccessToast(`Deleted ${itemName}`);
+                    closeModal();
+                } catch (error) {
+                    console.error('Failed to delete item:', error);
+                    showErrorToast('Failed to delete item from server.');
+                }
+            };
+            
+            modal.classList.add('active');
+        };
+
+        document.getElementById('add-item-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('item-name').value.trim();
+            const refillDays = parseInt(document.getElementById('refill-days').value);
+            const consumeDays = parseInt(document.getElementById('consume-days').value);
+            if (!name || isNaN(refillDays) || isNaN(consumeDays)) {
+                showErrorToast('Please fill in all fields and select options for both refill and consume.');
+                return;
+            }
+
+            try {
+                const response = await fetch(ADD_ITEM_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        refill: refillDays,
+                        consume: consumeDays
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const savedItem = data.item;
+                if (!savedItem || !savedItem.id) {
+                    throw new Error('Invalid addShoppingItem response');
+                }
+
+                const allItems = loadItems();
+                allItems.push({
+                    id: savedItem.id,
+                    name: savedItem.name,
+                    refill: Number(savedItem.refill),
+                    consume: Number(savedItem.consume)
+                });
+                saveItems(allItems);
+                renderList();
+                showSuccessToast(`Added ${savedItem.name}`);
+                closeAddModal();
+            } catch (error) {
+                console.error('Failed to add item:', error);
+                showErrorToast('Failed to add item to server.');
+            }
+        };
+
+        // Preset button handlers
+        function setupPresetButtons(containerId, inputId, displayId) {
+            const container = document.getElementById(containerId);
+            container.addEventListener('click', function(e) {
+                if (e.target.classList.contains('preset-btn')) {
+                    // Remove selected from siblings
+                    container.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+                    // Add selected to clicked button
+                    e.target.classList.add('selected');
+                    // Set hidden input value
+                    const days = e.target.dataset.days;
+                    document.getElementById(inputId).value = days;
+                    // Update display
+                    // document.getElementById(displayId).innerHTML = 'Selected: <span>' + e.target.textContent + '</span>';
+                }
+            });
+        }
+        setupPresetButtons('refill-presets', 'refill-days', 'refill-selected');
+        setupPresetButtons('consume-presets', 'consume-days', 'consume-selected');
+
+        // Load from API, then sort by refill (default) and render
+        (async function() {
+            await fetchItemsFromApi();
+            const allItems = loadItems();
+            allItems.sort((a, b) => a.refill - b.refill);
+            saveItems(allItems);
+            renderList();
+        })();
+
+        // Setup edit modal preset buttons
+        function setupEditPresetButtons(containerId, inputId) {
+            const container = document.getElementById(containerId);
+            container.addEventListener('click', function(e) {
+                if (e.target.classList.contains('preset-btn')) {
+                    const days = e.target.dataset.days;
+                    container.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    document.getElementById(inputId).value = days;
+                }
+            });
+        }
+        setupEditPresetButtons('edit-refill-presets', 'edit-refill-days');
+        setupEditPresetButtons('edit-consume-presets', 'edit-consume-days');
+
+        // Modal functions
+        window.openModal = function(type, title, item) {
+            const modal = document.getElementById('modal');
+            const titleEl = document.getElementById('modal-title');
+            titleEl.textContent = title;
+
+            // Hide all sections
+            document.getElementById('edit-refill-section').style.display = 'none';
+            document.getElementById('edit-consume-section').style.display = 'none';
+            document.getElementById('text-input-section').style.display = 'none';
+
+            // Clear previous selections
+            document.querySelectorAll('#edit-refill-presets .preset-btn, #edit-consume-presets .preset-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('edit-refill-days').value = '';
+            document.getElementById('edit-consume-days').value = '';
+
+            window.modalType = type;
+            window.modalItem = item;
+
+            if (type === 'refill') {
+                document.getElementById('edit-refill-section').style.display = 'block';
+                document.getElementById('edit-consume-section').style.display = 'block';
+                
+                // Pre-select current refill value
+                const currentRefill = item.refill;
+                document.getElementById('edit-refill-days').value = currentRefill;
+                const refillBtn = document.querySelector(`#edit-refill-presets .preset-btn[data-days="${currentRefill}"]`);
+                if (refillBtn) {
+                    refillBtn.classList.add('selected');
+                }
+                
+                // Pre-select current consume value
+                const currentConsume = item.consume || 7;
+                document.getElementById('edit-consume-days').value = currentConsume;
+                const consumeBtn = document.querySelector(`#edit-consume-presets .preset-btn[data-days="${currentConsume}"]`);
+                if (consumeBtn) {
+                    consumeBtn.classList.add('selected');
+                }
+            }
+
+            modal.classList.add('active');
+        };
+
+        window.closeModal = function() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+            window.modalCallback = null;
+        };
+
+        window.confirmModal = async function() {
+            if (typeof window.modalCallback === 'function') {
+                await window.modalCallback();
+                return;
+            }
+
+            const type = window.modalType;
+            const item = window.modalItem;
+            
+            if (type === 'refill') {
+                const refillDays = parseInt(document.getElementById('edit-refill-days').value);
+                const consumeDays = parseInt(document.getElementById('edit-consume-days').value);
+
+                if (!item.id) {
+                    showErrorToast('This item has no id and cannot be updated on server.');
+                    return;
+                }
+                if (isNaN(refillDays) || isNaN(consumeDays)) {
+                    showErrorToast('Please select both refill and consume values.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(UPDATE_ITEM_API_URL, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id: item.id,
+                            refill: refillDays,
+                            consume: consumeDays
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const updatedItem = data.item;
+                    if (!updatedItem) {
+                        throw new Error('Invalid updateItem response');
+                    }
+
+                    item.refill = Number(updatedItem.refill);
+                    item.consume = Number(updatedItem.consume);
+                    showSuccessToast(`Updated ${updatedItem.name || item.name}`);
+                } catch (error) {
+                    console.error('Failed to update item:', error);
+                    showErrorToast('Failed to update item on server.');
+                    return;
+                }
+                
+            }
+            
+            saveItems(window.allModalItems);
+            renderList();
+            closeModal();
+        };
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close add modal when clicking outside
+        document.getElementById('add-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddModal();
+            }
+        });
+
+        // Allow Enter key to confirm
+        document.getElementById('modal-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmModal();
+            }
+        });
+
+        // Toggle sort by consume/refill
+        window.sortByBestBy = function() {
+            const consumeBtn = document.querySelector('.consume-btn');
+            const isActive = consumeBtn.classList.contains('active');
+            consumeBtn.classList.toggle('active');
+            
+            const allItems = loadItems();
+            
+            if (!isActive) {
+                // Sort by consume (Best by)
+                allItems.sort((a, b) => {
+                    // Items with no limit (-1) go to the bottom
+                    if (a.consume === -1 && b.consume === -1) return 0;
+                    if (a.consume === -1) return 1;
+                    if (b.consume === -1) return -1;
+                    return a.consume - b.consume;
+                });
+            } else {
+                // Sort by refill (default)
+                allItems.sort((a, b) => a.refill - b.refill);
+            }
+            
+            saveItems(allItems);
+            renderList();
+        };
+
+        // Toggle search input visibility
+        window.toggleSearch = function() {
+            const filterInput = document.getElementById('item-filter');
+            const searchBtn = document.querySelector('.search-btn');
+            if (filterInput.style.display === 'none') {
+                filterInput.style.display = 'block';
+                filterInput.focus();
+                searchBtn.classList.add('active');
+            } else {
+                filterInput.style.display = 'none';
+                filterInput.value = '';
+                searchBtn.classList.remove('active');
+                renderList();
+            }
+        };
+    </script>
+</body>
+</html>

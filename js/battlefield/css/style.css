@@ -1,0 +1,325 @@
+/* ── Reset & Base ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; cursor: default; }
+canvas#game-canvas { display: block; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 0; }
+.hidden { display: none !important; }
+
+/* ── Main Menu ── */
+#main-menu, #controls-screen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+#map-select { position: fixed; inset: 0; z-index: 100; background: #050810; overflow: hidden; }
+.menu-bg, .select-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #1a1a0e 0%, #2d2a1a 40%, #0d1117 100%);
+}
+.menu-bg::after, .select-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(200,150,50,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(180,50,30,0.06) 0%, transparent 50%);
+}
+.menu-content, .select-content { position: relative; z-index: 1; text-align: center; }
+.game-title {
+  font-size: 80px; font-weight: 900; letter-spacing: 12px;
+  background: linear-gradient(180deg, #e8d5a3 0%, #b8860b 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: none; margin-bottom: 0;
+}
+.game-subtitle {
+  font-size: 28px; font-weight: 300; letter-spacing: 16px; color: #8b7355;
+  margin-bottom: 48px;
+}
+.menu-btn {
+  display: block; margin: 12px auto; width: 260px; padding: 14px 0;
+  background: transparent; border: 2px solid rgba(200,170,100,0.4);
+  color: #e8d5a3; font-size: 16px; font-weight: 700; letter-spacing: 4px;
+  cursor: pointer; transition: all 0.2s;
+}
+.menu-btn:hover { background: rgba(200,170,100,0.15); border-color: #e8d5a3; }
+.back-btn { margin-top: 24px; width: 180px; font-size: 13px; }
+
+/* ── Controls ── */
+.controls-info { max-width: 400px; }
+.control-list { text-align: left; margin: 24px 0; }
+.control-list div { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; }
+kbd { background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+
+/* ── World Map Selection (fullscreen 3D globe) ── */
+#map-select #map-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+#map-select #map-canvas:active { cursor: grabbing; }
+#map-pins { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+
+.map-title-bar {
+  position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
+  font-size: 13px; font-weight: 700; letter-spacing: 8px; color: rgba(200,170,100,0.55);
+  z-index: 5; text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 40px rgba(200,170,100,0.15);
+  pointer-events: none; text-transform: uppercase;
+}
+.map-back-btn {
+  position: absolute; bottom: 32px; left: 32px; z-index: 5;
+  width: 140px; font-size: 12px;
+}
+
+/* Map pins (positioned via JS) */
+.map-pin {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 22px; height: 22px; cursor: pointer; z-index: 3;
+  pointer-events: auto; transition: opacity 0.3s;
+}
+.map-pin .pin-dot {
+  width: 10px; height: 10px; border-radius: 50%; margin: 6px auto 0;
+  background: radial-gradient(circle, #ffd866 0%, #e8a020 100%);
+  border: 2px solid rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(255,200,60,0.5), 0 0 30px rgba(255,180,40,0.15), inset 0 0 3px rgba(255,255,255,0.3);
+  transition: all 0.25s;
+}
+.map-pin:hover .pin-dot, .map-pin.active .pin-dot {
+  background: radial-gradient(circle, #fff 0%, #ffd866 100%);
+  box-shadow: 0 0 18px rgba(255,220,80,0.8), 0 0 50px rgba(255,180,40,0.25), 0 0 80px rgba(255,200,60,0.1);
+  transform: scale(1.5);
+}
+.map-pin .pin-pulse {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid rgba(255,200,60,0.35);
+  animation: pinPulse 2.2s ease-out infinite;
+}
+.map-pin.active .pin-pulse { border-color: rgba(255,255,255,0.5); animation-duration: 1.6s; }
+@keyframes pinPulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+.map-pin .pin-label {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  color: #ffd866; text-shadow: 0 1px 6px rgba(0,0,0,0.95);
+  opacity: 0; transition: opacity 0.25s; pointer-events: none;
+}
+.map-pin:hover .pin-label, .map-pin.active .pin-label { opacity: 1; }
+
+/* Location detail panel (right sidebar) */
+.location-detail {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 400px;
+  background: linear-gradient(180deg, rgba(8,6,4,0.95) 0%, rgba(12,10,6,0.92) 100%);
+  border-left: 1px solid rgba(200,170,100,0.15);
+  padding: 70px 28px 28px; z-index: 5;
+  overflow-y: auto; text-align: left;
+  animation: slideInRight 0.4s ease;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.loc-header { margin-bottom: 18px; }
+.loc-name {
+  font-size: 20px; font-weight: 800; letter-spacing: 3px; color: #ffd866; margin: 0 0 4px;
+}
+.loc-date { font-size: 11px; color: #8b7355; letter-spacing: 2px; display: block; margin-bottom: 12px; }
+.loc-factions {
+  display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+}
+.loc-faction-tag {
+  padding: 5px 14px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+}
+.loc-faction-tag.ally { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+.loc-faction-tag.enemy { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.loc-vs { color: #555; font-size: 10px; letter-spacing: 3px; }
+.loc-story {
+  font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.55);
+  margin: 20px 0; border-left: 3px solid rgba(255,216,102,0.25); padding-left: 16px;
+}
+.loc-meta { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.loc-meta-item { display: flex; flex-direction: column; gap: 3px; }
+.meta-label { font-size: 9px; letter-spacing: 2px; color: #5a5040; font-weight: 700; }
+.meta-value { font-size: 13px; font-weight: 600; color: #c8b080; }
+
+.deploy-btn {
+  width: 100%; margin-top: 16px;
+  background: rgba(255,200,60,0.1); border-color: #b8860b;
+  letter-spacing: 6px;
+}
+.deploy-btn:hover { background: rgba(255,200,60,0.25); border-color: #ffd866; }
+
+/* ── HUD ── */
+#hud { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+.hud-health {
+  position: absolute; bottom: 28px; left: 28px;
+  display: flex; align-items: center; gap: 10px;
+}
+.health-bar { width: 200px; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; }
+.health-fill { height: 100%; width: 100%; background: #4ade80; border-radius: 4px; transition: width 0.3s; }
+#health-text { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hud-ammo {
+  position: absolute; bottom: 28px; right: 28px;
+  font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+#ammo-clip { font-size: 36px; }
+#ammo-reserve { font-size: 20px; color: rgba(255,255,255,0.5); }
+.hud-weapon {
+  position: absolute; bottom: 64px; right: 28px;
+  font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,0.5);
+}
+.hud-compass {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  font-size: 14px; letter-spacing: 6px; color: rgba(255,255,255,0.5);
+  background: rgba(0,0,0,0.3); padding: 4px 20px; border-radius: 4px;
+}
+.hud-minimap {
+  position: absolute; top: 16px; right: 16px;
+  border: 2px solid rgba(255,255,255,0.15); border-radius: 50%; overflow: hidden;
+  width: 180px; height: 180px;
+}
+#minimap { border-radius: 50%; background: rgba(20,30,20,0.8); }
+.hud-kills {
+  position: absolute; top: 210px; right: 55px;
+  font-size: 18px; font-weight: 700;
+}
+.kill-icon {
+  color: #ef4444; font-weight: 900; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border: 2px solid #ef4444; border-radius: 50%;
+}
+.hud-killfeed {
+  position: absolute; top: 60px; right: 200px;
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-end;
+}
+.killfeed-item {
+  background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 4px;
+  font-size: 12px; animation: fadeKill 4s forwards;
+}
+@keyframes fadeKill { 0%,70% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ── Crosshair ── */
+.hud-crosshair {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 30px; height: 30px;
+}
+.ch-line {
+  position: absolute; background: rgba(255,255,255,0.7);
+}
+.ch-top { width: 2px; height: 8px; top: 0; left: 50%; transform: translateX(-50%); }
+.ch-bottom { width: 2px; height: 8px; bottom: 0; left: 50%; transform: translateX(-50%); }
+.ch-left { height: 2px; width: 8px; left: 0; top: 50%; transform: translateY(-50%); }
+.ch-right { height: 2px; width: 8px; right: 0; top: 50%; transform: translateY(-50%); }
+.ch-dot { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: rgba(255,255,255,0.5); transform: translate(-50%,-50%); border-radius: 50%; }
+
+/* ── Hitmarker ── */
+.hud-hitmarker {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 20px; height: 20px;
+}
+.hud-hitmarker::before, .hud-hitmarker::after {
+  content: ''; position: absolute; background: #fff;
+}
+.hud-hitmarker::before { width: 2px; height: 100%; left: 50%; transform: translateX(-50%) rotate(45deg); }
+.hud-hitmarker::after { width: 2px; height: 100%; left: 50%; transform: translateX(-50%) rotate(-45deg); }
+
+/* ── Damage overlay ── */
+.hud-damage {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(200,0,0,0.4) 100%);
+  pointer-events: none; animation: dmgFlash 0.4s forwards;
+}
+@keyframes dmgFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ── Vehicle HUD ── */
+.hud-vehicle { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); text-align: center; }
+.vehicle-name { font-size: 14px; letter-spacing: 3px; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+.vehicle-health-bar { width: 240px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+.vehicle-health-fill { height: 100%; width: 100%; background: #60a5fa; transition: width 0.3s; border-radius: 3px; }
+.vehicle-prompt { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 6px; }
+.hud-interact {
+  position: absolute; bottom: 50%; left: 50%; transform: translate(-50%, 50%);
+  background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 6px;
+  font-size: 14px; letter-spacing: 2px;
+}
+
+/* ── Pause & Death ── */
+#pause-menu, #death-screen { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.pause-bg, .death-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
+.pause-content, .death-content { position: relative; z-index: 1; text-align: center; }
+.death-content h2 { color: #ef4444; font-size: 36px; letter-spacing: 6px; margin-bottom: 12px; }
+.death-content p { color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+
+/* ── Scoreboard ── */
+#scoreboard {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 150; background: rgba(0,0,0,0.85); padding: 24px 36px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); min-width: 500px;
+}
+#scoreboard h2 { text-align: center; letter-spacing: 4px; margin-bottom: 16px; font-size: 16px; }
+#scoreboard table { width: 100%; border-collapse: collapse; }
+#scoreboard th, #scoreboard td { padding: 8px 16px; text-align: left; font-size: 13px; }
+#scoreboard th { color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.1); }
+#scoreboard td { border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+/* ── Weapon Slots HUD ── */
+.hud-weapon-slots {
+  position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; pointer-events: none;
+}
+.weapon-slot {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
+  padding: 5px 12px; border-radius: 4px; transition: all 0.2s;
+}
+.weapon-slot.active { border-color: rgba(255,200,60,0.6); background: rgba(255,200,60,0.08); }
+.slot-key {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 3px;
+}
+.weapon-slot.active .slot-key { color: #ffd866; background: rgba(255,200,60,0.15); }
+.slot-name { font-size: 11px; letter-spacing: 1px; color: rgba(255,255,255,0.5); }
+.weapon-slot.active .slot-name { color: #e8d5a3; }
+
+/* ── Pickup Prompt ── */
+.hud-pickup {
+  position: absolute; bottom: 45%; left: 50%; transform: translate(-50%, 50%);
+  background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 6px;
+  font-size: 12px; letter-spacing: 2px; text-align: center;
+}
+.pickup-bar-bg { width: 160px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 8px; }
+.pickup-bar-fill { height: 100%; width: 0%; background: #ffd866; border-radius: 2px; transition: width 0.1s; }
+
+/* ── Cutscene Overlay ── */
+#cutscene-overlay { position: fixed; inset: 0; z-index: 300; pointer-events: none; }
+.cutscene-bars { position: absolute; inset: 0; }
+.cutscene-bar-top, .cutscene-bar-bottom {
+  position: absolute; left: 0; right: 0; height: 60px; background: #000;
+}
+.cutscene-bar-top { top: 0; }
+.cutscene-bar-bottom { bottom: 0; }
+.cutscene-text {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font-size: 18px; font-weight: 300; letter-spacing: 3px; color: rgba(255,255,255,0.85);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.9); white-space: nowrap;
+  animation: fadeInText 0.8s ease;
+}
+.cutscene-skip {
+  position: absolute; bottom: 16px; right: 24px;
+  font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 1px;
+}
+@keyframes fadeInText { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* ── Save Notification ── */
+.hud-save-notify {
+  position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; font-weight: 700; letter-spacing: 4px; color: #4ade80;
+  background: rgba(0,0,0,0.5); padding: 6px 20px; border-radius: 4px;
+  border: 1px solid rgba(74,222,128,0.3);
+  animation: saveSlide 2.5s ease-out forwards;
+}
+@keyframes saveSlide {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Continue Button ── */
+#btn-continue {
+  border-color: rgba(74,222,128,0.5); color: #4ade80;
+}
+#btn-continue:hover {
+  background: rgba(74,222,128,0.12); border-color: #4ade80;
+}

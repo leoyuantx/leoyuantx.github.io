@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Battleship</title>
+    <style>
+        #msg{
+            position: absolute;
+            top: 50%;
+            left: 70%;
+            font-size: 40px;
+        }
+        .box{
+            width: 60px;
+            height: 60px;
+            border: 2px dodgerblue solid;
+            float:left;
+            color: transparent;
+        }
+        .row{
+            clear: both;
+        }
+        #sb{
+            position: absolute;
+            left: 45%;
+            top: 90%;
+            font-size: 45px;
+        }
+        #bboard{
+            position: absolute;
+            left: 25%;
+        }
+        #hello{
+            position: relative;
+            left: 25%;
+        }
+        #dfl{
+        position: absolute;
+        right: 10%;
+        display: none;
+        font-size: 30px;
+        }
+        #rg{
+            position:absolute;
+            left: 30%;
+            top: 90%;
+            display: none;
+            font-size: 45px;
+        }
+        #hitomiss{
+            position: absolute;
+            bottom: 10%;
+            right: 20%;
+            font-size: 30px;
+        }
+    </style>
+    <script>
+        var msgix = 0
+        const EASY_TRIES = 60;
+        const MEDIUM_TRIES = 55 ;
+        const HARD_TRIES = 50;
+        var selectedDifficulty = 0;
+        var tries = 0;
+        var noclickstart = [
+            "Game not started. Click start to start your game",
+            "I said game not started. Click start to start your game",
+            "Game not started. Are you not listening to me? Click start to start your game",
+            "If you do this again I am going to be very mad. Click start to start your game",
+            "Stop it game not started! Click start to start your game",
+            "I will ignore you next time you do this! Click start to start your game"
+        ]
+        var gameendyoulost = false
+        var igs = false
+        var ils = false
+        function obc(id) {
+            if (gameendyoulost) {
+
+                return
+            }
+
+          if (igs==false) {
+            if (msgix<6) {
+                document.getElementById("msg").innerHTML = noclickstart[msgix]
+                msgix++
+            }
+          } else {
+            if (ils==false) {
+                document.getElementById("msg").innerHTML = "Select Difficulty Level Please"
+            } else {
+                document.getElementById("msg").innerHTML = "Game started. Find all the ships and enjoy!"
+                tries++
+                if (tries == selectedDifficulty) {
+                    document.getElementById("msg").innerHTML = "Sorry you lost You haven't bombed all the ships in " + selectedDifficulty +" tries"
+                    gameendyoulost = true
+
+                    document.getElementById("rg").style.display = "block"
+
+                    // Select the elements with the class
+                    const elements = document.querySelectorAll(".box");
+
+                    // Change the color of each element
+                    elements.forEach(element => {
+                    element.style.color = "red";
+                    }); 
+                    
+                }
+                console.log("innrthyml is ", document.getElementById(id).innerHTML);
+                
+                if (document.getElementById(id).innerHTML == "x") {
+                    console.log("hit")
+                    var oImg = document.createElement("img");
+                    oImg.setAttribute('src', 'battleship_explody.png');
+                    oImg.setAttribute('alt', 'na');
+                    oImg.setAttribute('height', '55px');
+                    oImg.setAttribute('width', '55px');
+                    document.getElementById(id).innerHTML = ""
+                    document.getElementById(id).appendChild(oImg);
+                    var audio = new Audio('Explody_Battleship.mp3');
+                    audio.play();   
+                    document.getElementById("hitomiss").innerHTML = "Hit!";
+                    if (findremainingships() == 0) {
+                        document.getElementById("msg").innerHTML = "Congratulations you won! You found all the ships in " + tries + " tries"
+                        gameendyoulost = true
+                        document.getElementById("rg").style.display = "block"
+
+                        // Select the elements with the class
+                        const elements = document.querySelectorAll(".box");
+
+                        // Change the color of each element
+                        elements.forEach(element => {
+                        element.style.color = "green";
+                        }); 
+                    }
+                    
+                } else if (document.getElementById(id).innerHTML == "") {
+                    console.log("miss");
+                    
+                    var oImg = document.createElement("img");
+                    oImg.setAttribute('src', 'battleship_splash.jpg');
+                    oImg.setAttribute('alt', 'na');
+                    oImg.setAttribute('height', '55px');
+                    oImg.setAttribute('width', '55px');
+                    document.getElementById(id).appendChild(oImg);
+                    var audio = new Audio('Splash_Battleship.mp3');
+                    audio.play();
+                    document.getElementById("hitomiss").innerHTML = "Miss!"
+                }
+            }
+          }  
+        }
+
+        function findremainingships() {
+            var remainingShips = 0
+            for (var r=0;r<10;r++) {
+                for (var c=0;c<10;c++) {
+                    if (document.getElementById("b"+r+c).innerHTML == "x") {
+                        remainingShips++
+                    }
+                }
+            }
+            return remainingShips
+        }
+
+        function sg() {
+          document.getElementById("msg").innerHTML = "Please select difficulty level"
+          igs = true  
+          document.getElementById("sb").style.display = "none"
+          document.getElementById("dfl").style.display = "block"
+        }
+
+        function getRndInteger(min, max) {
+        return Math.floor(Math.random() * (max - min) ) + min;
+        }
+
+
+        function randomnumber() {
+            return Math.floor(Math.random() * 10);
+
+        }
+
+        function generate_random_direction() {
+            // this function generates 4 random numbers
+           // 0 1 2 3
+           // 0=N 1=S 2=W 3=E 
+            return Math.floor(Math.random() * 4);
+            
+        }
+
+        function g5() {
+            selectedDifficulty = EASY_TRIES
+            console.log("easy mode");
+            document.getElementById("msg").innerHTML = "Game Started.Now Find The 5 Ships!"
+            document.getElementById("soe").style.display = "none"
+            document.getElementById("som").style.display = "none"
+            document.getElementById("soh").style.display = "none"   
+            ils = true
+            while (placeShipLength5() == false) {
+                console.log("retrying p5")
+                
+            }
+            while (placeShipLength4() == false) {
+                console.log("retrying p4")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength2() == false) {
+                console.log("retrying p2")
+                
+            }
+            
+            
+        }
+        function g7() {
+            selectedDifficulty = MEDIUM_TRIES
+            console.log("medium mode");
+            document.getElementById("msg").innerHTML = "Game Started.Now Find The 7 Ships!"
+            document.getElementById("soe").style.display = "none"
+            document.getElementById("som").style.display = "none"
+            document.getElementById("soh").style.display = "none"   
+            ils = true
+            while (placeShipLength5() == false) {
+                console.log("retrying p5")
+                
+            }
+            while (placeShipLength4() == false) {
+                console.log("retrying p4")
+                
+            }
+            while (placeShipLength4() == false) {
+                console.log("retrying p4")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength2() == false) {
+                console.log("retrying p2")
+                
+            }
+            while (placeShipLength2() == false) {
+                console.log("retrying p2")
+                
+            }
+           
+          
+            
+
+
+        }
+        function g10() {
+            selectedDifficulty = HARD_TRIES
+            console.log("hard mode");
+            document.getElementById("msg").innerHTML = "Game Started.Now Find The 10 Ships!"
+            document.getElementById("soe").style.display = "none"
+            document.getElementById("som").style.display = "none"
+            document.getElementById("soh").style.display = "none"   
+            ils = true   
+            while (placeShipLength5() == false) {
+                console.log("retrying p5")
+                
+            }
+            while (placeShipLength5() == false) {
+                console.log("retrying p5")
+                
+            }
+            while (placeShipLength4() == false) {
+                console.log("retrying p4")
+                
+            }
+            while (placeShipLength4() == false) {
+                console.log("retrying p4")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength3() == false) {
+                console.log("retrying p3")
+                
+            }
+            while (placeShipLength2() == false) {
+                console.log("retrying p2")
+                
+            }
+            while (placeShipLength2() == false) {
+                console.log("retrying p2")
+                
+            }
+           
+        }
+
+        function placeShipLength2(){
+            var shipHeadRow = 0
+            var shipHeadCol = 0
+            var direction   = generate_random_direction() 
+            if (direction == 0) {
+                shipHeadRow = getRndInteger(2,10)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 1) {
+                shipHeadRow = getRndInteger(0,8)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 2) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(2,10)
+            } else if (direction == 3) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(0,8)
+                
+            }
+
+            console.log("shipHeadRow: " + shipHeadRow, "shipHeadCol: " + shipHeadCol, "direction: " + direction);
+            
+
+            // check 2 boxes
+            if (direction == 0) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                    
+                }
+            } else if(direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML == "x") {
+                    return false;
+                }
+            } else if(direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML == "x") {
+                    return false;
+                }
+            }
+
+            document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML = "x"
+            if (direction == 0) {
+                document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML = "x"
+            } else if (direction == 1) {
+                document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML = "x"
+            } else if (direction == 2) {
+                document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML = "x"
+            } else if (direction == 3) {
+                document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML = "x"
+            }
+        }
+        function placeShipLength3(){
+            var shipHeadRow = 0
+            var shipHeadCol = 0
+            var direction   = generate_random_direction() 
+            if (direction == 0) {
+                shipHeadRow = getRndInteger(2,10)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 1) {
+                shipHeadRow = getRndInteger(0,8)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 2) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(2,10)
+            } else if (direction == 3) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(0,8)
+                
+            }
+
+            console.log("shipHeadRow: " + shipHeadRow, "shipHeadCol: " + shipHeadCol, "direction: " + direction);
+
+
+                        // check 3 boxes
+            if (direction == 0) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                    
+                }
+            } else if(direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML == "x") {
+                    return false;
+                }
+            } else if(direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML == "x") {
+                    return false;
+                }
+            }
+
+            document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML = "x"
+            if (direction == 0) {
+                if (document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML = "x"
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML != "x") {
+                 document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML = "x"
+                }
+            } else if (direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML != "x") {
+                  document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML != "x") {
+                document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML = "x"
+                }
+            } else if (direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML != "x") {
+                  document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML != "x") {
+                document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML = "x"
+                }
+            }
+        }
+        function placeShipLength4(){
+            var shipHeadRow = 0
+            var shipHeadCol = 0
+            var direction   = generate_random_direction() 
+            if (direction == 0) {
+                shipHeadRow = getRndInteger(4,10)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 1) {
+                shipHeadRow = getRndInteger(0,6)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 2) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(4,10)
+            } else if (direction == 3) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(0,6)
+                
+            }
+
+            console.log("shipHeadRow: " + shipHeadRow, "shipHeadCol: " + shipHeadCol, "direction: " + direction);
+
+
+                        // check 4 boxes
+            if (direction == 0) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                    
+                }
+            } else if(direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML == "x") {
+                    return false;
+                }
+            } else if(direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML == "x") {
+                    return false;
+                }
+            }
+
+            document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML = "x"
+            if (direction == 0) {
+                if (document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML != "x") {
+                document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML = "x"
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML = "x"
+                }
+                  if (document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML = "x"
+                  }
+                    if (document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML != "x") {
+                        document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML = "x"
+                    }
+                
+            } else if (direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML != "x") {
+                  document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML = "x"
+                }
+                    if (document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML != "x") {
+                        document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML = "x"
+                    }
+                
+            } else if (direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML != "x") {
+                  document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML = "x"
+                }
+                    if (document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML != "x") {
+                        document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML = "x"
+                    }
+                }
+            }  
+        
+        function placeShipLength5(){
+            var shipHeadRow = 0
+            var shipHeadCol = 0
+            var direction   = generate_random_direction() 
+            if (direction == 0) {
+                shipHeadRow = getRndInteger(4,10)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 1) {
+                shipHeadRow = getRndInteger(0,6)
+                shipHeadCol = getRndInteger(0,10)
+            } else if (direction == 2) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(4,10)
+            } else if (direction == 3) {
+                shipHeadRow = getRndInteger(0,10)
+                shipHeadCol = getRndInteger(0,6)
+                
+            }
+
+            console.log("shipHeadRow: " + shipHeadRow, "shipHeadCol: " + shipHeadCol, "direction: " + direction);
+
+            // check 5 boxes
+            if (direction == 0) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow-4)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML == "x"
+                || document.getElementById("b"+(shipHeadRow+4)+shipHeadCol).innerHTML == "x") {
+                    return false;
+                    
+                }
+            } else if(direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol-4)).innerHTML == "x") {
+                    return false;
+                }
+            } else if(direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML == "x"
+                    || document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML == "x"
+                || document.getElementById("b"+shipHeadRow+(shipHeadCol+4)).innerHTML == "x") {
+                    return false;
+                }
+            }
+
+            document.getElementById("b"+shipHeadRow+shipHeadCol).innerHTML = "x"
+            if (direction == 0) {
+                if (document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow-1)+shipHeadCol).innerHTML = "x"
+                }   
+                if (document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow-2)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML != "x") {
+                document.getElementById("b"+(shipHeadRow-3)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow-4)+shipHeadCol).innerHTML != "x") {
+                document.getElementById("b"+(shipHeadRow-4)+shipHeadCol).innerHTML = "x"
+                }
+            } else if (direction == 1) {
+                if (document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML != "x") {
+                  document.getElementById("b"+(shipHeadRow+1)+shipHeadCol).innerHTML = "x"
+                }
+                if (document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow+2)+shipHeadCol).innerHTML = "x"
+                }
+               if (document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow+3)+shipHeadCol).innerHTML = "x"
+               }
+                if (document.getElementById("b"+(shipHeadRow+4)+shipHeadCol).innerHTML != "x") {
+                    document.getElementById("b"+(shipHeadRow+4)+shipHeadCol).innerHTML = "x"
+                }
+            } else if (direction == 2) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML != "x") {
+                  document.getElementById("b"+shipHeadRow+(shipHeadCol-1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol-2)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol-3)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol-4)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol-4)).innerHTML = "x"
+                }
+            } else if (direction == 3) {
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol+1)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol+2)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol+3)).innerHTML = "x"
+                }
+                if (document.getElementById("b"+shipHeadRow+(shipHeadCol+4)).innerHTML != "x") {
+                    document.getElementById("b"+shipHeadRow+(shipHeadCol+4)).innerHTML = "x"                        }
+                }
+                
+            }
+        
+            function gohome() {
+                window.location.href = "index.html";
+                
+            }
+            function ocrule() {
+                
+            }
+
+    </script>
+</head>
+<body>
+ <div id="msg"></div>   
+<div id="hitomiss"></div>
+<div id="sb" onclick="sg()">start</div>
+<div id="rg" >
+    <div onclick="location.reload()"> Click here to play again </div>
+    <button onclick="gohome()">Back to Main Page</button>
+</div>
+ <h1><div id="hello">Hello welcome to my Battleship game</div></h1>
+    <div id="bboard">   
+    <div class="row">
+        <div class="box" id="b00" onclick="obc(this.id)"></div>
+        <div class="box" id="b01" onclick="obc(this.id)"></div>
+        <div class="box" id="b02" onclick="obc(this.id)"></div>
+        <div class="box" id="b03" onclick="obc(this.id)"></div>
+        <div class="box" id="b04" onclick="obc(this.id)"></div>
+        <div class="box" id="b05" onclick="obc(this.id)"></div>
+        <div class="box" id="b06" onclick="obc(this.id)"></div>
+        <div class="box" id="b07" onclick="obc(this.id)"></div>
+        <div class="box" id="b08" onclick="obc(this.id)"></div>
+        <div class="box" id="b09" onclick="obc(this.id)"></div>
+    </div>
+    <div class="row">
+        <div class="box" id="b10" onclick="obc(this.id)"></div>
+        <div class="box" id="b11" onclick="obc(this.id)"></div>
+        <div class="box" id="b12" onclick="obc(this.id)"></div>
+        <div class="box" id="b13" onclick="obc(this.id)"></div>
+        <div class="box" id="b14" onclick="obc(this.id)"></div>
+        <div class="box" id="b15" onclick="obc(this.id)"></div>
+        <div class="box" id="b16" onclick="obc(this.id)"></div>
+        <div class="box" id="b17" onclick="obc(this.id)"></div>
+        <div class="box" id="b18" onclick="obc(this.id)"></div>
+        <div class="box" id="b19" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b20" onclick="obc(this.id)"></div>
+        <div class="box" id="b21" onclick="obc(this.id)"></div>
+        <div class="box" id="b22" onclick="obc(this.id)"></div>
+        <div class="box" id="b23" onclick="obc(this.id)"></div>
+        <div class="box" id="b24" onclick="obc(this.id)"></div>
+        <div class="box" id="b25" onclick="obc(this.id)"></div>
+        <div class="box" id="b26" onclick="obc(this.id)"></div>
+        <div class="box" id="b27" onclick="obc(this.id)"></div>
+        <div class="box" id="b28" onclick="obc(this.id)"></div>
+        <div class="box" id="b29" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b30" onclick="obc(this.id)"></div>
+        <div class="box" id="b31" onclick="obc(this.id)"></div>
+        <div class="box" id="b32" onclick="obc(this.id)"></div>
+        <div class="box" id="b33" onclick="obc(this.id)"></div>
+        <div class="box" id="b34" onclick="obc(this.id)"></div>
+        <div class="box" id="b35" onclick="obc(this.id)"></div>
+        <div class="box" id="b36" onclick="obc(this.id)"></div>
+        <div class="box" id="b37" onclick="obc(this.id)"></div>
+        <div class="box" id="b38" onclick="obc(this.id)"></div>
+        <div class="box" id="b39" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b40" onclick="obc(this.id)"></div>
+        <div class="box" id="b41" onclick="obc(this.id)"></div>
+        <div class="box" id="b42" onclick="obc(this.id)"></div>
+        <div class="box" id="b43" onclick="obc(this.id)"></div>
+        <div class="box" id="b44" onclick="obc(this.id)"></div>
+        <div class="box" id="b45" onclick="obc(this.id)"></div>
+        <div class="box" id="b46" onclick="obc(this.id)"></div>
+        <div class="box" id="b47" onclick="obc(this.id)"></div>
+        <div class="box" id="b48" onclick="obc(this.id)"></div>
+        <div class="box" id="b49" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b50" onclick="obc(this.id)"></div>
+        <div class="box" id="b51" onclick="obc(this.id)"></div>
+        <div class="box" id="b52" onclick="obc(this.id)"></div>
+        <div class="box" id="b53" onclick="obc(this.id)"></div>
+        <div class="box" id="b54" onclick="obc(this.id)"></div>
+        <div class="box" id="b55" onclick="obc(this.id)"></div>
+        <div class="box" id="b56" onclick="obc(this.id)"></div>
+        <div class="box" id="b57" onclick="obc(this.id)"></div>
+        <div class="box" id="b58" onclick="obc(this.id)"></div>
+        <div class="box" id="b59" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b60" onclick="obc(this.id)"></div>
+        <div class="box" id="b61" onclick="obc(this.id)"></div>
+        <div class="box" id="b62" onclick="obc(this.id)"></div>
+        <div class="box" id="b63" onclick="obc(this.id)"></div>
+        <div class="box" id="b64" onclick="obc(this.id)"></div>
+        <div class="box" id="b65" onclick="obc(this.id)"></div>
+        <div class="box" id="b66" onclick="obc(this.id)"></div>
+        <div class="box" id="b67" onclick="obc(this.id)"></div>
+        <div class="box" id="b68" onclick="obc(this.id)"></div>
+        <div class="box" id="b69" onclick="obc(this.id)"></div>
+    </div>    <div class="row">
+        <div class="box" id="b70" onclick="obc(this.id)"></div>
+        <div class="box" id="b71" onclick="obc(this.id)"></div>
+        <div class="box" id="b72" onclick="obc(this.id)"></div>
+        <div class="box" id="b73" onclick="obc(this.id)"></div>
+        <div class="box" id="b74" onclick="obc(this.id)"></div>
+        <div class="box" id="b75" onclick="obc(this.id)"></div>
+        <div class="box" id="b76" onclick="obc(this.id)"></div>
+        <div class="box" id="b77" onclick="obc(this.id)"></div>
+        <div class="box" id="b78" onclick="obc(this.id)"></div>
+        <div class="box" id="b79" onclick="obc(this.id)"></div>
+    </div>    
+    <div class="row">
+        <div class="box" id="b80" onclick="obc(this.id)"></div>
+        <div class="box" id="b81" onclick="obc(this.id)"></div>
+        <div class="box" id="b82" onclick="obc(this.id)"></div>
+        <div class="box" id="b83" onclick="obc(this.id)"></div>
+        <div class="box" id="b84" onclick="obc(this.id)"></div>
+        <div class="box" id="b85" onclick="obc(this.id)"></div>
+        <div class="box" id="b86" onclick="obc(this.id)"></div>
+        <div class="box" id="b87" onclick="obc(this.id)"></div>
+        <div class="box" id="b88" onclick="obc(this.id)"></div>
+        <div class="box" id="b89" onclick="obc(this.id)"></div>
+    </div>    
+    <div class="row">
+        <div class="box" id="b90" onclick="obc(this.id)"></div>
+        <div class="box" id="b91" onclick="obc(this.id)"></div>
+        <div class="box" id="b92" onclick="obc(this.id)"></div>
+        <div class="box" id="b93" onclick="obc(this.id)"></div>
+        <div class="box" id="b94" onclick="obc(this.id)"></div>
+        <div class="box" id="b95" onclick="obc(this.id)"></div>
+        <div class="box" id="b96" onclick="obc(this.id)"></div>
+        <div class="box" id="b97" onclick="obc(this.id)"></div>
+        <div class="box" id="b98" onclick="obc(this.id)"></div>
+        <div class="box" id="b99" onclick="obc(this.id)"></div>
+    </div>
+   </div>
+   <div id="dfl">
+    <div id="soe" onclick="g5()">easy(5ships) 60 tries </div>
+    <div id="som" onclick="g7()">medium(7ships) 55 tries </div>
+    <div id="soh" onclick="g10()">hard(10ships) 50 tries </div>
+   </div>
+</body>
+</html>

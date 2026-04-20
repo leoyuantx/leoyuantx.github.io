@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Monopoly</title>
+
+    <style>
+        body{
+            /* background-image: url('Monopoly_Board.jpg'); */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed; 
+        }
+        #number_of_players{
+            position: absolute;
+            top: 200px;
+            left: 700px;
+            width: 400px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            text-align: center;
+        }
+        #board{
+            display: none;
+        }
+        #AllUserInfo{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            bottom: 10px;
+            background-color: rgba(130, 27, 27, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        #ActiveMessage{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 300px;
+            height: 400px;
+            background-color: rgba(186, 37, 37, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        #action_buy{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #action_end_turn{
+            position: absolute;
+            top: 280px;
+            left: 50px;
+            width: 100px;
+            height: 40px;
+            background-color: rgba(0, 0, 255, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+        #Roll{
+            position: absolute;
+            bottom: 50px;
+            left: 100px;
+            width: 100px;
+            height: 50px;
+            background-color: rgba(0, 128, 0, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+        }
+        #action_draw_chance{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #action_draw_community{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #action_pay_income_tax{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #action_pay_luxury_tax{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #action_jail{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #Dice1
+        {
+            position: absolute;
+            bottom: 120px;
+            left: 70px;
+            width: 100px;
+            height: 100px;
+        }
+        #Dice2
+        {
+            position: absolute;
+            bottom: 120px;
+            left: 160px;
+            width: 100px;
+            height: 100px;
+        }
+        #CharacterSelection{
+            position: absolute;
+            top: 294px;
+            left: 681px;
+            width: 350px;
+            height: 280px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none;
+        }
+        #action_pay_rent{
+            position: absolute;
+            top: 220px;
+            left: 10px;
+            width: 250px;
+            height: 100px;
+            background-color: rgba(224, 129, 40, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(145, 188, 147, 0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: none;
+        }
+        #box0{
+            background-color: rgba(255, 255, 255, 0);
+            width: 105px;
+            height: 105px;
+            right: 448px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box1{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 550px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+            
+
+        }
+        #box2{
+            background-color: rgba(173, 216, 230, 0);
+            width: 71px;
+            height: 105px;
+            right: 618px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box3{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 685.5px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box4{
+            background-color: rgba(173, 216, 230, 0);
+            width: 66px;
+            height: 105px;
+            right: 753px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box5{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 818px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box6{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 885px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box7{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 951px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box8{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 1017px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box9{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 105px;
+            right: 1084px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box10{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 105px;
+            right: 1152px;
+            bottom: 0px;
+            color: transparent;
+            position : absolute;
+        }
+        #box11{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 105px;
+            color: transparent;
+            position : absolute;
+        }
+        #box12{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 171px;
+            color: transparent;
+            position : absolute;
+        }
+        #box13{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 237px;
+            color: transparent;
+            position : absolute;
+        }
+        #box14{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 303px;
+            color: transparent;
+            position : absolute;
+        }
+        #box15{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 369px;
+            color: transparent;
+            position : absolute;
+        }
+        #box16{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 435px;
+            color: transparent;
+            position : absolute;
+        }
+        #box17{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 501px;
+            color: transparent;
+            position : absolute;
+        }
+        #box18{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 567px;
+            color: transparent;
+            position : absolute;
+        }
+        #box19{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 1152px;
+            bottom: 633px;
+            color: transparent;
+            position : absolute;
+        }
+        #box20{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 115px;
+            right: 1152px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box21{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 1084px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box22{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 1017px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box23{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 951px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box24{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 885px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box25{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 818px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box26{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 753px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box27{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 685.5px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box28{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 618px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box29{
+            background-color: rgba(173, 216, 230, 0);
+            width: 70px;
+            height: 115px;
+            right: 550px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box30{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 115px;
+            right: 448px;
+            bottom: 699px;
+            color: transparent;
+            position : absolute;
+        }
+        #box31{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom:633px;
+            color: transparent;
+            position : absolute;
+        }
+        #box32{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 567px;
+            color: transparent;
+            position : absolute;
+        }
+        #box33{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 501px;
+            color: transparent;
+            position : absolute;
+        }
+        #box34{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 435px;
+            color: transparent;
+            position : absolute;
+        }
+        #box35{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 369px;
+            color: transparent;
+            position : absolute;
+        }
+        #box36{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 303px;
+            color: transparent;
+            position : absolute;
+        }
+        #box37{
+            background-color: rgba(173, 216, 230, );
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 237px;
+            color: transparent;
+            position : absolute;
+        }
+        #box38{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 171px;
+            color: transparent;
+            position : absolute;
+        }
+        #box39{
+            background-color: rgba(173, 216, 230, 0);
+            width: 105px;
+            height: 70px;
+            right: 448px;
+            bottom: 105px;       
+            color: transparent;
+            position : absolute;
+        }
+        #car, #cat, #hat, #horse, #siren {
+            display: none;
+        }
+        #player_names_input{
+            position: absolute;
+            top: 300px;
+            left: 700px;
+            width: 400px;
+            height: auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            text-align: center;
+        }
+       
+    </style>
+    <script>
+        var boxesProperties = {
+            0: {name: "Go", ownerable: false},  
+            1: {name: "Mediterranean Ave", price: 60, rent: 2, ownerable: true, owner: null},
+            2: {name: "Community Chest 1", ownerable: false},
+            3: {name: "Baltic Ave", price: 60, rent: 4, ownerable: true, owner: null},
+            4: {name: "Income Tax", price: 200, ownerable: false},
+            5: {name: "Reading Railroad", price: 200, rent: 25, ownerable: true, owner: null},
+            6: {name: "Oriental Ave", price: 100, rent: 6, ownerable: true, owner: null},
+            7: {name: "Chance 1", ownerable: false},
+            8: {name: "Vermont Ave", price: 100, rent: 6, ownerable: true, owner: null},
+            9: {name: "Connecticut Ave", price: 120, rent: 8, ownerable: true, owner: null},
+            10: {name: "Jail / Just Visiting", ownerable: false},
+            11: {name: "St. Charles Place", price: 140, rent: 10, ownerable: true, owner: null},
+            12: {name: "Electric Company", price: 150, rent: 4, ownerable: true, owner: null},
+            13: {name: "States Ave", price: 140, rent: 10, ownerable: true, owner: null},
+            14: {name: "Virginia Ave", price: 160, rent: 12, ownerable: true, owner: null},
+            15: {name: "Pennsylvania Railroad", price: 200, rent: 25, ownerable: true, owner: null},
+            16: {name: "St. James Place", price: 180, rent: 14, ownerable: true, owner: null},
+            17: {name: "Community Chest 2", ownerable: false},
+            18: {name: "Tennessee Ave", price: 180, rent: 14, ownerable: true, owner: null},
+            19: {name: "New York Ave", price: 200, rent: 16, ownerable: true, owner: null},
+            20: {name: "Free Parking", ownerable: false},
+            21: {name: "Kentucky Ave", price: 220, rent: 18, ownerable: true, owner: null},
+            22: {name: "Chance 2", ownerable: false},
+            23: {name: "Indiana Ave", price: 220, rent: 18, ownerable: true, owner: null},
+            24: {name: "Illinois Ave", price: 240, rent: 20, ownerable: true, owner: null},
+            25: {name: "B & O Railroad", price: 200, rent: 25, ownerable: true, owner: null},
+            26: {name: "Atlantic Ave", price: 260, rent: 22, ownerable: true, owner: null},
+            27: {name: "Ventnor Ave", price: 260, rent: 22, ownerable: true, owner: null},
+            28: {name: "Water Works", price: 150, rent: 4, ownerable: true, owner: null},
+            29: {name: "Marvin Gardens", price: 280, rent: 24, ownerable: true, owner: null},   
+            30: {name: "Go To Jail" , ownerable: false},
+            31: {name: "Pacific Ave", price: 300, rent: 26, ownerable: true, owner: null},
+            32: {name: "North Carolina Ave", price: 300, rent: 26, ownerable: true, owner: null},
+            33: {name: "Community Chest 3", ownerable: false},
+            34: {name: "Pennsylvania Ave", price: 320, rent: 28, ownerable: true, owner: null},
+            35: {name: "Short Line", price: 200, rent: 25, ownerable: true, owner: null},
+            36: {name: "Chance 3", ownerable: false},
+            37: {name: "Park Place", price: 350, rent: 35, ownerable: true, owner: null},
+            38: {name: "Luxury Tax", price: 100, ownerable: false},
+            39: {name: "Boardwalk", price: 400, rent: 50, ownerable: true, owner: null},
+        
+        }
+
+        var whoIsChoosing = 1;
+        var availableTokens = ['car', 'cat', 'hat', 'horse', 'siren'];
+        var actionMessages = [
+            "Roll the dice",
+            "You landed on a property. Would you like to buy it?",
+            "You rolled a double! Roll again.",
+            "Go to Jail! Do not pass Go, do not collect $200.",
+            "Chance Card: Advance to Go (Collect $200).",
+            "Community Chest: Bank error in your favor. Collect $200.",
+            "You landed on Free Parking. Take a break!",
+            "Pay $200 for landing on Income Tax.",
+            "You can build houses or hotels now.",
+            "Mortgage a property to raise funds.",
+            "Unmortgage a property to regain full ownership.",
+            "You landed on Luxury Tax. Pay $100.",
+            "You passed Go! Collect $200.",
+            "Game Over! Thanks for playing Monopoly."
+        ];
+        let no_of_players = 2;
+        let allPlayers = [];
+        var whoIsPlaying = 0;
+        function nameExists(name) {
+            return allPlayers.some(player => player.name === name);
+        }
+        var curerentToken = "";
+        function selectToken(playerName, token) {
+            const player = allPlayers.find(p => p.name === playerName);
+            player.token = token;
+            document.getElementById('confirmation').style.display='block';
+            curerentToken = token;
+        }
+        function showUserInfo() {
+            document.getElementById("message").innerHTML = "Who is playing: " + allPlayers[whoIsPlaying].name + "<br>" ;
+            for (let index = 0; index < allPlayers.length; index++) {
+                const player = allPlayers[index];
+            }
+        }
+
+        function putalltokens() {
+            for (let index = 0; index < allPlayers.length; index++) {
+                const player = allPlayers[index];
+                if (player.token == "car") {
+                    var img = document.createElement("img");
+                    img.src = "monopoly_car_t.png";
+                    img.style.width = "50px";
+                    img.style.height = "50px";
+                    img.style.position = "absolute";
+                    
+                    var btm = 0;
+                    if (index == 0 || index == 1) {
+                        btm = 50;
+                        
+                    } else if (index == 2 || index == 3) {
+                        btm = 0;
+                    } else if (index == 4) {
+                        btm = 25;
+                    }
+                    img.style.bottom = btm + "px";
+
+                    var right = 0;
+                    if (index==0 || index==2) {
+                        right = 498
+                    } else if (index==1 || index==3) {
+                        right = 448
+                    } else if (index==4) {
+                        right = 473
+                    }
+
+                    img.style.right = right + "px";
+                    document.body.appendChild(img);
+                    player.tokenImg = img;
+                    
+                } else if (player.token == "cat") {
+                    var img = document.createElement("img");
+                    img.src = "monopoly_cat_t.png";
+                    img.style.width = "50px";
+                    img.style.height = "50px";
+                    img.style.position = "absolute";
+                    var btm = 0;
+                    if (index == 0 || index == 1) {
+                        btm = 50;
+                        
+                    } else if (index == 2 || index == 3) {
+                        btm = 0;
+                    } else if (index == 4) {
+                        btm = 25;
+                    }
+                    img.style.bottom = btm + "px";
+
+                    var right = 0;
+                    if (index==0 || index==2) {
+                        right = 498
+                    } else if (index==1 || index==3) {
+                        right = 448
+                    } else if (index==4) {
+                        right = 473
+                    }
+
+                    img.style.right = right + "px";    
+                    document.body.appendChild(img);
+                    player.tokenImg = img;
+                } else if (player.token == "hat") {
+                    var img = document.createElement("img");
+                    img.src = "monopoly_hat_t.png";
+                    img.style.width = "50px";
+                    img.style.height = "50px";
+                    img.style.position = "absolute";
+                    var btm = 0;
+                    if (index == 0 || index == 1) {
+                        btm = 50;
+                        
+                    } else if (index == 2 || index == 3) {
+                        btm = 0;
+                    } else if (index == 4) {
+                        btm = 25;
+                    }
+                    img.style.bottom = btm + "px";
+
+                    var right = 0;
+                    if (index==0 || index==2) {
+                        right = 498
+                    } else if (index==1 || index==3) {
+                        right = 448
+                    } else if (index==4) {
+                        right = 473
+                    }
+
+                    img.style.right = right + "px";
+                    document.body.appendChild(img);
+                    player.tokenImg = img;
+                } else if (player.token == "horse") {
+                    var img = document.createElement("img");
+                    img.src = "monopoly_horse_t.png";
+                    img.style.width = "50px";
+                    img.style.height = "50px";
+                    img.style.position = "absolute";
+                    var btm = 0;
+                    if (index == 0 || index == 1) {
+                        btm = 50;
+                        
+                    } else if (index == 2 || index == 3) {
+                        btm = 0;
+                    } else if (index == 4) {
+                        btm = 25;
+                    }
+                    img.style.bottom = btm + "px";
+                    
+                    var right = 0;
+                    if (index==0 || index==2) {
+                        right = 498
+                    } else if (index==1 || index==3) {
+                        right = 448
+                    } else if (index==4) {
+                        right = 473
+                    }
+                    img.style.right = right + "px";
+                    document.body.appendChild(img);
+                    player.tokenImg = img;
+                } else if (player.token == "siren") {
+                    var img = document.createElement("img");
+                    img.src = "monopoly_siren_t.png";
+                    img.style.width = "50px";
+                    img.style.height = "50px";
+                    img.style.position = "absolute";
+                    var btm = 0;
+                    if (index == 0 || index == 1) {
+                        btm = 50;
+                        
+                    } else if (index == 2 || index == 3) {
+                        btm = 0;
+                    } else if (index == 4) {
+                        btm = 25;
+                    }
+                    img.style.bottom = btm + "px";
+                    
+                    var right = 0;
+                    if (index==0 || index==2) {
+                        right = 498
+                    } else if (index==1 || index==3) {
+                        right = 448
+                    } else if (index==4) {
+                        right = 473
+                    }
+                    img.style.right = right + "px";
+                    document.body.appendChild(img);
+                    player.tokenImg = img;
+                };
+                
+            }
+        }
+        function YesorNo(userChoice) {
+            if (userChoice === "yes") {
+
+                availableTokens = availableTokens.filter(item => item !== curerentToken);
+
+                showRemainingTokens();
+
+                document.getElementById("confirmation").style.display = 'none';
+                whoIsChoosing++;
+
+                if (whoIsChoosing > no_of_players) {
+                    document.getElementById("CharacterSelection").style.display = 'none';
+                    document.getElementById("board").style.display = 'block';
+                    displayAllUserInfo()
+                    document.body.style.backgroundImage = "url('Monopoly_Board.jpg')";
+                    putalltokens();
+                    showUserInfo();
+                    whoIsPlaying = 0;
+                    return;
+                } else {
+                    document.getElementById("activePlayer").innerHTML = allPlayers[whoIsChoosing - 1].name;
+
+                }
+                return true;
+            } else if (userChoice === "no") {
+                document.getElementById("confirmation").style.display = 'none';
+                return false;
+            }
+            
+        }
+        var diceRolling;
+        function RollStopDice(params) {
+            if (document.getElementById("Roll").innerHTML == "Roll") {
+                diceRolling = setInterval(function() {
+                var die1 = Math.floor(Math.random() * 6) + 1;
+                var die2 = Math.floor(Math.random() * 6) + 1;
+                document.getElementById("Dice1").src = "Dice" + die1 + ".png";
+                document.getElementById("Dice2").src = "Dice" + die2 + ".png";
+                }, 200);
+                document.getElementById("Roll").innerHTML = "Stop";
+            }  else {
+                showUserInfo();
+                clearInterval(diceRolling);
+                var d1 = document.getElementById("Dice1").src.at(-5);
+                var d2 = document.getElementById("Dice2").src.at(-5);
+                var total = parseInt(d1) + parseInt(d2);
+                var totalSteps = parseInt(d1) + parseInt(d2);
+                const player = allPlayers[whoIsPlaying];
+                if (totalSteps+player.position > 40) {
+                    player.money += 200;
+                    document.getElementById("message").innerHTML += "<br>You passed Go and collected $200!";
+                    displayAllUserInfo();
+                } else if (totalSteps+player.position == 40) {
+                    player.money += 400;
+                    document.getElementById("message").innerHTML += "<br>You landed on Go and collected $400!";
+                    displayAllUserInfo();
+                }
+                let newposition = (totalSteps + player.position) % 40;
+                var targetBoxLeft = document.getElementById("box"+ newposition).getBoundingClientRect().left;
+                var targetBoxTop = document.getElementById("box"+ newposition).getBoundingClientRect().top;
+                player.position = newposition
+                player.tokenImg.style.left = targetBoxLeft + "px";
+                player.tokenImg.style.top = targetBoxTop + "px";
+
+                document.getElementById("Dice1").src = "Dice" + d1 + ".png";
+                document.getElementById("Dice2").src = "Dice" + d2 + ".png";
+                document.getElementById("Roll").innerHTML = "Roll";
+                document.getElementById("action_roll").style.display = "none";
+                if(boxesProperties[newposition].ownerable == false) {
+                    document.getElementById("action_buy").style.display = "none";
+                    document.getElementById("message").innerHTML = "Who is playing: " + allPlayers[whoIsPlaying].name + "<br>"
+                    if (boxesProperties[newposition].name.includes("Chance")) {
+                        document.getElementById("action_draw_chance").style.display = "block";
+                    } else if (boxesProperties[newposition].name.includes("Community Chest")) {
+                        document.getElementById("action_draw_community").style.display = "block";
+                    } else if (boxesProperties[newposition].name.includes("Income Tax")) {
+                        document.getElementById("action_pay_income_tax").style.display = "block";
+                    } else if (boxesProperties[newposition].name.includes("Luxury Tax")) {
+                        document.getElementById("action_pay_luxury_tax").style.display = "block";
+                     } else if (boxesProperties[newposition].name.includes("Free Parking")) {
+                        document.getElementById("action_end_turn").style.display = "block";
+                    } else if (boxesProperties[newposition].name.includes("Go To Jail")) {
+                        document.getElementById("action_jail").style.display = "block";
+                        const player = allPlayers[whoIsPlaying];
+                        let newposition = 10;
+                        var targetBoxLeft = document.getElementById("box"+ newposition).getBoundingClientRect().left;
+                        var targetBoxTop = document.getElementById("box"+ newposition).getBoundingClientRect().top;
+                        player.position = newposition
+                        player.tokenImg.style.left = targetBoxLeft + "px";
+                        player.tokenImg.style.top = targetBoxTop + "px";
+
+                    } else {
+                        
+                        document.getElementById("action_end_turn").style.display = "block";
+ 
+                    }
+                    document.getElementById("message").innerHTML += "You rolled a " + total + ". You landed on " + boxesProperties[newposition].name + ".";
+                } else if (boxesProperties[newposition].ownerable == true && boxesProperties[newposition].owner == null) {
+                    document.getElementById("action_buy").style.display = "block";
+                    document.getElementById("message").innerHTML = "Who is playing: " + allPlayers[whoIsPlaying].name + "<br>" 
+                + "You rolled a " + total + ". Do you want to buy " + boxesProperties[newposition].name + " for $" + boxesProperties[newposition].price + "?";
+                } else if (boxesProperties[newposition].ownerable == true && boxesProperties[newposition].owner != null) {
+                    const player = allPlayers[whoIsPlaying];
+                    if (boxesProperties[newposition].owner == player.name) {                        
+                        document.getElementById("message").innerHTML = "Who is playing: " + allPlayers[whoIsPlaying].name + "<br>" 
+                        + "You rolled a " + total + ". You landed on your own property " + boxesProperties[newposition].name + ".";
+                        endTurn();
+                    } else {
+                        const owner = allPlayers.find(p => p.name === boxesProperties[newposition].owner);
+
+                        document.getElementById("message").innerHTML = "Who is playing: " + allPlayers[whoIsPlaying].name + "<br>" 
+                        + "You rolled a " + total + ". You landed on " + boxesProperties[newposition].name + " owned by " + owner.name + ". You will pay $" + boxesProperties[newposition].rent + " to " + owner.name + " by pressing the Pay Rent button.";
+                        displayAllUserInfo();
+                        document.getElementById("action_pay_rent").style.display = "block";
+                    }
+                }
+            }
+            
+            
+        }
+
+        function randomInteger(min, max) {
+           return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function chanceCommunityCardMoney() {
+            var randomMoney = randomInteger(-100, 100);            
+            const player = allPlayers[whoIsPlaying];
+            player.money += randomMoney;            
+            if (randomMoney > 0) {
+                document.getElementById("message").innerHTML += "<br>You drew a Chance card and received $" + randomMoney + ".";
+            } else {
+                document.getElementById("message").innerHTML += "<br>You drew a Chance card and lost $" + Math.abs(randomMoney) + ".";
+            }
+            displayAllUserInfo();
+            document.getElementById("action_draw_chance").style.display = "none";
+            document.getElementById("action_draw_community").style.display = "none";
+            document.getElementById("action_end_turn").style.display = "block";
+        }
+
+        function setPlayers(num) {
+            no_of_players = num;
+            document.getElementById("number_of_players").style.display = "none";
+            document.getElementById("CharacterSelection").style.display = "block";
+            showRemainingTokens();
+            document.getElementById("player_names_input").style.display = "block";
+            document.getElementById("CharacterSelection").style.display = "none";
+            if (num == 2) {
+                document.getElementById("player3_name").style.display = "none";
+                document.getElementById("player4_name").style.display = "none";
+                document.getElementById("player5_name").style.display = "none";
+            } else if (num == 3) {
+                document.getElementById("player4_name").style.display = "none";
+                document.getElementById("player5_name").style.display = "none";
+            } else if (num == 4) {
+                document.getElementById("player5_name").style.display = "none";
+            }
+        }
+
+        function confirmnames() {
+            if(no_of_players == 2) {
+                if (document.getElementById("player1_name").value == "" && document.getElementById("player2_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter both Player 1 and Player 2 names.";  
+                } else if (document.getElementById("player1_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 1 name.";
+                } else if (document.getElementById("player2_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 2 name.";
+                } else {    
+                    let newPlayer1 = {
+                        name: `${document.getElementById("player1_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer1);
+                    let newPlayer2 = {
+                        name: `${document.getElementById("player2_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        specialcards: [],
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer2);
+                    document.getElementById("player_names_input").style.display = "none";
+                }
+            } else if(no_of_players == 3) {
+                if (document.getElementById("player1_name").value == "" && document.getElementById("player2_name").value == "" && document.getElementById("player3_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter all three player names.";
+                } else if (document.getElementById("player1_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 1 name.";
+                } else if (document.getElementById("player2_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 2 name.";
+                } else if (document.getElementById("player3_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 3 name.";
+                } else {
+                    let newPlayer1 = {
+                        name: `${document.getElementById("player1_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        specialcards: [],
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+
+                    };
+                    allPlayers.push(newPlayer1);
+                    let newPlayer2 = {
+                        name: `${document.getElementById("player2_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        specialcards: [],
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+
+                    };
+                    allPlayers.push(newPlayer2);
+                    let newPlayer3 = {
+                        name: `${document.getElementById("player3_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        specialcards: [],
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer3);
+                    document.getElementById("player_names_input").style.display = "none";
+                }
+            } else if(no_of_players == 4) {
+                if (document.getElementById("player1_name").value == "" && document.getElementById("player2_name").value == "" && document.getElementById("player3_name").value == "" && document.getElementById("player4_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter all four player names.";
+                } else if (document.getElementById("player1_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 1 name.";
+                } else if (document.getElementById("player2_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 2 name.";
+                } else if (document.getElementById("player3_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 3 name.";
+                } else if (document.getElementById("player4_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 4 name.";
+                } else {
+                    let newPlayer1 = {
+                        name: `${document.getElementById("player1_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer1);
+                    let newPlayer2 = {
+                        name: `${document.getElementById("player2_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer2);
+                    let newPlayer3 = {
+                        name: `${document.getElementById("player3_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer3);
+                    let newPlayer4 = {
+                        name: `${document.getElementById("player4_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer4);
+                    document.getElementById("player_names_input").style.display = "none";
+                }
+            } else if(no_of_players == 5) {
+                if (document.getElementById("player1_name").value == "" && document.getElementById("player2_name").value == "" && document.getElementById("player3_name").value == "" && document.getElementById("player4_name").value == "" && document.getElementById("player5_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter all five player names.";
+                } else if (document.getElementById("player1_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 1 name.";
+                } else if (document.getElementById("player2_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 2 name.";
+                } else if (document.getElementById("player3_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 3 name.";
+                } else if (document.getElementById("player4_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 4 name.";
+                } else if (document.getElementById("player5_name").value == "") {
+                    document.getElementById("Namestitle").innerHTML = "Please enter Player 5 name.";
+                } else {
+                    let newPlayer1 = {
+                        name: `${document.getElementById("player1_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer1);
+                    let newPlayer2 = {
+                        name: `${document.getElementById("player2_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer2);
+                    let newPlayer3 = {
+                        name: `${document.getElementById("player3_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer3);
+                    let newPlayer4 = {
+                        name: `${document.getElementById("player4_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        specialcards: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer4);
+                    let newPlayer5 = {
+                        name: `${document.getElementById("player5_name").value}`,
+                        money: 1500,
+                        position: 0,
+                        specialcards: [],
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        token: null,
+                        tokenImg: null
+                    };
+                    allPlayers.push(newPlayer5);
+                    document.getElementById("player_names_input").style.display = "none";
+                }
+
+            }
+            document.getElementById("CharacterSelection").style.display = "block";
+            document.getElementById("activePlayer").innerHTML = allPlayers[whoIsChoosing - 1].name;
+        }
+        function buyProperty() {
+            const player = allPlayers[whoIsPlaying];
+            const property = boxesProperties[player.position];            
+            if (property.ownerable == false) {
+                return;
+            }
+
+            if (property.owner != null) {
+                return;
+            }
+
+            if (property && property.price) {
+
+
+                if (player.money >= property.price) {
+                    player.money -= property.price;
+                    player.properties.push(property.name);
+                    property.owner = player.name;
+                    document.getElementById("action_buy").style.display = "none";
+                    document.getElementById("action_end_turn").style.display = "block";
+                    displayAllUserInfo()
+                    checkGameOver();
+                } else {
+                }
+            } else {
+            }
+        }
+
+        function checkGameOver() {
+            var isGameOver = true;
+            
+
+            for (let index = 0; index < 40; index++) {
+                const element = boxesProperties[index];
+                if (element.ownerable == true && element.owner == null) {
+                    isGameOver = false;
+                }
+                
+            }
+
+            if (isGameOver) {
+                allPlayers.forEach(player => {
+                    player.totalWorth = player.money;
+                    for (let index = 0; index < 40; index++) {
+                        const element = boxesProperties[index];
+                        if (element.owner == player.name) {
+                            player.totalWorth += element.price;
+                        }
+                        
+                    }
+                });
+                allPlayers.sort((a, b) => b.totalWorth - a.totalWorth);
+                document.getElementById("board").style.display = "none";
+                document.getElementById("game_over").style.display = "block";
+                document.getElementById("final_rankings").innerHTML = allPlayers.map(
+                    (player, index) => {
+                        return (index + 1) + ". " + player.name + " - Total Worth: $" + player.totalWorth;
+                    }
+                ).join("<br>");
+            }
+        }
+
+        function doNotBuyProperty() {
+            document.getElementById("action_buy").style.display = "none";
+            document.getElementById("action_end_turn").style.display = "block";
+        }
+        function endTurn() {
+            whoIsPlaying = (whoIsPlaying + 1) % no_of_players;
+            document.getElementById("action_end_turn").style.display = "none";  
+            document.getElementById("action_roll").style.display = "block";
+            document.getElementById("Dice1").src = "DiceEmpty.png";
+            document.getElementById("Dice2").src = "DiceEmpty.png";
+            showUserInfo();
+        }
+
+        function displayAllUserInfo(params) {
+
+            document.getElementById("player1_name_info").innerHTML = allPlayers[0].name
+            document.getElementById("player1_money").innerHTML = allPlayers[0].money
+            document.getElementById("player1_properties").innerHTML = allPlayers[0].properties
+            if (allPlayers[0].specialcards != null) {
+                document.getElementById("player1_specialcards").innerHTML = allPlayers[0].specialcards
+            }
+
+
+            document.getElementById("player2_name_info").innerHTML = allPlayers[1].name
+            document.getElementById("player2_money").innerHTML = allPlayers[1].money
+            document.getElementById("player2_properties").innerHTML = allPlayers[1].properties
+            if (allPlayers[1].specialcards != null) {
+                document.getElementById("player2_specialcards").innerHTML = allPlayers[1].specialcards
+            }
+
+            if (no_of_players>=3) {   
+            document.getElementById("player3_name_info").innerHTML = allPlayers[2].name
+            document.getElementById("player3_money").innerHTML = allPlayers[2].money
+            document.getElementById("player3_properties").innerHTML = allPlayers[2].properties
+            if (allPlayers[2].specialcards != null) {
+                document.getElementById("player3_specialcards").innerHTML = allPlayers[2].specialcards
+            }
+            }
+
+            if (no_of_players>=4) {
+            document.getElementById("player4_name_info").innerHTML = allPlayers[3].name
+            document.getElementById("player4_money").innerHTML = allPlayers[3].money
+            document.getElementById("player4_properties").innerHTML = allPlayers[3].properties
+            if (allPlayers[3].specialcards != null) {
+                document.getElementById("player4_specialcards").innerHTML = allPlayers[3].specialcards
+            }
+            }
+           
+            if (no_of_players>=5) {
+            document.getElementById("player5_name_info").innerHTML = allPlayers[4].name
+            document.getElementById("player5_money").innerHTML = allPlayers[4].money
+            document.getElementById("player5_properties").innerHTML = allPlayers[4].properties
+             if (allPlayers[4].specialcards != null) {
+                document.getElementById("player5_specialcards").innerHTML = allPlayers[4].specialcards
+            }
+            }
+            
+            
+        }
+        function payJail() {
+            const player = allPlayers[whoIsPlaying];
+            player.money -= 50;
+            displayAllUserInfo();
+            document.getElementById("action_jail").style.display = "none";
+            document.getElementById("action_roll").style.display = "block";
+        }
+        
+        function drawChanceCard() {
+            chanceCommunityCardMoney()
+        }
+        function drawCommunityChestCard() {
+            chanceCommunityCardMoney()
+        }
+        function payTax(amount) {
+            const player = allPlayers[whoIsPlaying];
+            player.money -= amount;
+            displayAllUserInfo();
+            document.getElementById("action_pay_income_tax").style.display = "none";
+            document.getElementById("action_pay_luxury_tax").style.display = "none";
+            document.getElementById("action_end_turn").style.display = "block";
+        }
+        function payRent() {
+            const player = allPlayers[whoIsPlaying];
+            const property = boxesProperties[player.position];
+            player.money -= property.rent;
+            const owner = allPlayers.find(p => p.name === property.owner);
+            owner.money += property.rent;
+            displayAllUserInfo();
+            document.getElementById("action_pay_rent").style.display = "none";
+            document.getElementById("action_end_turn").style.display = "block";
+            document.getElementById("message").innerHTML = "<br>You paid $" + property.rent + " rent to " + owner.name + ".";
+        }
+        </script>
+</head>
+<body>
+    <div id="number_of_players">
+        <div id="msgtitle">How many players? 2-5</div>
+        <button onclick="setPlayers(2)">2 Players</button>
+        <button onclick="setPlayers(3)">3 Players</button>
+        <button onclick="setPlayers(4)">4 Players</button>
+        <button onclick="setPlayers(5)">5 Players</button>
+    </div>
+    <div id="player_names_input" style="display:none;">
+        <div id="Namestitle"> Please enter all players name </div>
+        <div id="names_container">
+        <br><input type="text" id="player1_name" placeholder="Player 1 Name"> <br> <br>
+            <input type="text" id="player2_name" placeholder="Player 2 Name"> <br> <br>
+            <input type="text" id="player3_name" placeholder="Player 3 Name"> <br> <br>
+            <input type="text" id="player4_name" placeholder="Player 4 Name"> <br> <br>
+            <input type="text" id="player5_name" placeholder="Player 5 Name"> 
+        </div>
+        <button onclick="confirmnames()">Confirm Names</button>
+    </div>
+
+    <div id="game_over" style="display:none; width: 100%; height: 100%; background-color: rgb(60, 79, 160); position: absolute;border: 2px solid black; text-align: center; padding-top: 20px; font-size: 24px;">
+        Game over! Here are the final rankings:
+        <div id="final_rankings" style="margin-top: 20px; font-size: 20px;">
+            
+        </div>
+    </div>
+
+    <div id="board">
+        <div id="ActiveMessage">
+            <span id="message"></span>
+            <div id="action_roll">
+                <img src="DiceEmpty.png" id="Dice1">
+                <img src="DiceEmpty.png" id="Dice2">
+                <div id="Roll" onclick="RollStopDice()">Roll</div>
+            </div>
+            
+            <div id="action_end_turn">
+                <button id="EndTurn" onclick="endTurn()">
+                    End Turn
+                </button>
+            </div>
+
+            <div id="action_pay_rent">
+                <button onclick="payRent()">Pay Rent</button>
+            </div>
+
+            <div id="action_jail">
+                You are in Jail. Pay $50 to get out.
+                <button onclick="payJail()">Pay $50</button>
+            </div>
+
+            <div id="action_buy">
+                <span>Would you like to buy this property?</span>
+                <br>
+                <button onclick="buyProperty()">Buy</button>
+                <button onclick="doNotBuyProperty()">Skip</button>
+            </div>
+
+            <div id="action_pay_income_tax">
+                <button onclick="payTax(200)">Pay Income Tax</button>
+            </div>
+
+            <div id="action_pay_luxury_tax">
+                <button onclick="payTax(100)">Pay Luxury Tax</button>
+            </div>
+                
+            <div id="action_draw_chance">
+                <button onclick="drawChanceCard()">Draw Chance Card</button>
+            </div>
+
+            <div id="action_draw_community">
+                    <button onclick="drawCommunityChestCard()">Draw Community Chest Card</button>
+            </div>
+        </div>
+        <div id="AllUserInfo">
+            <div id="player1_info">
+                <span id="player1_name_info"></span>
+                <br>
+                <span id="player1_money"></span>
+                <br>
+                <div id="player1_properties"></div>
+                <br>
+                <div id="player1_specialcards"></div>
+            </div>
+            <div id="player2_info">
+                <span id="player2_name_info"></span>
+                <br>
+                <span id="player2_money"></span>
+                <br>
+                <div id="player2_properties"></div>
+                <br>
+                <div id="player2_specialcards"></div>
+            </div>
+            <div id="player3_info">
+                <span id="player3_name_info"></span>
+                <br>
+                <span id="player3_money"></span>
+                <br>
+                <div id="player3_properties"></div>
+                <br>
+                <div id="player3_specialcards"></div>
+            </div>
+            <div id="player4_info">
+                <span id="player4_name_info"></span>
+                <br>
+                <span id="player4_money"></span>
+                <br>
+                <div id="player4_properties"></div>
+                <br>
+                <div id="player4_specialcards"></div>
+            </div>
+            <div id="player5_info">
+                <span id="player5_name_info"></span>
+                <br>
+                <span id="player5_money"></span>
+                <br>
+                <div id="player5_properties"></div>
+                <br>
+                <div id="player5_specialcards"></div>
+            </div>
+        </div>
+
+        <div id="box0">Go</div>
+        <div id="box1">Meditera
+            nean Ave</div>
+        <div id="box2">Communit
+            y Chest 1</div>
+        <div id="box3">Baltic Ave</div>
+        <div id="box4">Income Tax</div>
+        <div id="box5">Reading Railroad</div>
+        <div id="box6">Oriental Ave</div>
+        <div id="box7">Chance 1</div>
+        <div id="box8">Vermont Ave</div>
+        <div id="box9">Connectic
+            sut Ave</div>
+        <div id="box10">Jail</div>
+        <div id="box11">St. Charles Place</div>
+        <div id="box12">Electric Company</div>
+        <div id="box13">States Ave</div>
+        <div id="box14">Virginia Ave</div>
+        <div id="box15">Pennsylvania Railroad</div>
+        <div id="box16">St.James Place</div>
+        <div id="box17">Community Chest 2</div>
+        <div id="box18">Tennessee Ave</div>
+        <div id="box19">New York Ave</div>
+        <div id="box20">Free Parking</div>
+        <div id="box21">Kentucky Ave</div>
+        <div id="box22">Chance 2</div>
+        <div id="box23">Indiana Ave</div>
+        <div id="box24">Illinois Ave</div>
+        <div id="box25">B & O Railroad</div>
+        <div id="box26">Atlantic Ave</div>
+        <div id="box27">Ventnor Ave</div>
+        <div id="box28">Water Works</div>
+        <div id="box29">Marvin Gardens</div>
+        <div id="box30">Go To Jail</div>
+        <div id="box31">Pacific Ave</div>
+        <div id="box32">North Carolina Ave</div>
+        <div id="box33">Community Chest 3</div>
+        <div id="box34">Pennsylvania Ave</div>
+        <div id="box35">Short Line Railroad</div>
+        <div id="box36">Chance 3</div>
+        <div id="box37">Park Place</div>
+        <div id="box38">Luxury Tax</div>
+        <div id="box39">Boardwalk</div>
+    </div>
+    <div id="CharacterSelection">
+        <h2><span id="activePlayer"></span> : Choose Your Character</h2>
+        <img id="car" src="monopoly_car_t.png" onclick="selectToken(allPlayers[whoIsChoosing - 1].name, 'car'); ">
+        <img id="cat" src="monopoly_cat_t.png" onclick="selectToken(allPlayers[whoIsChoosing - 1].name, 'cat'); ">
+        <img id="hat" src="monopoly_hat_t.png" onclick="selectToken(allPlayers[whoIsChoosing - 1].name, 'hat'); ">
+        <img id="horse" src="monopoly_horse_t.png" onclick="selectToken(allPlayers[whoIsChoosing - 1].name, 'horse'); ">
+        <img id="siren" src="monopoly_siren_t.png" onclick="selectToken(allPlayers[whoIsChoosing - 1].name, 'siren'); ">
+        <br>
+        <div id="confirmation" style="display:none;">
+            <span>Are you sure?</span>
+            <br>
+            <button onclick="YesorNo('yes')">Yes</button>
+            <button onclick="YesorNo('no')">No</button>
+        </div>
+        
+
+    </div>
+
+    <script>
+        // document.getElementById("activePlayer").innerHTML = allPlayers[whoIsChoosing - 1].name;
+        function showRemainingTokens() {
+            document.getElementById("cat").style.display = "none";
+            document.getElementById("car").style.display = "none";
+            document.getElementById("hat").style.display = "none";
+            document.getElementById("horse").style.display = "none";
+            document.getElementById("siren").style.display = "none";
+            
+            for (let index = 0; index < availableTokens.length; index++) {
+                const element = availableTokens[index];
+                if (element == "cat") {
+                    document.getElementById("cat").style.display = "inline-block";
+                } else if (element == "car") {
+                    document.getElementById("car").style.display = "inline-block";
+                } else if (element == "hat") {
+                    document.getElementById("hat").style.display = "inline-block";
+                } else if (element == "horse") {
+                    document.getElementById("horse").style.display = "inline-block";
+                } else if (element == "siren") {
+                    document.getElementById("siren").style.display = "inline-block";
+                }
+            }
+        }
+        showRemainingTokens();
+    </script>
+
+</body>
+</html>

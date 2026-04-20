@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mason's Homepage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url(king2.png);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.8rem;
+            color: gold;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+            margin-bottom: 8px;
+        }
+
+        .hero h1 .wave {
+            display: inline-block;
+            animation: wave 1.5s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(20deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(15deg); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+        }
+
+        .about p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #f0e6c8;
+        }
+
+        .sports-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .sports-list span {
+            background: linear-gradient(135deg, goldenrod, #b8860b);
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .links h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            color: gold;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .link-grid a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(184, 134, 11, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+        }
+
+        .link-grid a:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(184, 134, 11, 0.35));
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.25);
+        }
+
+        .youtube-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .youtube-link a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .youtube-link a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.35);
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 2rem; }
+            .link-grid { grid-template-columns: 1fr; }
+            .card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Hi, I'm Mason!</h1>
+        </div>
+
+        <div class="card about">
+            <p>
+                I'm <strong>9 years old</strong> and I have a younger sister thats 8 years old and a younger brother that is 3 years old.
+                I play <strong>4 sports</strong> and my favorite thing to do at home is playing video games!
+            </p>
+            <div class="sports-list">
+                <span>Basketball</span>
+                <span>Swimming</span>
+                <span>Soccer</span>
+                <span>Taekwondo</span>
+            </div>
+        </div>
+
+        <div class="card links">
+            <h2>My Games</h2>
+            <div class="link-grid">
+                <a href="./rock_paper_scissors.html">Rock Paper Scissors</a>
+                <a href="./tictactoe.html">Tic Tac Toe</a>
+                <a href="Monke_clicker/index.html">Monke Clicker</a>
+                <a href="./ghostcatcher.HTML">Ghost Catcher</a>
+            </div>
+        </div>
+
+        <div class="youtube-link">
+            <a href="https://www.youtube.com/@Masonking_ACLiao">My YouTube Channel</a>
+        </div>
+    </div>
+</body>
+</html>

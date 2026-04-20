@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      background-color: bisque;
+    }
+    .keyboard {    
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #f0f0f0;
+      padding: 20px;
+      
+    }
+    .keyboard_black {
+      position: fixed;
+      top: 47%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      
+      padding: 20px;
+    }
+    .key_black{
+      background-color: black;
+      text-align: center;
+      width: 50px;
+      height: 120px;
+      float: left;
+      margin: 10px;
+      border-radius: 5px;
+    }
+    .key {
+      background-color: white;
+      text-align: center;
+      width: 50px;
+      height: 180px;
+      float: left;
+      margin: 10px;
+      border-radius: 5px;
+    }
+    .invisible {
+      background-color: transparent;
+    }
+  </style>
+  <script>
+    var audio1 = new Audio('./scale/do.m4a');
+    var audio2 = new Audio('./scale/re.m4a');
+    var audio3 = new Audio('./scale/mi.m4a');
+    var audio4 = new Audio('./scale/fa.m4a');
+    var audio5 = new Audio('./scale/so.m4a');
+    var audio6 = new Audio('./scale/la.m4a');
+    var audio7 = new Audio('./scale/ti.m4a');
+    function play(whichKey) {
+      switch (whichKey) {
+        case 1:
+          console.log("case 1 start");
+          setTimeout(() => {
+            console.time("audio1");
+            audio1.play();
+            console.timeEnd("audio1")
+          }, 0);
+          console.log("case 1 end");
+          break;
+        case 2:
+        setTimeout(() => {
+            audio2.play();  
+          }, 0);
+          break;
+        case 3:
+          setTimeout(() => {
+            audio3.play();  
+          }, 0);
+          
+          break;
+        case 4:
+        setTimeout(() => {
+            audio4.play();  
+          }, 0);
+          
+          break;
+        case 5:
+        setTimeout(() => {
+            audio5.play();  
+          }, 0);
+          break;
+        case 6:
+        setTimeout(() => {
+            audio6.play();  
+          }, 0);
+          break;
+        case 7:
+        setTimeout(() => {
+            audio7.play();  
+          }, 0);
+          break;
+        default:
+          console.log(`Sorry`);
+      }
+    }
+
+    var numberBlackKey = 0
+    function invalidPlay(whichKey) {
+      if (numberBlackKey > 7) {
+        return;
+      }
+      // Things are wrapped in [a,b,c] is called an array
+      let messages = [
+      "Black keys are not done yet",
+      "I told you~",
+      "Please...",
+      "Hey!",
+      "Stop it",
+      "are you serious?!",
+      "Hit the power button, and go to sleep!",
+      "You do it one more time, I will leave you alone!"
+      ]
+      var msg = messages[numberBlackKey];
+      alert(msg);
+      numberBlackKey++;
+    }
+  </script>
+</head>
+<body>
+  <div class="keyboard">
+    <div class="key" onclick="play(1)">do</div>
+    <div class="key" onclick="play(2)">re</div>
+    <div class="key" onclick="play(3)">mi</div>
+    <div class="key" onclick="play(4)">fa</div>
+    <div class="key" onclick="play(5)">so</div>
+    <div class="key" onclick="play(6)">la</div>
+    <div class="key" onclick="play(7)">ti</div>
+  </div>
+  <div class="keyboard_black">
+    <div class="key_black" onclick="invalidPlay(1)">do</div>
+    <div class="key_black" onclick="invalidPlay(2)">re</div>
+    <div class="key_black invisible" onclick="invalidPlay()">mi</div>
+    <div class="key_black" onclick="invalidPlay(3)">fa</div>
+    <div class="key_black" onclick="invalidPlay(4)">so</div>
+    <div class="key_black" onclick="invalidPlay(5)">so</div>
+  </div>
+</body>
+</html>

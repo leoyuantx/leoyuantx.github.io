@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Guess the Number</title>
+    <style>
+        :root{
+            --bg1: #a8edea;
+            --bg2: #fed6e3;
+            --card: rgba(255,255,255,0.9);
+            --accent: #0ea5a4;
+            --muted: #475569;
+        }
+
+        * { box-sizing: border-box; }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        
+        body {
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1rem, 5vw, 2rem);
+            color: #0f172a;
+        }
+
+        .container {
+            width: min(100%, 920px);
+            background: var(--card);
+            border-radius: 20px;
+            padding: clamp(1.25rem, 4vw, 2.5rem);
+            box-shadow: 0 16px 48px rgba(2,6,23,0.12), 0 0 1px rgba(2,6,23,0.08);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4.8vw, 2.5rem);
+            margin: 0 0 clamp(0.5rem, 2vw, 1rem) 0;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .lead {
+            font-size: clamp(1rem, 2.4vw, 1.3rem);
+            margin-bottom: clamp(1rem, 3vw, 1.5rem);
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* Input field - touch-friendly & responsive */
+        #number {
+            width: clamp(240px, 70vw, 360px);
+            padding: clamp(0.6rem, 2vw, 0.9rem) clamp(0.75rem, 2.5vw, 1.2rem);
+            font-size: clamp(1rem, 2.8vw, 1.4rem);
+            border-radius: 12px;
+            border: 2px solid rgba(14,165,164,0.2);
+            background: rgba(255,255,255,0.6);
+            outline: none;
+            text-align: center;
+            margin: clamp(0.6rem, 2vw, 1rem) 0;
+            transition: all 0.3s ease;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        #number:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 0 0 3px rgba(14,165,164,0.1);
+        }
+
+        #number::placeholder {
+            color: rgba(71,85,105,0.5);
+        }
+
+        /* Hint/feedback area */
+        #hint {
+            min-height: clamp(2.5rem, 6vw, 4rem);
+            margin-top: clamp(0.75rem, 2vw, 1.5rem);
+            font-size: clamp(1rem, 2.4vw, 1.3rem);
+            color: var(--muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: clamp(0.5rem, 2vw, 1rem);
+            border-radius: 8px;
+        }
+
+        #hint:hover {
+            background: rgba(14,165,164,0.08);
+            color: var(--accent);
+        }
+
+        /* Audio control */
+        audio {
+            position: fixed;
+            bottom: clamp(8px, 2vw, 16px);
+            right: clamp(8px, 2vw, 16px);
+            background: transparent;
+            z-index: 100;
+            border-radius: 8px;
+            filter: drop-shadow(0 2px 8px rgba(2,6,23,0.15));
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1400px) {
+            .container {
+                padding: 2.5rem 3rem;
+                border-radius: 24px;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Laptop screens */
+        @media (min-width: 1024px) {
+            body {
+                padding: 3rem 2rem;
+            }
+        }
+
+        /* Tablets and medium screens */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .container {
+                padding: 1.8rem 2rem;
+            }
+        }
+
+        /* Small tablets & large phones */
+        @media (max-width: 767px) {
+            body {
+                padding: 1rem;
+            }
+            .container {
+                padding: 1.5rem 1.25rem;
+                border-radius: 16px;
+            }
+            #number {
+                width: clamp(200px, 80vw, 340px);
+            }
+        }
+
+        /* Small phones */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.75rem;
+            }
+            .container {
+                padding: 1.25rem 1rem;
+                border-radius: 14px;
+            }
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 0.5rem;
+            }
+            .lead {
+                font-size: 0.95rem;
+                margin-bottom: 0.75rem;
+            }
+            #number {
+                width: 75vw;
+                padding: 0.7rem 0.6rem;
+                font-size: 1rem;
+            }
+            #hint {
+                font-size: 1rem;
+                min-height: 2.5rem;
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 360px) {
+            .container {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Guess the Number</h1>
+        <div class="lead">I am thinking of a number 1-1000</div>
+        <input type="number" id="number" placeholder="Enter your guess" onclick="pressearly()" min="1" max="1000">
+        <div id="hint" onclick="rghl()"></div>
+    </div>
+    <audio controls>
+        <source src="Relaxing_Music.mp3" type="audio/mpeg">
+    </audio>
+    <script>
+        var result;
+        var tries = 0
+        document.getElementById("number").disabled = false;
+        function checknumber() {
+            // getUserInput vs result
+           
+            if (document.getElementById("number").value > result ) {
+             document.getElementById("hint").innerHTML = "Go Lower"    
+            } else if((document.getElementById("number").value < result )) {
+                document.getElementById("hint").innerHTML = "Go Higher"
+            } else{
+                document.getElementById("hint").innerHTML = "You got it in " + tries + " tries! Click here to play again.";
+            }
+        }
+        function rghl() {
+           location.reload();
+        }
+        function generatenumber() {            
+            result = Math.floor(Math. random() * (1000 - 1) + 1)
+        }
+        generatenumber()
+        document.addEventListener('keyup', function(event){     
+            console.log(event.key);
+            if (event.key == "Enter") {
+                tries++
+                checknumber()
+            } 
+
+
+            
+        }); 
+        function pressearly() {
+            console.log("pressed early");
+            
+        }
+    </script>
+</body>
+</html>

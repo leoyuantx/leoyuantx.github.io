@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battlefield: World War II</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- MAIN MENU -->
+<div id="main-menu">
+  <div class="menu-bg"></div>
+  <div class="menu-content">
+    <h1 class="game-title">BATTLEFIELD</h1>
+    <h2 class="game-subtitle">WORLD WAR II</h2>
+    <div class="menu-buttons">
+      <button class="menu-btn" id="btn-play">SELECT THEATER</button>
+      <button class="menu-btn hidden" id="btn-continue">CONTINUE</button>
+      <button class="menu-btn" id="btn-controls">CONTROLS</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORLD MAP SELECTION -->
+<div id="map-select" class="hidden">
+  <canvas id="map-canvas"></canvas>
+  <div id="map-pins"></div>
+  <div class="map-title-bar">SELECT THEATER OF WAR</div>
+  <div class="location-detail hidden" id="location-detail">
+    <div class="loc-header">
+      <h3 class="loc-name" id="loc-name"></h3>
+      <span class="loc-date" id="loc-date"></span>
+      <div class="loc-factions" id="loc-factions"></div>
+    </div>
+    <p class="loc-story" id="loc-story"></p>
+    <div class="loc-meta">
+      <div class="loc-meta-item"><span class="meta-label">YOUR WEAPON</span><span class="meta-value" id="loc-weapon"></span></div>
+      <div class="loc-meta-item"><span class="meta-label">TERRAIN</span><span class="meta-value" id="loc-terrain"></span></div>
+      <div class="loc-meta-item"><span class="meta-label">DIFFICULTY</span><span class="meta-value" id="loc-diff"></span></div>
+    </div>
+    <button class="menu-btn deploy-btn" id="btn-deploy">DEPLOY</button>
+  </div>
+  <button class="menu-btn map-back-btn" id="btn-back-menu">BACK</button>
+</div>
+
+<!-- CONTROLS SCREEN -->
+<div id="controls-screen" class="hidden">
+  <div class="select-bg"></div>
+  <div class="select-content controls-info">
+    <h2>CONTROLS</h2>
+    <div class="control-list">
+      <div><kbd>W A S D</kbd> Move</div>
+      <div><kbd>MOUSE</kbd> Look Around</div>
+      <div><kbd>LEFT CLICK</kbd> Fire</div>
+      <div><kbd>R</kbd> Reload</div>
+      <div><kbd>SHIFT</kbd> Sprint</div>
+      <div><kbd>SPACE</kbd> Jump</div>
+      <div><kbd>E</kbd> Enter/Exit Vehicle</div>
+      <div><kbd>V</kbd> Swap Weapon / Hold to Pick Up</div>
+      <div><kbd>1</kbd> Primary Weapon</div>
+      <div><kbd>2</kbd> Secondary Weapon</div>
+      <div><kbd>ESC</kbd> Pause Menu</div>
+      <div><kbd>TAB</kbd> Scoreboard</div>
+    </div>
+    <button class="menu-btn back-btn" id="btn-back-controls">BACK</button>
+  </div>
+</div>
+
+<!-- GAME CANVAS -->
+<canvas id="game-canvas"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-health">
+    <div class="health-bar"><div class="health-fill" id="health-fill"></div></div>
+    <span id="health-text">100</span>
+  </div>
+  <div class="hud-ammo">
+    <span id="ammo-clip">30</span> / <span id="ammo-reserve">120</span>
+  </div>
+  <div class="hud-weapon" id="hud-weapon">M1 GARAND</div>
+  <div class="hud-compass" id="hud-compass">N</div>
+  <div class="hud-minimap"><canvas id="minimap" width="180" height="180"></canvas></div>
+  <div class="hud-kills">
+    <span class="kill-icon">K</span> <span id="kill-count">0</span>
+  </div>
+  <div class="hud-crosshair">
+    <div class="ch-line ch-top"></div>
+    <div class="ch-line ch-right"></div>
+    <div class="ch-line ch-bottom"></div>
+    <div class="ch-line ch-left"></div>
+    <div class="ch-dot"></div>
+  </div>
+  <div class="hud-hitmarker hidden" id="hitmarker"></div>
+  <div class="hud-damage hidden" id="damage-overlay"></div>
+  <div class="hud-killfeed" id="killfeed"></div>
+  <div class="hud-vehicle hidden" id="vehicle-hud">
+    <div class="vehicle-name" id="vehicle-name">TIGER TANK</div>
+    <div class="vehicle-health-bar"><div class="vehicle-health-fill" id="vehicle-health-fill"></div></div>
+    <div class="vehicle-prompt">Press <kbd>E</kbd> to exit</div>
+  </div>
+  <div class="hud-interact hidden" id="interact-prompt">Press <kbd>E</kbd> to enter</div>
+  <div class="hud-pickup hidden" id="pickup-prompt">
+    <div class="pickup-bar-bg"><div class="pickup-bar-fill" id="pickup-fill"></div></div>
+    <span>Hold <kbd>V</kbd> to pick up weapon</span>
+  </div>
+  <div class="hud-weapon-slots" id="weapon-slots">
+    <div class="weapon-slot active" id="slot-primary"><span class="slot-key">1</span><span class="slot-name" id="slot-primary-name">---</span></div>
+    <div class="weapon-slot" id="slot-secondary"><span class="slot-key">2</span><span class="slot-name" id="slot-secondary-name">---</span></div>
+  </div>
+  <div class="hud-save-notify hidden" id="save-notify">PROGRESS SAVED</div>
+</div>
+
+<!-- CUTSCENE OVERLAY -->
+<div id="cutscene-overlay" class="hidden">
+  <div class="cutscene-bars">
+    <div class="cutscene-bar-top"></div>
+    <div class="cutscene-bar-bottom"></div>
+  </div>
+  <div class="cutscene-text" id="cutscene-text"></div>
+  <div class="cutscene-skip">Press <kbd>SPACE</kbd> to skip</div>
+</div>
+
+<!-- PAUSE MENU -->
+<div id="pause-menu" class="hidden">
+  <div class="pause-bg"></div>
+  <div class="pause-content">
+    <h2>PAUSED</h2>
+    <button class="menu-btn" id="btn-resume">RESUME</button>
+    <button class="menu-btn" id="btn-quit">QUIT TO MENU</button>
+  </div>
+</div>
+
+<!-- DEATH SCREEN -->
+<div id="death-screen" class="hidden">
+  <div class="death-bg"></div>
+  <div class="death-content">
+    <h2>YOU WERE KILLED</h2>
+    <p id="death-info"></p>
+    <button class="menu-btn" id="btn-respawn">RESPAWN</button>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div id="scoreboard" class="hidden">
+  <h2>SCOREBOARD</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Kills</th><th>Deaths</th><th>Score</th></tr></thead>
+    <tbody id="scoreboard-body"></tbody>
+  </table>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

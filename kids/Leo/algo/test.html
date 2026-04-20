@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm</title>
+
+    <script>
+    var rawNumbers = [2, 3, 1, 7, 5, 4, 9];
+
+    function addEverythingInAnArray(numbers) {
+        var result =  0
+        for (let index = 0; index < numbers.length; index++) {
+            const element = numbers[index];
+            result += element
+        }
+        return result;
+    }
+
+    function findANumberInArray(array, target) {
+        var matchingIndex = -1
+        for (let index = 0; index < array.length; index++) {
+            const element = array[index];
+            if (element == target) {
+                matchingIndex = index
+                console.log("yes")
+            }
+        }
+        if (matchingIndex == -1) {
+            console.log("no")
+        }
+        
+    }
+
+    function findMaxOfArray(array) {
+        
+    }
+
+    function findMinOfArray(array) {
+        var NIS=Number.MAX_SAFE_INTEGER
+        for (let index = 0; index < array.length; index++) {
+            const NILA = array[index];
+            if(NIS > NILA) {
+                NIS = NILA
+            }
+        }
+    }
+
+    findMinOfArray(rawNumbers)
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>

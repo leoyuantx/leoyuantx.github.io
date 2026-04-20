@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3b82f6, #a78bfa);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            transition: background 0.8s ease;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.12) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body.animated-bg {
+            background-size: 400% 400% !important;
+            animation: bgShift 16s ease infinite;
+        }
+        @keyframes bgShift {
+            0%   { background-position: 0% 50%; }
+            25%  { background-position: 100% 0%; }
+            50%  { background-position: 100% 100%; }
+            75%  { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating particles */
+        .bg-particles {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .bg-particles span {
+            position: absolute;
+            display: block;
+            width: var(--size);
+            height: var(--size);
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            bottom: -60px;
+            animation: particleRise var(--dur) linear infinite;
+            animation-delay: var(--delay);
+        }
+        @keyframes particleRise {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(calc(-100vh - 80px)) rotate(720deg); opacity: 0; }
+        }
+        .container {
+            width: 720px;
+            max-width: 95vw;
+            padding: 16px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .controls { display: flex; gap: 8px; align-items: center; }
+        .hud { display: flex; gap: 16px; font-weight: 600; flex-wrap: wrap; }
+        button, select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover { background: #eef2ff; }
+        canvas { width: 100%; height: auto; border-radius: 8px; background: #111827; position: relative; }
+        .goal { color: #10b981; }
+        .start { color: #f59e0b; }
+
+        /* Sticker Collection Button */
+        #stickerBtn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #fff;
+            border: 2px solid #d97706;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #stickerBtn:hover { background: linear-gradient(135deg, #fcd34d, #fbbf24); }
+        #stickerBtn .count {
+            background: #fff;
+            color: #d97706;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal h2 {
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-close {
+            margin-left: auto;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .sticker-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            border: 3px solid #e5e7eb;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+            font-size: 36px;
+        }
+        .sticker-item:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .sticker-item.locked {
+            background: #d1d5db;
+            cursor: not-allowed;
+            filter: grayscale(1);
+            opacity: 0.5;
+        }
+        .sticker-item.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 20px;
+            bottom: 4px;
+            right: 4px;
+        }
+        .sticker-item.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        .sticker-name {
+            font-size: 10px;
+            margin-top: 4px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        /* Trophy Popup */
+        .trophy-popup {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            animation: fadeIn 0.3s;
+        }
+        .trophy-popup.hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .trophy-content {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 20px;
+            padding: 32px 48px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: bounceIn 0.5s;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .trophy-icon { font-size: 80px; }
+        .trophy-content h2 { color: #92400e; margin: 16px 0 8px; }
+        .trophy-content p { color: #a16207; margin: 8px 0; }
+        .new-sticker { font-size: 48px; margin: 16px 0; }
+        .trophy-btn {
+            margin-top: 16px;
+            padding: 12px 32px;
+            background: #f59e0b;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .trophy-btn:hover { background: #d97706; }
+
+        /* Placed stickers on maze */
+        .placed-sticker {
+            position: absolute;
+            font-size: 28px;
+            pointer-events: auto;
+            user-select: none;
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .placed-sticker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* Background lock indicator */
+        .bg-lock-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .bg-lock-toast.show { opacity: 1; }
+
+        /* Decorate mode indicator */
+        #decorateMode {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3b82f6;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #decorateMode.hidden { display: none; }
+        #decorateMode .cancel-btn {
+            background: #ef4444;
+            border: none;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Mobile D-pad */
+        .dpad {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px 60px;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dpad button { font-size: 18px; }
+        .dpad .empty { visibility: hidden; }
+
+        /* Shop Button */
+        #shopBtn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: 2px solid #047857;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #shopBtn:hover { background: linear-gradient(135deg, #34d399, #10b981); }
+        #shopBtn .coin-count {
+            background: #fff;
+            color: #047857;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Shop Modal */
+        .shop-section {
+            margin-bottom: 24px;
+        }
+        .shop-section h3 {
+            color: #1f2937;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .shop-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        .shop-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .shop-item-emoji {
+            font-size: 32px;
+        }
+        .shop-item-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .shop-item-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .shop-item-price {
+            color: #059669;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .shop-buy-btn {
+            padding: 8px 16px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .shop-buy-btn:hover { background: #059669; }
+        .shop-buy-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        .shop-buy-btn.owned {
+            background: #6b7280;
+            cursor: default;
+        }
+
+        /* Hint Button */
+        #hintBtn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: #fff;
+            border: 2px solid #6d28d9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #hintBtn:hover { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+        #hintBtn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            border-color: #9ca3af;
+        }
+        #hintBtn .hint-count {
+            background: #fff;
+            color: #7c3aed;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Level Display */
+        .level-display {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .level-navigation {
+            display: flex;
+            gap: 6px;
+        }
+        .level-nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .level-nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .level-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Maze Editor */
+        #makeMazeBtn {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: #fff;
+            border: 2px solid #0e7490;
+        }
+        #makeMazeBtn:hover { background: linear-gradient(135deg, #22d3ee, #06b6d4); }
+        
+        .editor-mode {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100;
+            max-width: 200px;
+        }
+        .editor-mode.hidden { display: none; }
+        .editor-mode h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #1f2937;
+        }
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .tool-btn {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            background: #f8fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+        .tool-btn:hover {
+            border-color: #06b6d4;
+            transform: scale(1.05);
+        }
+        .tool-btn.active {
+            border-color: #06b6d4;
+            background: #cffafe;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+        .tool-name {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .editor-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .editor-actions button {
+            width: 100%;
+            padding: 8px;
+            font-size: 13px;
+        }
+        .test-mode-btn {
+            background: #10b981 !important;
+            color: #fff !important;
+            border-color: #059669 !important;
+        }
+        .test-mode-btn:hover {
+            background: #059669 !important;
+        }
+        .clear-btn {
+            background: #ef4444 !important;
+            color: #fff !important;
+            border-color: #dc2626 !important;
+        }
+        .clear-btn:hover {
+            background: #dc2626 !important;
+        }
+
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <div class="toolbar">
+            <div class="controls">
+                <div class="level-display">
+                    🎮 Level <span id="currentLevel">1</span>/300
+                    <div class="level-navigation">
+                        <button class="level-nav-btn" id="prevLevel">◀</button>
+                        <button class="level-nav-btn" id="nextLevel">▶</button>
+                    </div>
+                </div>
+                <label>
+                    Difficulty
+                    <select id="difficultySelect">
+                        <option value="easy">😊 Easy</option>
+                        <option value="medium" selected>😐 Medium</option>
+                        <option value="hard">😈 Hard</option>
+                        <option value="impossible">💀 Impossible</option>
+                    </select>
+                </label>
+                <button id="newMaze">Practice Mode</button>
+                <label style="display:none;">
+                    Size
+                    <select id="sizeSelect">
+                        <option value="15">15x15</option>
+                        <option value="21" selected>21x21</option>
+                        <option value="31">31x31</option>
+                    </select>
+                </label>
+                <button id="stickerBtn">🎨 Stickers <span class="count" id="stickerCount">0</span></button>
+                <button id="shopBtn">🏪 Shop <span class="coin-count" id="coinCount">0</span></button>
+                <button id="hintBtn">💡 Hint <span class="hint-count" id="hintCount">3</span></button>
+                <button id="makeMazeBtn">🔧 Make Maze</button>
+            </div>
+            <div class="hud">
+                <div>Moves: <span id="moves">0</span></div>
+                <div>Time: <span id="time">0.0s</span></div>
+                <div>Score: <span id="score">0</span></div>
+                <div>💰 Coins: <span id="coinDisplay">0</span></div>
+                <div class="start">Start: top-left</div>
+                <div class="goal">Goal: bottom-right</div>
+            </div>
+        </div>
+        <div style="position: relative;">
+            <canvas id="maze" width="640" height="640"></canvas>
+            <div id="stickerLayer"></div>
+        </div>
+        <div class="dpad" id="dpad">
+            
+        </div>
+    </div>
+
+    <!-- Sticker Collection Modal -->
+    <div class="modal-overlay hidden" id="stickerModal">
+        <div class="modal">
+            <h2>🎨 Sticker Collection <button class="modal-close" id="closeModal">×</button></h2>
+            <p style="color: #64748b; margin-bottom: 16px;">Click a sticker to place it on your maze!</p>
+            <div class="sticker-grid" id="stickerGrid"></div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div class="modal-overlay hidden" id="shopModal">
+        <div class="modal">
+            <h2>🏪 Shop <button class="modal-close" id="closeShopModal">×</button></h2>
+            <p style="color: #64748b; margin-bottom: 16px;">💰 Your Coins: <strong><span id="shopCoinDisplay">0</span></strong></p>
+            
+            <div class="shop-section">
+                <h3>✨ Super Exclusive Stickers</h3>
+                <div id="exclusiveShop"></div>
+            </div>
+            
+            <div class="shop-section">
+                <h3>🍕 Food Stickers</h3>
+                <div id="foodShop"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trophy Popup -->
+    <div class="trophy-popup hidden" id="trophyPopup">
+        <div class="trophy-content">
+            <div class="trophy-icon">🏆</div>
+            <h2>YOU WIN!</h2>
+            <p>You completed the maze!</p>
+            <p>You earned a new sticker:</p>
+            <div class="new-sticker" id="newStickerEmoji">⭐</div>
+            <p id="bgUnlockMsg" style="color:#a16207;font-weight:600;display:none"></p>
+            <button class="trophy-btn" id="claimBtn">Claim Reward!</button>
+        </div>
+    </div>
+
+    <!-- Decorate Mode Indicator -->
+    <div id="decorateMode" class="hidden">
+        <span>🎨 Click on the maze to place: <span id="placingSticker">⭐</span></span>
+        <button class="cancel-btn" id="cancelPlace">Cancel</button>
+    </div>
+
+    <!-- Maze Editor Panel -->
+    <div id="editorMode" class="editor-mode hidden">
+        <h3>🔧 Maze Editor</h3>
+        <div class="tool-grid">
+            <div class="tool-btn" data-tool="wall">
+                <span>🧱</span>
+                <span class="tool-name">Wall</span>
+            </div>
+            <div class="tool-btn" data-tool="coin">
+                <span>💰</span>
+                <span class="tool-name">Coin</span>
+            </div>
+            <div class="tool-btn" data-tool="bomb">
+                <span>💣</span>
+                <span class="tool-name">Bomb</span>
+            </div>
+            <div class="tool-btn" data-tool="portal">
+                <span>🌀</span>
+                <span class="tool-name">Portal</span>
+            </div>
+            <div class="tool-btn" data-tool="speed">
+                <span>⚡</span>
+                <span class="tool-name">Speed</span>
+            </div>
+            <div class="tool-btn" data-tool="trap">
+                <span>🕳️</span>
+                <span class="tool-name">Trap</span>
+            </div>
+            <div class="tool-btn" data-tool="key">
+                <span>🔑</span>
+                <span class="tool-name">Key</span>
+            </div>
+            <div class="tool-btn" data-tool="door">
+                <span>🚪</span>
+                <span class="tool-name">Door</span>
+            </div>
+            <div class="tool-btn" data-tool="start">
+                <span>🟢</span>
+                <span class="tool-name">Start</span>
+            </div>
+            <div class="tool-btn" data-tool="goal">
+                <span>🎯</span>
+                <span class="tool-name">Goal</span>
+            </div>
+        </div>
+        <div class="editor-actions">
+            <button class="test-mode-btn" id="testMazeBtn">▶️ Test Maze</button>
+            <button class="clear-btn" id="clearMazeBtn">🗑️ Clear All</button>
+            <button id="exitEditorBtn">❌ Exit Editor</button>
+        </div>
+    </div>
+
+    <script>
+    // Bitmask walls: 1=TOP, 2=RIGHT, 4=BOTTOM, 8=LEFT
+    const TOP = 1, RIGHT = 2, BOTTOM = 4, LEFT = 8;
+    const OPPOSITE = { [TOP]: BOTTOM, [RIGHT]: LEFT, [BOTTOM]: TOP, [LEFT]: RIGHT };
+    const COIN_VALUE = 500000; // points per coin
+
+    // Difficulty configurations
+    const DIFFICULTY = {
+        easy: {
+            name: 'Easy',
+            sizeMultiplier: 0.75,  // 25% smaller mazes
+            openingsRatio: 0.15,   // 15% extra openings
+            coinDensity: 0.05,     // 5% coins
+            startingHints: 5
+        },
+        medium: {
+            name: 'Medium',
+            sizeMultiplier: 1.0,   // Normal size
+            openingsRatio: 0.07,   // 7% extra openings
+            coinDensity: 0.03,     // 3% coins
+            startingHints: 3
+        },
+        hard: {
+            name: 'Hard',
+            sizeMultiplier: 1.25,  // 25% larger mazes
+            openingsRatio: 0.03,   // 3% extra openings
+            coinDensity: 0.015,    // 1.5% coins
+            startingHints: 2
+        },
+        impossible: {
+            name: 'Impossible',
+            sizeMultiplier: 1.5,   // 50% larger mazes
+            openingsRatio: 0.0,    // NO extra openings - only ONE path!
+            coinDensity: 0.01,     // 1% coins
+            startingHints: 1       // Just 1 hint!
+        }
+    };
+
+    // Generate 300 levels with progressive difficulty
+    function generateLevels(difficultyKey) {
+        const config = DIFFICULTY[difficultyKey];
+        const levels = [];
+        for (let i = 1; i <= 300; i++) {
+            let size;
+            if (i <= 50) {
+                // Levels 1-50: Small (11-15)
+                size = 11 + Math.floor((i - 1) / 10) * 2;
+            } else if (i <= 150) {
+                // Levels 51-150: Medium (17-23)
+                size = 17 + Math.floor((i - 51) / 20) * 2;
+            } else if (i <= 250) {
+                // Levels 151-250: Large (25-33)
+                size = 25 + Math.floor((i - 151) / 25) * 2;
+            } else {
+                // Levels 251-300: Extra Large (35-45)
+                size = 35 + Math.floor((i - 251) / 10) * 2;
+            }
+            // Apply difficulty multiplier
+            size = Math.floor(size * config.sizeMultiplier);
+            // Ensure odd number for proper maze generation
+            if (size % 2 === 0) size++;
+            // Minimum size of 7
+            if (size < 7) size = 7;
+            levels.push({ level: i, size: size });
+        }
+        return levels;
+    }
+
+    // Shop stickers
+    const EXCLUSIVE_STICKERS = [
+        { id: 'exclusive_gem', emoji: '💍', name: 'Diamond Ring', price: 15 },
+        { id: 'exclusive_gold', emoji: '🥇', name: 'Gold Medal', price: 15 },
+        { id: 'exclusive_crystal', emoji: '🔮', name: 'Crystal Ball', price: 20 },
+        { id: 'exclusive_alien', emoji: '👽', name: 'Alien', price: 20 },
+        { id: 'exclusive_robot', emoji: '🤖', name: 'Robot', price: 25 },
+        { id: 'exclusive_dragon', emoji: '🐉', name: 'Dragon', price: 30 },
+        { id: 'exclusive_phoenix', emoji: '🦅', name: 'Phoenix', price: 28 },
+        { id: 'exclusive_wizard', emoji: '🧙', name: 'Wizard', price: 22 },
+        { id: 'exclusive_mermaid', emoji: '🧜‍♀️', name: 'Mermaid', price: 24 },
+        { id: 'exclusive_vampire', emoji: '🧛', name: 'Vampire', price: 26 },
+        { id: 'exclusive_ninja', emoji: '🥷', name: 'Ninja', price: 23 },
+        { id: 'exclusive_galaxy', emoji: '🌌', name: 'Galaxy', price: 35 },
+        { id: 'exclusive_comet', emoji: '☄️', name: 'Comet', price: 25 },
+        { id: 'exclusive_planet', emoji: '🪐', name: 'Saturn', price: 28 },
+        { id: 'exclusive_black_hole', emoji: '🕳️', name: 'Black Hole', price: 40 },
+        { id: 'exclusive_explosion', emoji: '💥', name: 'Explosion', price: 18 },
+        { id: 'exclusive_sparkles', emoji: '✨', name: 'Sparkles', price: 12 },
+        { id: 'exclusive_ghost', emoji: '👻', name: 'Ghost', price: 16 },
+        { id: 'exclusive_ninja_star', emoji: '⭐', name: 'Shuriken', price: 20 },
+        { id: 'exclusive_sacred_gem', emoji: '💠', name: 'Sacred Gem', price: 32 }
+    ];
+
+    const FOOD_STICKERS = [
+        { id: 'food_pizza', emoji: '🍕', name: 'Pizza', price: 10 },
+        { id: 'food_burger', emoji: '🍔', name: 'Burger', price: 10 },
+        { id: 'food_taco', emoji: '🌮', name: 'Taco', price: 12 },
+        { id: 'food_sushi', emoji: '🍣', name: 'Sushi', price: 15 },
+        { id: 'food_donut', emoji: '🍩', name: 'Donut', price: 8 },
+        { id: 'food_ice_cream', emoji: '🍦', name: 'Ice Cream', price: 8 },
+        { id: 'food_cookie', emoji: '🍪', name: 'Cookie', price: 5 },
+        { id: 'food_hot_dog', emoji: '🌭', name: 'Hot Dog', price: 9 },
+        { id: 'food_fries', emoji: '🍟', name: 'French Fries', price: 7 },
+        { id: 'food_popcorn', emoji: '🍿', name: 'Popcorn', price: 6 },
+        { id: 'food_ramen', emoji: '🍜', name: 'Ramen', price: 14 },
+        { id: 'food_curry', emoji: '🍛', name: 'Curry', price: 13 },
+        { id: 'food_pasta', emoji: '🍝', name: 'Pasta', price: 12 },
+        { id: 'food_steak', emoji: '🥩', name: 'Steak', price: 18 },
+        { id: 'food_croissant', emoji: '🥐', name: 'Croissant', price: 7 },
+        { id: 'food_pancakes', emoji: '🥞', name: 'Pancakes', price: 9 },
+        { id: 'food_waffle', emoji: '🧇', name: 'Waffle', price: 9 },
+        { id: 'food_cupcake', emoji: '🧁', name: 'Cupcake', price: 6 },
+        { id: 'food_pie', emoji: '🥧', name: 'Pie', price: 10 },
+        { id: 'food_birthday_cake', emoji: '🎂', name: 'Birthday Cake', price: 15 },
+        { id: 'food_watermelon', emoji: '🍉', name: 'Watermelon', price: 8 },
+        { id: 'food_strawberry', emoji: '🍓', name: 'Strawberry', price: 5 },
+        { id: 'food_grapes', emoji: '🍇', name: 'Grapes', price: 6 }
+    ];
+
+    // All available stickers (free ones from completing mazes)
+    const ALL_STICKERS = [
+        { id: 'star', emoji: '⭐', name: 'Star' },
+        { id: 'heart', emoji: '❤️', name: 'Heart' },
+        { id: 'rainbow', emoji: '🌈', name: 'Rainbow' },
+        { id: 'rocket', emoji: '🚀', name: 'Rocket' },
+        { id: 'fire', emoji: '🔥', name: 'Fire' },
+        { id: 'diamond', emoji: '💎', name: 'Diamond' },
+        { id: 'crown', emoji: '👑', name: 'Crown' },
+        { id: 'butterfly', emoji: '🦋', name: 'Butterfly' },
+        { id: 'unicorn', emoji: '🦄', name: 'Unicorn' },
+        { id: 'cake', emoji: '🎂', name: 'Cake' },
+        { id: 'flower', emoji: '🌸', name: 'Flower' },
+        { id: 'sun', emoji: '☀️', name: 'Sun' },
+        { id: 'moon', emoji: '🌙', name: 'Moon' },
+        { id: 'lightning', emoji: '⚡', name: 'Lightning' },
+        { id: 'music', emoji: '🎵', name: 'Music' },
+        { id: 'trophy', emoji: '🏆', name: 'Trophy' }
+    ];
+
+    // Storage for collected stickers
+    function loadStickers() {
+        try {
+            const data = localStorage.getItem('mazeStickers');
+            return data ? JSON.parse(data) : ['star']; // Start with star
+        } catch { return ['star']; }
+    }
+    function saveStickers(stickers) {
+        localStorage.setItem('mazeStickers', JSON.stringify(stickers));
+    }
+
+    // Storage for coins
+    function loadCoins() {
+        try {
+            const data = localStorage.getItem('mazeCoins');
+            return data ? parseInt(data, 10) : 0;
+        } catch { return 0; }
+    }
+    function saveCoins(coins) {
+        localStorage.setItem('mazeCoins', String(coins));
+    }
+
+    // Storage for hints
+    function loadHints(difficulty) {
+        try {
+            const data = localStorage.getItem('mazeHints');
+            if (data === null) {
+                // First time - return starting hints for difficulty
+                return DIFFICULTY[difficulty].startingHints;
+            }
+            return parseInt(data, 10);
+        } catch { 
+            return DIFFICULTY[difficulty].startingHints;
+        }
+    }
+    function saveHints(hints) {
+        localStorage.setItem('mazeHints', String(hints));
+    }
+
+    // Storage for difficulty
+    function loadDifficulty() {
+        try {
+            const data = localStorage.getItem('mazeDifficulty');
+            return data && DIFFICULTY[data] ? data : 'medium';
+        } catch { return 'medium'; }
+    }
+    function saveDifficulty(difficulty) {
+        localStorage.setItem('mazeDifficulty', difficulty);
+    }
+
+    // Storage for current level
+    function loadCurrentLevel() {
+        try {
+            const data = localStorage.getItem('mazeCurrentLevel');
+            return data ? parseInt(data, 10) : 1;
+        } catch { return 1; }
+    }
+    function saveCurrentLevel(level) {
+        localStorage.setItem('mazeCurrentLevel', String(level));
+    }
+
+    // Storage for highest level reached
+    function loadHighestLevel() {
+        try {
+            const data = localStorage.getItem('mazeHighestLevel');
+            return data ? parseInt(data, 10) : 1;
+        } catch { return 1; }
+    }
+    function saveHighestLevel(level) {
+        localStorage.setItem('mazeHighestLevel', String(level));
+    }
+
+    // Storage for placed decorations
+    function loadDecorations() {
+        try {
+            const data = localStorage.getItem('mazeDecorations');
+            return data ? JSON.parse(data) : [];
+        } catch { return []; }
+    }
+    function saveDecorations(decorations) {
+        localStorage.setItem('mazeDecorations', JSON.stringify(decorations));
+    }
+
+    // ── Unlockable backgrounds ──
+    const BACKGROUNDS = [
+        { id: 'default',  name: 'Blue Violet',     animated: true,  css: 'linear-gradient(135deg, #667eea, #764ba2, #6B8DD6, #8E37D7)' },
+        { id: 'sunset',   name: 'Sunset',           animated: true,  css: 'linear-gradient(135deg, #fa709a, #fee140, #f97316, #ec4899)' },
+        { id: 'ocean',    name: 'Deep Ocean',       animated: true,  css: 'linear-gradient(135deg, #0077b6, #00b4d8, #48cae4, #023e8a)' },
+        { id: 'forest',   name: 'Enchanted Forest', animated: true,  css: 'linear-gradient(135deg, #134e5e, #71b280, #2d6a4f, #95d5b2)' },
+        { id: 'lava',     name: 'Molten Lava',      animated: true,  css: 'linear-gradient(135deg, #f83600, #f9d423, #fe4a49, #fed766)' },
+        { id: 'midnight', name: 'Midnight Sky',     animated: true,  css: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #4a00e0)' },
+        { id: 'candy',    name: 'Cotton Candy',     animated: true,  css: 'linear-gradient(135deg, #ff9a9e, #fecfef, #fad0c4, #fbc2eb)' },
+        { id: 'aurora',   name: 'Northern Lights',  animated: true,  css: 'linear-gradient(135deg, #43e97b, #38f9d7, #667eea, #764ba2)' },
+        { id: 'peach',    name: 'Peach Blossom',    animated: true,  css: 'linear-gradient(135deg, #ffecd2, #fcb69f, #ff9a9e, #fad0c4)' },
+        { id: 'storm',    name: 'Thunder Storm',    animated: true,  css: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364, #0f2027)' },
+        { id: 'rose',     name: 'Rose Gold',        animated: true,  css: 'linear-gradient(135deg, #b76e79, #e8cbc0, #f0e6d3, #c9ada7)' },
+        { id: 'neon',     name: 'Neon Glow',        animated: true,  css: 'linear-gradient(135deg, #00f260, #0575e6, #a3e635, #06b6d4)' },
+        { id: 'galaxy',   name: 'Galaxy',           animated: true,  css: 'linear-gradient(135deg, #0f0c29, #6d28d9, #e040fb, #302b63)' },
+        { id: 'tropical', name: 'Tropical Paradise', animated: true, css: 'linear-gradient(135deg, #11998e, #38ef7d, #facc15, #22d3ee)' },
+        { id: 'ice',      name: 'Frozen Ice',       animated: true,  css: 'linear-gradient(135deg, #e0eafc, #cfdef3, #bae6fd, #ddd6fe)' },
+    ];
+
+    function loadUnlockedBgs() {
+        try { return JSON.parse(localStorage.getItem('mazeBgsUnlocked')) || ['default']; } catch { return ['default']; }
+    }
+    function saveUnlockedBgs(arr) { localStorage.setItem('mazeBgsUnlocked', JSON.stringify(arr)); }
+    function loadActiveBg() { return localStorage.getItem('mazeActiveBg') || 'default'; }
+    function saveActiveBg(id) { localStorage.setItem('mazeActiveBg', id); }
+    function loadLockedBg() { return localStorage.getItem('mazeBgLocked') === 'true'; }
+    function saveLockedBg(v) { localStorage.setItem('mazeBgLocked', v ? 'true' : 'false'); }
+
+    function applyBackground(id) {
+        const bg = BACKGROUNDS.find(b => b.id === id) || BACKGROUNDS[0];
+        document.body.style.background = bg.css;
+        if (bg.animated) {
+            document.body.classList.add('animated-bg');
+        } else {
+            document.body.classList.remove('animated-bg');
+        }
+    }
+
+    // Create floating particles
+    (function createParticles() {
+        const container = document.createElement('div');
+        container.className = 'bg-particles';
+        for (let i = 0; i < 18; i++) {
+            const span = document.createElement('span');
+            const size = Math.random() * 30 + 10;
+            span.style.setProperty('--size', size + 'px');
+            span.style.setProperty('--dur', (Math.random() * 14 + 10) + 's');
+            span.style.setProperty('--delay', (Math.random() * 15) + 's');
+            span.style.left = Math.random() * 100 + '%';
+            container.appendChild(span);
+        }
+        document.body.prepend(container);
+    })();
+
+    class Maze {
+        constructor(rows, cols) {
+            this.rows = rows; this.cols = cols;
+            this.grid = Array.from({ length: rows }, () => Array(cols).fill(TOP|RIGHT|BOTTOM|LEFT));
+            this.visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+            this.generate();
+        }
+
+        neighbors(r, c) {
+            const list = [];
+            if (r > 0) list.push([r-1, c, TOP]);
+            if (c < this.cols - 1) list.push([r, c+1, RIGHT]);
+            if (r < this.rows - 1) list.push([r+1, c, BOTTOM]);
+            if (c > 0) list.push([r, c-1, LEFT]);
+            return list;
+        }
+
+        generate() {
+            // DFS backtracking from (0,0)
+            const stack = [[0,0]];
+            this.visited[0][0] = true;
+            while (stack.length) {
+                const [r,c] = stack[stack.length-1];
+                const nbs = this.neighbors(r,c).filter(([nr,nc]) => !this.visited[nr][nc]);
+                if (!nbs.length) { stack.pop(); continue; }
+                const [nr,nc,dir] = nbs[Math.floor(Math.random()*nbs.length)];
+                // knock down wall between (r,c) and (nr,nc)
+                this.grid[r][c] &= ~dir;
+                this.grid[nr][nc] &= ~OPPOSITE[dir];
+                this.visited[nr][nc] = true;
+                stack.push([nr,nc]);
+            }
+        }
+
+        // Knock down a number of random walls to create loops and openness
+        openRandomWalls(count) {
+            let opened = 0;
+            let attempts = 0;
+            const maxAttempts = count * 10;
+            while (opened < count && attempts < maxAttempts) {
+                attempts++;
+                const r = Math.floor(Math.random() * this.rows);
+                const c = Math.floor(Math.random() * this.cols);
+                const nbs = this.neighbors(r, c);
+                if (!nbs.length) continue;
+                const [nr, nc, dir] = nbs[Math.floor(Math.random() * nbs.length)];
+                // If a wall still exists between (r,c) and (nr,nc), remove it
+                if ((this.grid[r][c] & dir) && (this.grid[nr][nc] & OPPOSITE[dir])) {
+                    this.grid[r][c] &= ~dir;
+                    this.grid[nr][nc] &= ~OPPOSITE[dir];
+                    opened++;
+                }
+            }
+        }
+    }
+
+    class Game {
+        constructor(canvas) {
+            this.canvas = canvas; this.ctx = canvas.getContext('2d');
+            this.moves = 0; this.timeStart = null; this.timerId = null;
+            this.rows = 21; this.cols = 21; this.cell = 28; // computed later
+            this.player = { r: 0, c: 0 };
+            this.goal = { r: this.rows-1, c: this.cols-1 };
+            this.maze = null;
+            this.score = 0;
+            this.coins = new Set(); // store as "r,c"
+            this.mazeItems = { bombs: new Set(), portals: [], speed: new Set(), traps: new Set(), keys: new Set(), doors: new Set() };
+            this.hasKey = false; // Player has key
+            this.playerCoins = loadCoins(); // Total coins collected
+            this.difficulty = loadDifficulty(); // Current difficulty level
+            this.playerHints = loadHints(this.difficulty); // Total hints available
+            this.currentLevel = loadCurrentLevel(); // Current level (1-300)
+            this.highestLevel = loadHighestLevel(); // Highest level reached
+            this.practiceMode = false; // Whether in practice mode
+            this.collectedStickers = loadStickers();
+            this.placedDecorations = loadDecorations();
+            this.placingSticker = null; // Currently selected sticker to place
+            this.unlockedBgs = loadUnlockedBgs();
+            this.activeBg = loadActiveBg();
+            this.bgLocked = loadLockedBg();
+            this.hintPath = null; // Active hint path array
+            this.hintStartPos = null; // Where hint started {r, c}
+            this.levels = generateLevels(this.difficulty); // Generate levels based on difficulty
+            this.editorMode = false; // Whether in editor mode
+            this.editorTool = null; // Current editor tool selected
+            this.customMaze = null; // Custom maze data
+            this.editorItems = { coins: new Set(), bombs: new Set(), portals: [], speed: new Set(), traps: new Set(), keys: new Set(), doors: new Set() };
+            this.testMode = false; // Testing custom maze
+            this.hasKey = false; // Player has key in test mode
+            this.bindUI();
+            this.bindStickerUI();
+            this.bindShopUI();
+            this.bindHintUI();
+            this.bindLevelUI();
+            this.bindDifficultyUI();
+            this.bindEditorUI();
+            this.bindBgClickUI();
+            applyBackground(this.activeBg);
+            this.loadLevel(this.currentLevel);
+            this.renderDecorations();
+        }
+
+        bindUI() {
+            const movesEl = document.getElementById('moves');
+            const timeEl = document.getElementById('time');
+            const scoreEl = document.getElementById('score');
+            const sizeSelect = document.getElementById('sizeSelect');
+            const newMazeBtn = document.getElementById('newMaze');
+            const dpad = document.getElementById('dpad');
+
+            this.updateHUD = () => {
+                movesEl.textContent = String(this.moves);
+                const t = this.timeStart ? ((performance.now() - this.timeStart)/1000).toFixed(1) : '0.0';
+                timeEl.textContent = t + 's';
+                scoreEl.textContent = String(this.score);
+                document.getElementById('coinDisplay').textContent = String(this.playerCoins);
+                document.getElementById('coinCount').textContent = String(this.playerCoins);
+                document.getElementById('hintCount').textContent = String(this.playerHints);
+                document.getElementById('hintBtn').disabled = this.playerHints <= 0;
+                document.getElementById('currentLevel').textContent = String(this.currentLevel);
+            };
+
+            newMazeBtn.addEventListener('click', () => {
+                // Enter practice mode with custom size
+                const size = parseInt(sizeSelect.value, 10);
+                this.practiceMode = true;
+                document.getElementById('currentLevel').textContent = 'Practice';
+                this.newMaze(size, size);
+            });
+            sizeSelect.addEventListener('change', () => {
+                const size = parseInt(sizeSelect.value, 10);
+                this.practiceMode = true;
+                document.getElementById('currentLevel').textContent = 'Practice';
+                this.newMaze(size, size);
+            });
+
+            // Keyboard controls
+            window.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if (['arrowup','w'].includes(key)) this.tryMove(-1,0);
+                else if (['arrowdown','s'].includes(key)) this.tryMove(1,0);
+                else if (['arrowleft','a'].includes(key)) this.tryMove(0,-1);
+                else if (['arrowright','d'].includes(key)) this.tryMove(0,1);
+            });
+
+            // D-pad
+            dpad.addEventListener('click', (e) => {
+                const dir = e.target.getAttribute('data-dir');
+                if (!dir) return;
+                if (dir==='up') this.tryMove(-1,0);
+                if (dir==='down') this.tryMove(1,0);
+                if (dir==='left') this.tryMove(0,-1);
+                if (dir==='right') this.tryMove(0,1);
+            });
+
+            this.updateHUD();
+            this.timerId = setInterval(this.updateHUD, 100);
+        }
+
+        bindLevelUI() {
+            const prevBtn = document.getElementById('prevLevel');
+            const nextBtn = document.getElementById('nextLevel');
+            const sizeSelect = document.getElementById('sizeSelect');
+            
+            prevBtn.addEventListener('click', () => {
+                if (this.currentLevel > 1) {
+                    this.currentLevel--;
+                    saveCurrentLevel(this.currentLevel);
+                    this.loadLevel(this.currentLevel);
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (this.currentLevel < this.highestLevel && this.currentLevel < 300) {
+                    this.currentLevel++;
+                    saveCurrentLevel(this.currentLevel);
+                    this.loadLevel(this.currentLevel);
+                }
+            });
+            
+            // Update button states
+            this.updateLevelButtons = () => {
+                prevBtn.disabled = this.currentLevel <= 1;
+                nextBtn.disabled = this.currentLevel >= this.highestLevel || this.currentLevel >= 300;
+            };
+            this.updateLevelButtons();
+        }
+
+        bindDifficultyUI() {
+            const difficultySelect = document.getElementById('difficultySelect');
+            difficultySelect.value = this.difficulty;
+            
+            difficultySelect.addEventListener('change', (e) => {
+                const newDifficulty = e.target.value;
+                this.difficulty = newDifficulty;
+                saveDifficulty(newDifficulty);
+                
+                // Regenerate levels with new difficulty
+                this.levels = generateLevels(newDifficulty);
+                
+                // Reload current level with new difficulty
+                this.loadLevel(this.currentLevel);
+                
+                alert(`Difficulty changed to ${DIFFICULTY[newDifficulty].name}!\n\nMaze sizes and challenge level adjusted.`);
+            });
+        }
+
+        bindEditorUI() {
+            const makeMazeBtn = document.getElementById('makeMazeBtn');
+            const editorPanel = document.getElementById('editorMode');
+            const toolBtns = document.querySelectorAll('.tool-btn');
+            const testMazeBtn = document.getElementById('testMazeBtn');
+            const clearMazeBtn = document.getElementById('clearMazeBtn');
+            const exitEditorBtn = document.getElementById('exitEditorBtn');
+
+            // Enter editor mode
+            makeMazeBtn.addEventListener('click', () => {
+                this.enterEditorMode();
+            });
+
+            // Tool selection
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toolBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this.editorTool = btn.getAttribute('data-tool');
+                });
+            });
+
+            // Test maze
+            testMazeBtn.addEventListener('click', () => {
+                this.testCustomMaze();
+            });
+
+            // Clear all
+            clearMazeBtn.addEventListener('click', () => {
+                if (confirm('Clear everything and start fresh?')) {
+                    this.clearCustomMaze();
+                }
+            });
+
+            // Exit editor
+            exitEditorBtn.addEventListener('click', () => {
+                this.exitEditorMode();
+            });
+
+            // Canvas click for editor
+            this.canvas.addEventListener('click', (e) => {
+                if (this.editorMode && !this.testMode) {
+                    this.handleEditorClick(e);
+                }
+            });
+        }
+
+        enterEditorMode() {
+            this.editorMode = true;
+            this.testMode = false;
+            document.getElementById('editorMode').classList.remove('hidden');
+            
+            // Create empty grid
+            const size = 15;
+            this.rows = size;
+            this.cols = size;
+            const pad = 16;
+            const maxCellW = (this.canvas.width - pad*2) / this.cols;
+            const maxCellH = (this.canvas.height - pad*2) / this.rows;
+            this.cell = Math.floor(Math.min(maxCellW, maxCellH));
+            this.offsetX = Math.floor((this.canvas.width - this.cell * this.cols)/2);
+            this.offsetY = Math.floor((this.canvas.height - this.cell * this.rows)/2);
+            
+            // Create empty maze (all walls open)
+            this.customMaze = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+            this.player = { r: 0, c: 0 };
+            this.goal = { r: this.rows-1, c: this.cols-1 };
+            this.editorItems = { coins: new Set(), bombs: new Set(), portals: [], speed: new Set(), traps: new Set(), keys: new Set(), doors: new Set() };
+            
+            this.drawEditor();
+        }
+
+        exitEditorMode() {
+            this.editorMode = false;
+            this.testMode = false;
+            this.editorTool = null;
+            this.customMaze = null;
+            document.getElementById('editorMode').classList.add('hidden');
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            
+            // Return to normal game
+            this.loadLevel(this.currentLevel);
+        }
+
+        clearCustomMaze() {
+            const size = 15;
+            this.rows = size;
+            this.cols = size;
+            this.customMaze = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+            this.player = { r: 0, c: 0 };
+            this.goal = { r: this.rows-1, c: this.cols-1 };
+            this.editorItems = { coins: new Set(), bombs: new Set(), portals: [], speed: new Set(), traps: new Set(), keys: new Set(), doors: new Set() };
+            this.drawEditor();
+        }
+
+        testCustomMaze() {
+            // Validate maze has start and goal
+            if (!this.player || !this.goal) {
+                alert('Please set both Start (🟢) and Goal (🎯) positions!');
+                return;
+            }
+            
+            this.testMode = true;
+            this.hasKey = false;
+            this.moves = 0;
+            this.score = 0;
+            this.timeStart = performance.now();
+            this.drawEditor();
+        }
+
+        handleEditorClick(e) {
+            if (!this.editorTool) {
+                alert('Please select a tool first!');
+                return;
+            }
+
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            // Determine which cell was clicked
+            const col = Math.floor((x - this.offsetX) / this.cell);
+            const row = Math.floor((y - this.offsetY) / this.cell);
+            
+            if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) return;
+
+            const cellX = this.offsetX + col * this.cell;
+            const cellY = this.offsetY + row * this.cell;
+            const relX = x - cellX;
+            const relY = y - cellY;
+
+            // Handle different tools
+            switch(this.editorTool) {
+                case 'wall':
+                    // Toggle wall based on which edge was clicked
+                    const margin = this.cell * 0.2;
+                    if (relY < margin) this.toggleWall(row, col, TOP);
+                    else if (relY > this.cell - margin) this.toggleWall(row, col, BOTTOM);
+                    else if (relX < margin) this.toggleWall(row, col, LEFT);
+                    else if (relX > this.cell - margin) this.toggleWall(row, col, RIGHT);
+                    break;
+                case 'start':
+                    this.player = { r: row, c: col };
+                    break;
+                case 'goal':
+                    this.goal = { r: row, c: col };
+                    break;
+                case 'coin':
+                    const coinKey = `${row},${col}`;
+                    if (this.editorItems.coins.has(coinKey)) {
+                        this.editorItems.coins.delete(coinKey);
+                    } else {
+                        this.editorItems.coins.add(coinKey);
+                    }
+                    break;
+                case 'bomb':
+                    const bombKey = `${row},${col}`;
+                    if (this.editorItems.bombs.has(bombKey)) {
+                        this.editorItems.bombs.delete(bombKey);
+                    } else {
+                        this.editorItems.bombs.add(bombKey);
+                    }
+                    break;
+                case 'portal':
+                    // Add portal pair
+                    if (this.editorItems.portals.length < 2) {
+                        this.editorItems.portals.push({ r: row, c: col });
+                    } else {
+                        this.editorItems.portals = [{ r: row, c: col }];
+                    }
+                    break;
+                case 'speed':
+                    const speedKey = `${row},${col}`;
+                    if (this.editorItems.speed.has(speedKey)) {
+                        this.editorItems.speed.delete(speedKey);
+                    } else {
+                        this.editorItems.speed.add(speedKey);
+                    }
+                    break;
+                case 'trap':
+                    const trapKey = `${row},${col}`;
+                    if (this.editorItems.traps.has(trapKey)) {
+                        this.editorItems.traps.delete(trapKey);
+                    } else {
+                        this.editorItems.traps.add(trapKey);
+                    }
+                    break;
+                case 'key':
+                    const keyKey = `${row},${col}`;
+                    if (this.editorItems.keys.has(keyKey)) {
+                        this.editorItems.keys.delete(keyKey);
+                    } else {
+                        this.editorItems.keys.add(keyKey);
+                    }
+                    break;
+                case 'door':
+                    const doorKey = `${row},${col}`;
+                    if (this.editorItems.doors.has(doorKey)) {
+                        this.editorItems.doors.delete(doorKey);
+                    } else {
+                        this.editorItems.doors.add(doorKey);
+                    }
+                    break;
+            }
+
+            this.drawEditor();
+        }
+
+        toggleWall(row, col, dir) {
+            this.customMaze[row][col] ^= dir;
+            // Also toggle opposite wall in adjacent cell
+            if (dir === TOP && row > 0) this.customMaze[row-1][col] ^= BOTTOM;
+            if (dir === BOTTOM && row < this.rows-1) this.customMaze[row+1][col] ^= TOP;
+            if (dir === LEFT && col > 0) this.customMaze[row][col-1] ^= RIGHT;
+            if (dir === RIGHT && col < this.cols-1) this.customMaze[row][col+1] ^= LEFT;
+        }
+
+        drawEditor() {
+            const ctx = this.ctx;
+            ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+
+            // Background
+            const grad = ctx.createLinearGradient(0, this.offsetY, 0, this.offsetY + this.cell * this.rows);
+            grad.addColorStop(0, this.testMode ? '#9be15a' : '#f0f9ff');
+            grad.addColorStop(1, this.testMode ? '#00e3ae' : '#e0f2fe');
+            ctx.fillStyle = grad;
+            ctx.fillRect(this.offsetX, this.offsetY, this.cell * this.cols, this.cell * this.rows);
+
+            // Draw grid
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1;
+            for (let r = 0; r <= this.rows; r++) {
+                ctx.beginPath();
+                ctx.moveTo(this.offsetX, this.offsetY + r * this.cell);
+                ctx.lineTo(this.offsetX + this.cols * this.cell, this.offsetY + r * this.cell);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= this.cols; c++) {
+                ctx.beginPath();
+                ctx.moveTo(this.offsetX + c * this.cell, this.offsetY);
+                ctx.lineTo(this.offsetX + c * this.cell, this.offsetY + this.rows * this.cell);
+                ctx.stroke();
+            }
+
+            // Draw walls
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            for (let r = 0; r < this.rows; r++) {
+                for (let c = 0; c < this.cols; c++) {
+                    const x = this.offsetX + c * this.cell;
+                    const y = this.offsetY + r * this.cell;
+                    const walls = this.customMaze[r][c];
+                    ctx.beginPath();
+                    if (walls & TOP) { ctx.moveTo(x, y); ctx.lineTo(x + this.cell, y); }
+                    if (walls & RIGHT) { ctx.moveTo(x + this.cell, y); ctx.lineTo(x + this.cell, y + this.cell); }
+                    if (walls & BOTTOM) { ctx.moveTo(x, y + this.cell); ctx.lineTo(x + this.cell, y + this.cell); }
+                    if (walls & LEFT) { ctx.moveTo(x, y); ctx.lineTo(x, y + this.cell); }
+                    ctx.stroke();
+                }
+            }
+
+            // Draw items
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${this.cell * 0.4}px Arial`;
+
+            // Coins
+            for (const pos of this.editorItems.coins) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('💰', x, y);
+            }
+
+            // Bombs
+            for (const pos of this.editorItems.bombs) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('💣', x, y);
+            }
+
+            // Portals
+            this.editorItems.portals.forEach((portal, i) => {
+                const x = this.offsetX + portal.c * this.cell + this.cell/2;
+                const y = this.offsetY + portal.r * this.cell + this.cell/2;
+                ctx.fillText('🌀', x, y);
+            });
+
+            // Speed boosts
+            for (const pos of this.editorItems.speed) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('⚡', x, y);
+            }
+
+            // Traps
+            for (const pos of this.editorItems.traps) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🕳️', x, y);
+            }
+
+            // Keys
+            for (const pos of this.editorItems.keys) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🔑', x, y);
+            }
+
+            // Doors
+            for (const pos of this.editorItems.doors) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🚪', x, y);
+            }
+
+            // Start
+            const startX = this.offsetX + this.player.c * this.cell + this.cell/2;
+            const startY = this.offsetY + this.player.r * this.cell + this.cell/2;
+            ctx.fillText('🟢', startX, startY);
+
+            // Goal
+            const goalX = this.offsetX + this.goal.c * this.cell + this.cell/2;
+            const goalY = this.offsetY + this.goal.r * this.cell + this.cell/2;
+            ctx.fillText('🎯', goalX, goalY);
+
+            // In test mode, draw player
+            if (this.testMode) {
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(startX, startY, this.cell*0.25, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Show key status if player has it
+                if (this.hasKey) {
+                    ctx.font = `${this.cell * 0.3}px Arial`;
+                    ctx.fillText('🔑', startX, startY - this.cell*0.5);
+                }
+            }
+        }
+
+        loadLevel(levelNum) {
+            this.practiceMode = false;
+            if (levelNum < 1 || levelNum > 300) levelNum = 1;
+            const levelData = this.levels[levelNum - 1];
+            this.currentLevel = levelNum;
+            saveCurrentLevel(levelNum);
+            this.newMaze(levelData.size, levelData.size);
+            this.updateLevelButtons();
+        }
+
+        newMaze(rows, cols) {
+            this.rows = rows; this.cols = cols;
+            const pad = 16; // canvas padding inside drawing
+            const maxCellW = (this.canvas.width - pad*2) / cols;
+            const maxCellH = (this.canvas.height - pad*2) / rows;
+            this.cell = Math.floor(Math.min(maxCellW, maxCellH));
+            this.offsetX = Math.floor((this.canvas.width - this.cell * cols)/2);
+            this.offsetY = Math.floor((this.canvas.height - this.cell * rows)/2);
+            this.maze = new Maze(rows, cols);
+            // Remove a few extra walls to make the maze less dense (based on difficulty)
+            const config = DIFFICULTY[this.difficulty];
+            const extra = Math.max(1, Math.floor(rows * cols * config.openingsRatio));
+            this.maze.openRandomWalls(extra);
+            this.player = { r: 0, c: 0 };
+            this.goal = { r: rows-1, c: cols-1 };
+            this.moves = 0; this.score = 0; this.timeStart = performance.now();
+            this.hintPath = null; // Clear hint on new maze
+            this.hintStartPos = null;
+            this.hasKey = false; // Reset key status
+            this.placeCoins();
+            this.placeMazeItems();
+            this.draw();
+        }
+
+        placeMazeItems() {
+            this.mazeItems = { bombs: new Set(), portals: [], speed: new Set(), traps: new Set(), keys: new Set(), doors: new Set() };
+            const totalCells = this.rows * this.cols;
+            const config = DIFFICULTY[this.difficulty];
+            
+            // Placement density based on difficulty (harder = more hazards)
+            const bombCount = Math.floor(totalCells * (config.sizeMultiplier * 0.01)); // 1% scaled by difficulty
+            const speedCount = Math.floor(totalCells * 0.015); // 1.5%
+            const trapCount = Math.floor(totalCells * (config.sizeMultiplier * 0.012)); // 1.2% scaled
+            const hasPortal = Math.random() < 0.3; // 30% chance
+            const hasKeyDoor = Math.random() < 0.25; // 25% chance for key/door pair
+            
+            // Place bombs
+            let placed = 0;
+            let attempts = 0;
+            while (placed < bombCount && attempts < bombCount * 20) {
+                attempts++;
+                const r = Math.floor(Math.random() * this.rows);
+                const c = Math.floor(Math.random() * this.cols);
+                if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                const key = `${r},${c}`;
+                if (!this.coins.has(key) && !this.mazeItems.bombs.has(key)) {
+                    this.mazeItems.bombs.add(key);
+                    placed++;
+                }
+            }
+            
+            // Place speed boosts
+            placed = 0;
+            attempts = 0;
+            while (placed < speedCount && attempts < speedCount * 20) {
+                attempts++;
+                const r = Math.floor(Math.random() * this.rows);
+                const c = Math.floor(Math.random() * this.cols);
+                if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                const key = `${r},${c}`;
+                if (!this.coins.has(key) && !this.mazeItems.bombs.has(key) && !this.mazeItems.speed.has(key)) {
+                    this.mazeItems.speed.add(key);
+                    placed++;
+                }
+            }
+            
+            // Place traps
+            placed = 0;
+            attempts = 0;
+            while (placed < trapCount && attempts < trapCount * 20) {
+                attempts++;
+                const r = Math.floor(Math.random() * this.rows);
+                const c = Math.floor(Math.random() * this.cols);
+                if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                const key = `${r},${c}`;
+                if (!this.coins.has(key) && !this.mazeItems.bombs.has(key) && !this.mazeItems.speed.has(key) && !this.mazeItems.traps.has(key)) {
+                    this.mazeItems.traps.add(key);
+                    placed++;
+                }
+            }
+            
+            // Place portal pair
+            if (hasPortal) {
+                for (let i = 0; i < 2; i++) {
+                    attempts = 0;
+                    while (attempts < 100) {
+                        attempts++;
+                        const r = Math.floor(Math.random() * this.rows);
+                        const c = Math.floor(Math.random() * this.cols);
+                        if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                        const key = `${r},${c}`;
+                        const alreadyUsed = this.coins.has(key) || this.mazeItems.bombs.has(key) || 
+                                          this.mazeItems.speed.has(key) || this.mazeItems.traps.has(key) ||
+                                          this.mazeItems.portals.some(p => p.r === r && p.c === c);
+                        if (!alreadyUsed) {
+                            this.mazeItems.portals.push({ r, c });
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Place key and door pair
+            if (hasKeyDoor) {
+                // Place key
+                attempts = 0;
+                while (attempts < 100) {
+                    attempts++;
+                    const r = Math.floor(Math.random() * this.rows);
+                    const c = Math.floor(Math.random() * this.cols);
+                    if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                    const key = `${r},${c}`;
+                    const alreadyUsed = this.coins.has(key) || this.mazeItems.bombs.has(key) || 
+                                      this.mazeItems.speed.has(key) || this.mazeItems.traps.has(key) ||
+                                      this.mazeItems.portals.some(p => p.r === r && p.c === c);
+                    if (!alreadyUsed) {
+                        this.mazeItems.keys.add(key);
+                        break;
+                    }
+                }
+                
+                // Place door
+                attempts = 0;
+                while (attempts < 100) {
+                    attempts++;
+                    const r = Math.floor(Math.random() * this.rows);
+                    const c = Math.floor(Math.random() * this.cols);
+                    if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                    const key = `${r},${c}`;
+                    const alreadyUsed = this.coins.has(key) || this.mazeItems.bombs.has(key) || 
+                                      this.mazeItems.speed.has(key) || this.mazeItems.traps.has(key) ||
+                                      this.mazeItems.portals.some(p => p.r === r && p.c === c) ||
+                                      this.mazeItems.keys.has(key);
+                    if (!alreadyUsed) {
+                        this.mazeItems.doors.add(key);
+                        break;
+                    }
+                }
+            }
+        }
+
+        placeCoins() {
+            this.coins.clear();
+            const config = DIFFICULTY[this.difficulty];
+            const target = Math.max(1, Math.floor(this.rows * this.cols * config.coinDensity));
+            let tries = 0;
+            while (this.coins.size < target && tries < target * 20) {
+                tries++;
+                const r = Math.floor(Math.random() * this.rows);
+                const c = Math.floor(Math.random() * this.cols);
+                if ((r === 0 && c === 0) || (r === this.goal.r && c === this.goal.c)) continue;
+                const key = r + "," + c;
+                this.coins.add(key);
+            }
+        }
+
+
+
+        // BFS to find a path from (sr,sc) to (er,ec)
+        findPath(sr, sc, er, ec) {
+            const visited = new Set();
+            const queue = [[sr, sc, [`${sr},${sc}`]]];
+            visited.add(`${sr},${sc}`);
+            
+            while (queue.length > 0) {
+                const [r, c, path] = queue.shift();
+                
+                if (r === er && c === ec) {
+                    return path;
+                }
+                
+                const walls = this.maze.grid[r][c];
+                const moves = [];
+                if (!(walls & TOP) && r > 0) moves.push([r - 1, c]);
+                if (!(walls & BOTTOM) && r < this.rows - 1) moves.push([r + 1, c]);
+                if (!(walls & LEFT) && c > 0) moves.push([r, c - 1]);
+                if (!(walls & RIGHT) && c < this.cols - 1) moves.push([r, c + 1]);
+                
+                for (const [nr, nc] of moves) {
+                    const key = `${nr},${nc}`;
+                    if (!visited.has(key)) {
+                        visited.add(key);
+                        queue.push([nr, nc, [...path, key]]);
+                    }
+                }
+            }
+            
+            return []; // No path found
+        }
+
+        wallAt(r,c) { return this.maze.grid[r][c]; }
+
+        tryMove(dr, dc) {
+            // In editor mode but not testing, don't allow movement
+            if (this.editorMode && !this.testMode) return;
+            
+            const r = this.player.r, c = this.player.c;
+            
+            // Check walls differently for custom maze vs generated maze
+            const walls = this.editorMode ? this.customMaze[r][c] : this.wallAt(r,c);
+            
+            if (dr === -1 && (walls & TOP)) return; // blocked
+            if (dr === 1 && (walls & BOTTOM)) return;
+            if (dc === -1 && (walls & LEFT)) return;
+            if (dc === 1 && (walls & RIGHT)) return;
+            this.player.r = Math.max(0, Math.min(this.rows-1, r + dr));
+            this.player.c = Math.max(0, Math.min(this.cols-1, c + dc));
+            this.moves++;
+            
+            // Handle custom maze items in test mode
+            if (this.testMode) {
+                const key = this.player.r + "," + this.player.c;
+                
+                // Coin pickup (doesn't give actual coins in editor)
+                if (this.editorItems.coins.has(key)) {
+                    this.editorItems.coins.delete(key);
+                    alert('Coin collected! (decorative only)');
+                }
+                
+                // Bomb - Game over!
+                if (this.editorItems.bombs.has(key)) {
+                    alert('💣 BOOM! You hit a bomb! Try again.');
+                    this.testCustomMaze(); // Reset test
+                    return;
+                }
+                
+                // Portal teleport
+                if (this.editorItems.portals.length === 2) {
+                    const portal = this.editorItems.portals.find(p => p.r === this.player.r && p.c === this.player.c);
+                    if (portal) {
+                        const other = this.editorItems.portals.find(p => p !== portal);
+                        this.player.r = other.r;
+                        this.player.c = other.c;
+                        alert('🌀 Teleported!');
+                    }
+                }
+                
+                // Speed boost
+                if (this.editorItems.speed.has(key)) {
+                    this.editorItems.speed.delete(key);
+                    alert('⚡ Speed boost! (5 second time bonus)');
+                    this.timeStart += 5000;
+                }
+                
+                // Trap - lose time
+                if (this.editorItems.traps.has(key)) {
+                    this.editorItems.traps.delete(key);
+                    alert('🕳️ Fell in a trap! (5 second penalty)');
+                    this.timeStart -= 5000;
+                }
+                
+                // Key pickup
+                if (this.editorItems.keys.has(key)) {
+                    this.editorItems.keys.delete(key);
+                    this.hasKey = true;
+                    alert('🔑 Key collected!');
+                }
+                
+                // Door - need key
+                if (this.editorItems.doors.has(key)) {
+                    if (this.hasKey) {
+                        this.editorItems.doors.delete(key);
+                        this.hasKey = false;
+                        alert('🚪 Door unlocked!');
+                    } else {
+                        alert('🚪 Locked! You need a key.');
+                        // Move back
+                        this.player.r = r;
+                        this.player.c = c;
+                        this.moves--;
+                        return;
+                    }
+                }
+                
+                this.drawEditor();
+                
+                // Check win in test mode
+                if (this.player.r === this.goal.r && this.player.c === this.goal.c) {
+                    const total = ((performance.now() - this.timeStart)/1000).toFixed(2);
+                    setTimeout(() => {
+                        alert(`🎉 Test Complete!\n\nMoves: ${this.moves}\nTime: ${total}s\n\nYour maze works!`);
+                        this.testMode = false;
+                        this.player = { r: 0, c: 0 };
+                        this.drawEditor();
+                    }, 100);
+                }
+                return;
+            }
+            
+            // Normal game mode - handle all items
+            const key = this.player.r + "," + this.player.c;
+            
+            // Coin pickup
+            if (this.coins.has(key)) {
+                this.coins.delete(key);
+                this.score += COIN_VALUE;
+                this.playerCoins++;
+                saveCoins(this.playerCoins);
+                this.updateHUD();
+            }
+            
+            // Bomb - lose points and time!
+            if (this.mazeItems.bombs.has(key)) {
+                this.mazeItems.bombs.delete(key);
+                this.score = Math.max(0, this.score - COIN_VALUE);
+                this.timeStart -= 3000; // 3 second penalty
+                this.updateHUD();
+                // Flash effect
+                const prevBg = this.canvas.style.background;
+                this.canvas.style.background = '#ef4444';
+                setTimeout(() => { this.canvas.style.background = prevBg; this.draw(); }, 200);
+            }
+            
+            // Portal teleport
+            if (this.mazeItems.portals.length === 2) {
+                const portal = this.mazeItems.portals.find(p => p.r === this.player.r && p.c === this.player.c);
+                if (portal) {
+                    const other = this.mazeItems.portals.find(p => p !== portal);
+                    this.player.r = other.r;
+                    this.player.c = other.c;
+                }
+            }
+            
+            // Speed boost
+            if (this.mazeItems.speed.has(key)) {
+                this.mazeItems.speed.delete(key);
+                this.timeStart += 5000; // 5 second bonus
+                this.updateHUD();
+            }
+            
+            // Trap
+            if (this.mazeItems.traps.has(key)) {
+                this.mazeItems.traps.delete(key);
+                this.timeStart -= 3000; // 3 second penalty
+                this.updateHUD();
+            }
+            
+            // Key pickup
+            if (this.mazeItems.keys.has(key)) {
+                this.mazeItems.keys.delete(key);
+                this.hasKey = true;
+                this.updateHUD();
+            }
+            
+            // Door - need key
+            if (this.mazeItems.doors.has(key)) {
+                if (this.hasKey) {
+                    this.mazeItems.doors.delete(key);
+                    this.hasKey = false;
+                    this.updateHUD();
+                } else {
+                    // Can't pass without key - move back
+                    this.player.r = r;
+                    this.player.c = c;
+                    this.moves--;
+                    this.draw();
+                    return;
+                }
+            }
+
+            this.draw(); // This will redraw hint path with updated progress
+            this.checkWin();
+        }
+
+        gameOver(message) {
+            const total = ((performance.now() - this.timeStart)/1000).toFixed(2);
+            setTimeout(() => alert(`${message}\nMoves: ${this.moves}\nTime: ${total}s`), 10);
+            // Reset to a new maze of same size
+            this.newMaze(this.rows, this.cols);
+        }
+
+        checkWin() {
+            if (this.player.r === this.goal.r && this.player.c === this.goal.c) {
+                const total = ((performance.now() - this.timeStart)/1000).toFixed(2);
+                // Award a hint for completing the maze
+                this.playerHints++;
+                saveHints(this.playerHints);
+                this.updateHUD();
+                
+                // If not in practice mode, advance to next level
+                if (!this.practiceMode && this.currentLevel < 300) {
+                    if (this.currentLevel >= this.highestLevel) {
+                        this.highestLevel = this.currentLevel + 1;
+                        saveHighestLevel(this.highestLevel);
+                    }
+                    this.currentLevel++;
+                    saveCurrentLevel(this.currentLevel);
+                }
+                
+                // Award a new sticker on every win!
+                this.awardSticker();
+            }
+        }
+
+        awardSticker() {
+            // Find an uncollected sticker
+            const uncollected = ALL_STICKERS.filter(s => !this.collectedStickers.includes(s.id));
+            if (uncollected.length === 0) {
+                // All collected, just show level complete
+                this.unlockNewBackground();
+                const total = ((performance.now() - this.timeStart)/1000).toFixed(2);
+                setTimeout(() => {
+                    if (!this.practiceMode && this.currentLevel <= 300) {
+                        if (this.currentLevel === 301) {
+                            alert(`🏆 FINAL LEVEL COMPLETE! 🏆\n\nYou've beaten all 300 levels!\nMoves: ${this.moves}\nTime: ${total}s\n\nYou're a legend! 🌟`);
+                        } else {
+                            alert(`Level ${this.currentLevel - 1} Complete! 🎉\nMoves: ${this.moves}\nTime: ${total}s\n\nLoading Level ${this.currentLevel}...`);
+                            this.loadLevel(this.currentLevel);
+                        }
+                    } else {
+                        alert(`Practice Complete!\nMoves: ${this.moves}\nTime: ${total}s`);
+                        if (this.practiceMode) {
+                            this.newMaze(this.rows, this.cols);
+                        }
+                    }
+                }, 10);
+                return;
+            }
+            // Pick random uncollected sticker
+            const newSticker = uncollected[Math.floor(Math.random() * uncollected.length)];
+            this.collectedStickers.push(newSticker.id);
+            saveStickers(this.collectedStickers);
+            this.updateStickerCount();
+            
+            // Unlock a background
+            this.unlockNewBackground();
+
+            // Show trophy popup
+            const popup = document.getElementById('trophyPopup');
+            const emoji = document.getElementById('newStickerEmoji');
+            emoji.textContent = newSticker.emoji;
+            popup.classList.remove('hidden');
+        }
+
+        unlockNewBackground() {
+            if (this.bgLocked) {
+                // Background is locked by user – still unlock for future but don't switch
+                const locked = BACKGROUNDS.filter(b => !this.unlockedBgs.includes(b.id));
+                if (locked.length > 0) {
+                    const bg = locked[Math.floor(Math.random() * locked.length)];
+                    this.unlockedBgs.push(bg.id);
+                    saveUnlockedBgs(this.unlockedBgs);
+                    document.getElementById('bgUnlockMsg').style.display = '';
+                    document.getElementById('bgUnlockMsg').textContent = `🎨 New background unlocked: ${bg.name} (kept current)`;
+                } else {
+                    document.getElementById('bgUnlockMsg').style.display = 'none';
+                }
+                return;
+            }
+            const locked = BACKGROUNDS.filter(b => !this.unlockedBgs.includes(b.id));
+            if (locked.length > 0) {
+                const bg = locked[Math.floor(Math.random() * locked.length)];
+                this.unlockedBgs.push(bg.id);
+                saveUnlockedBgs(this.unlockedBgs);
+                this.activeBg = bg.id;
+                saveActiveBg(bg.id);
+                applyBackground(bg.id);
+                document.getElementById('bgUnlockMsg').style.display = '';
+                document.getElementById('bgUnlockMsg').textContent = `🎨 New background: ${bg.name}!`;
+            } else {
+                // All unlocked – cycle randomly through unlocked
+                const all = this.unlockedBgs;
+                const next = all[Math.floor(Math.random() * all.length)];
+                this.activeBg = next;
+                saveActiveBg(next);
+                applyBackground(next);
+                document.getElementById('bgUnlockMsg').style.display = '';
+                document.getElementById('bgUnlockMsg').textContent = `🎨 Background: ${BACKGROUNDS.find(b=>b.id===next).name}`;
+            }
+        }
+
+        showBgToast(msg) {
+            const toast = document.getElementById('bgToast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(this._bgToastTimer);
+            this._bgToastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        bindBgClickUI() {
+            let clickCount = 0;
+            let clickTimer = null;
+            document.body.addEventListener('click', (e) => {
+                // Only count clicks on the body background itself, not on children
+                if (e.target !== document.body) return;
+                clickCount++;
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => {
+                    if (clickCount >= 3) {
+                        if (!this.bgLocked) {
+                            this.bgLocked = true;
+                            saveLockedBg(true);
+                            this.showBgToast('🔒 Background locked! Click background 3× again to unlock.');
+                        } else {
+                            this.bgLocked = false;
+                            saveLockedBg(false);
+                            this.showBgToast('🔓 Background unlocked! It will change on next win.');
+                        }
+                    }
+                    clickCount = 0;
+                }, 500);
+            });
+        }
+
+        bindStickerUI() {
+            const stickerBtn = document.getElementById('stickerBtn');
+            const stickerModal = document.getElementById('stickerModal');
+            const closeModal = document.getElementById('closeModal');
+            const stickerGrid = document.getElementById('stickerGrid');
+            const trophyPopup = document.getElementById('trophyPopup');
+            const claimBtn = document.getElementById('claimBtn');
+            const decorateMode = document.getElementById('decorateMode');
+            const cancelPlace = document.getElementById('cancelPlace');
+            const placingSticker = document.getElementById('placingSticker');
+            const stickerLayer = document.getElementById('stickerLayer');
+
+            this.updateStickerCount();
+
+            stickerBtn.addEventListener('click', () => {
+                this.renderStickerGrid();
+                stickerModal.classList.remove('hidden');
+            });
+
+            closeModal.addEventListener('click', () => {
+                stickerModal.classList.add('hidden');
+            });
+
+            stickerModal.addEventListener('click', (e) => {
+                if (e.target === stickerModal) stickerModal.classList.add('hidden');
+            });
+
+            claimBtn.addEventListener('click', () => {
+                trophyPopup.classList.add('hidden');
+                this.updateStickerCount();
+                const total = ((performance.now() - this.timeStart)/1000).toFixed(2);
+                
+                if (!this.practiceMode && this.currentLevel <= 300) {
+                    setTimeout(() => {
+                        if (this.currentLevel === 301) {
+                            alert(`🏆 CONGRATULATIONS! 🏆\n\nYou've completed ALL 300 LEVELS!\n\nMoves: ${this.moves}\nTime: ${total}s\n\nYou're a Maze Master! 🌟`);
+                        } else {
+                            alert(`Level Complete! 🎉\n\nMoves: ${this.moves}\nTime: ${total}s\n\nStarting Level ${this.currentLevel}...`);
+                            this.loadLevel(this.currentLevel);
+                        }
+                    }, 100);
+                } else {
+                    setTimeout(() => {
+                        alert(`Practice Complete!\n\nMoves: ${this.moves}\nTime: ${total}s`);
+                        if (this.practiceMode) {
+                            this.newMaze(this.rows, this.cols);
+                        }
+                    }, 100);
+                }
+            });
+
+            cancelPlace.addEventListener('click', () => {
+                this.placingSticker = null;
+                decorateMode.classList.add('hidden');
+            });
+
+            // Click on canvas to place sticker
+            this.canvas.addEventListener('click', (e) => {
+                if (!this.placingSticker) return;
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                const x = (e.clientX - rect.left) * scaleX;
+                const y = (e.clientY - rect.top) * scaleY;
+                
+                // Convert to percentage for responsive positioning
+                const xPercent = (x / this.canvas.width) * 100;
+                const yPercent = (y / this.canvas.height) * 100;
+                
+                this.placedDecorations.push({
+                    emoji: this.placingSticker,
+                    x: xPercent,
+                    y: yPercent
+                });
+                saveDecorations(this.placedDecorations);
+                this.renderDecorations();
+                
+                // Exit placing mode
+                this.placingSticker = null;
+                decorateMode.classList.add('hidden');
+            });
+        }
+
+        updateStickerCount() {
+            document.getElementById('stickerCount').textContent = this.collectedStickers.length;
+        }
+
+        renderStickerGrid() {
+            const grid = document.getElementById('stickerGrid');
+            grid.innerHTML = '';
+            
+            // Combine all sticker types for display
+            const allAvailableStickers = [...ALL_STICKERS, ...EXCLUSIVE_STICKERS, ...FOOD_STICKERS];
+            
+            allAvailableStickers.forEach(sticker => {
+                const isCollected = this.collectedStickers.includes(sticker.id);
+                const div = document.createElement('div');
+                div.className = 'sticker-item' + (isCollected ? '' : ' locked');
+                div.innerHTML = `${sticker.emoji}<span class="sticker-name">${sticker.name}</span>`;
+                
+                if (isCollected) {
+                    div.addEventListener('click', () => {
+                        // Start placing this sticker
+                        this.placingSticker = sticker.emoji;
+                        document.getElementById('placingSticker').textContent = sticker.emoji;
+                        document.getElementById('decorateMode').classList.remove('hidden');
+                        document.getElementById('stickerModal').classList.add('hidden');
+                    });
+                }
+                
+                grid.appendChild(div);
+            });
+        }
+
+        renderDecorations() {
+            const layer = document.getElementById('stickerLayer');
+            layer.innerHTML = '';
+            layer.style.position = 'absolute';
+            layer.style.inset = '0';
+            layer.style.pointerEvents = 'none';
+            
+            this.placedDecorations.forEach((dec, i) => {
+                const span = document.createElement('span');
+                span.className = 'placed-sticker';
+                span.textContent = dec.emoji;
+                span.style.left = dec.x + '%';
+                span.style.top = dec.y + '%';
+                span.style.transform = 'translate(-50%, -50%)';
+                
+                // Click to remove sticker
+                span.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.placedDecorations.splice(i, 1);
+                    saveDecorations(this.placedDecorations);
+                    this.renderDecorations();
+                });
+                
+                layer.appendChild(span);
+            });
+        }
+
+        bindShopUI() {
+            const shopBtn = document.getElementById('shopBtn');
+            const shopModal = document.getElementById('shopModal');
+            const closeShopModal = document.getElementById('closeShopModal');
+
+            shopBtn.addEventListener('click', () => {
+                this.renderShop();
+                shopModal.classList.remove('hidden');
+            });
+
+            closeShopModal.addEventListener('click', () => {
+                shopModal.classList.add('hidden');
+            });
+
+            shopModal.addEventListener('click', (e) => {
+                if (e.target === shopModal) shopModal.classList.add('hidden');
+            });
+        }
+
+        renderShop() {
+            document.getElementById('shopCoinDisplay').textContent = String(this.playerCoins);
+            
+            // Render exclusive stickers
+            const exclusiveShop = document.getElementById('exclusiveShop');
+            exclusiveShop.innerHTML = '';
+            EXCLUSIVE_STICKERS.forEach(sticker => {
+                const owned = this.collectedStickers.includes(sticker.id);
+                const canAfford = this.playerCoins >= sticker.price;
+                
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <div class="shop-item-info">
+                        <div class="shop-item-emoji">${sticker.emoji}</div>
+                        <div class="shop-item-details">
+                            <div class="shop-item-name">${sticker.name}</div>
+                            <div class="shop-item-price">💰 ${sticker.price} coins</div>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn ${owned ? 'owned' : ''}" ${owned || !canAfford ? 'disabled' : ''}>
+                        ${owned ? 'Owned' : 'Buy'}
+                    </button>
+                `;
+                
+                const btn = div.querySelector('button');
+                if (!owned && canAfford) {
+                    btn.addEventListener('click', () => {
+                        this.buySticker(sticker);
+                    });
+                }
+                
+                exclusiveShop.appendChild(div);
+            });
+
+            // Render food stickers
+            const foodShop = document.getElementById('foodShop');
+            foodShop.innerHTML = '';
+            FOOD_STICKERS.forEach(sticker => {
+                const owned = this.collectedStickers.includes(sticker.id);
+                const canAfford = this.playerCoins >= sticker.price;
+                
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <div class="shop-item-info">
+                        <div class="shop-item-emoji">${sticker.emoji}</div>
+                        <div class="shop-item-details">
+                            <div class="shop-item-name">${sticker.name}</div>
+                            <div class="shop-item-price">💰 ${sticker.price} coins</div>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn ${owned ? 'owned' : ''}" ${owned || !canAfford ? 'disabled' : ''}>
+                        ${owned ? 'Owned' : 'Buy'}
+                    </button>
+                `;
+                
+                const btn = div.querySelector('button');
+                if (!owned && canAfford) {
+                    btn.addEventListener('click', () => {
+                        this.buySticker(sticker);
+                    });
+                }
+                
+                foodShop.appendChild(div);
+            });
+        }
+
+        bindHintUI() {
+            const hintBtn = document.getElementById('hintBtn');
+            
+            hintBtn.addEventListener('click', () => {
+                if (this.playerHints > 0) {
+                    this.showHint();
+                    this.playerHints--;
+                    saveHints(this.playerHints);
+                    this.updateHUD();
+                }
+            });
+        }
+
+        showHint() {
+            // Find path from current position to goal
+            const path = this.findPath(this.player.r, this.player.c, this.goal.r, this.goal.c);
+            
+            if (path.length <= 1) return; // Already at goal or no path
+            
+            // Store the hint path and starting position
+            this.hintPath = path;
+            this.hintStartPos = { r: this.player.r, c: this.player.c };
+            
+            // Redraw to show the hint
+            this.draw();
+        }
+
+        buySticker(sticker) {
+            if (this.playerCoins >= sticker.price && !this.collectedStickers.includes(sticker.id)) {
+                this.playerCoins -= sticker.price;
+                saveCoins(this.playerCoins);
+                this.collectedStickers.push(sticker.id);
+                saveStickers(this.collectedStickers);
+                this.updateHUD();
+                this.updateStickerCount();
+                this.renderShop();
+                alert(`🎉 You bought ${sticker.name}! Check your sticker collection!`);
+            }
+        }
+
+        draw() {
+            const ctx = this.ctx;
+            ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+
+            // Grassy plain background
+            const grad = ctx.createLinearGradient(0, this.offsetY, 0, this.offsetY + this.cell * this.rows);
+            grad.addColorStop(0, '#9be15a');
+            grad.addColorStop(1, '#00e3ae');
+            ctx.fillStyle = grad;
+            ctx.fillRect(this.offsetX, this.offsetY, this.cell * this.cols, this.cell * this.rows);
+
+            // Draw grid walls
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 2;
+            for (let r=0; r<this.rows; r++) {
+                for (let c=0; c<this.cols; c++) {
+                    const x = this.offsetX + c * this.cell;
+                    const y = this.offsetY + r * this.cell;
+                    const walls = this.wallAt(r,c);
+                    ctx.beginPath();
+                    if (walls & TOP) { ctx.moveTo(x, y); ctx.lineTo(x + this.cell, y); }
+                    if (walls & RIGHT) { ctx.moveTo(x + this.cell, y); ctx.lineTo(x + this.cell, y + this.cell); }
+                    if (walls & BOTTOM) { ctx.moveTo(x, y + this.cell); ctx.lineTo(x + this.cell, y + this.cell); }
+                    if (walls & LEFT) { ctx.moveTo(x, y); ctx.lineTo(x, y + this.cell); }
+                    ctx.stroke();
+                }
+            }
+
+            // Start & Goal markers
+            const startX = this.offsetX + this.player.c * this.cell + this.cell/2;
+            const startY = this.offsetY + this.player.r * this.cell + this.cell/2;
+            const goalX = this.offsetX + this.goal.c * this.cell + this.cell/2;
+            const goalY = this.offsetY + this.goal.r * this.cell + this.cell/2;
+
+            // Coins
+            for (const pos of this.coins) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(x, y, this.cell * 0.16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // Draw maze items
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${this.cell * 0.35}px Arial`;
+            
+            // Bombs
+            for (const pos of this.mazeItems.bombs) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('💣', x, y);
+            }
+            
+            // Portals
+            this.mazeItems.portals.forEach((portal) => {
+                const x = this.offsetX + portal.c * this.cell + this.cell/2;
+                const y = this.offsetY + portal.r * this.cell + this.cell/2;
+                ctx.fillText('🌀', x, y);
+            });
+            
+            // Speed boosts
+            for (const pos of this.mazeItems.speed) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('⚡', x, y);
+            }
+            
+            // Traps
+            for (const pos of this.mazeItems.traps) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🕳️', x, y);
+            }
+            
+            // Keys
+            for (const pos of this.mazeItems.keys) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🔑', x, y);
+            }
+            
+            // Doors
+            for (const pos of this.mazeItems.doors) {
+                const [r, c] = pos.split(',').map(Number);
+                const x = this.offsetX + c * this.cell + this.cell/2;
+                const y = this.offsetY + r * this.cell + this.cell/2;
+                ctx.fillText('🚪', x, y);
+            }
+
+            // Goal: yellow star
+            this.drawStar(ctx, goalX, goalY, 5, this.cell*0.28, this.cell*0.12, '#ffd700', '#f59e0b');
+
+            // Draw hint path if active
+            if (this.hintPath && this.hintPath.length > 1) {
+                this.drawHintPath(ctx);
+            }
+
+            // Player
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(startX, startY, this.cell*0.25, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Show key status if player has it
+            if (this.hasKey) {
+                ctx.font = `${this.cell * 0.25}px Arial`;
+                ctx.fillText('🔑', startX, startY - this.cell*0.45);
+            }
+        }
+
+        drawHintPath(ctx) {
+            if (!this.hintPath) return;
+            
+            // Find current progress along path
+            const currentKey = `${this.player.r},${this.player.c}`;
+            let currentIndex = this.hintPath.findIndex(key => key === currentKey);
+            if (currentIndex === -1) currentIndex = 0;
+            
+            // Draw the path as connected lines with arrowheads
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Draw completed (faded) portion
+            if (currentIndex > 0) {
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)'; // Faded purple
+                ctx.beginPath();
+                for (let i = 0; i < currentIndex; i++) {
+                    const [r, c] = this.hintPath[i].split(',').map(Number);
+                    const x = this.offsetX + c * this.cell + this.cell / 2;
+                    const y = this.offsetY + r * this.cell + this.cell / 2;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+            
+            // Draw remaining (active) portion
+            if (currentIndex < this.hintPath.length - 1) {
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.9)'; // Bright purple
+                ctx.beginPath();
+                for (let i = currentIndex; i < this.hintPath.length; i++) {
+                    const [r, c] = this.hintPath[i].split(',').map(Number);
+                    const x = this.offsetX + c * this.cell + this.cell / 2;
+                    const y = this.offsetY + r * this.cell + this.cell / 2;
+                    if (i === currentIndex) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                
+                // Draw arrowhead at the end
+                const lastIdx = this.hintPath.length - 1;
+                const secondLastIdx = lastIdx - 1;
+                if (secondLastIdx >= currentIndex) {
+                    const [lastR, lastC] = this.hintPath[lastIdx].split(',').map(Number);
+                    const [prevR, prevC] = this.hintPath[secondLastIdx].split(',').map(Number);
+                    const lastX = this.offsetX + lastC * this.cell + this.cell / 2;
+                    const lastY = this.offsetY + lastR * this.cell + this.cell / 2;
+                    const prevX = this.offsetX + prevC * this.cell + this.cell / 2;
+                    const prevY = this.offsetY + prevR * this.cell + this.cell / 2;
+                    
+                    // Calculate angle for arrowhead
+                    const angle = Math.atan2(lastY - prevY, lastX - prevX);
+                    const arrowSize = this.cell * 0.3;
+                    
+                    ctx.fillStyle = 'rgba(139, 92, 246, 0.9)';
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(
+                        lastX - arrowSize * Math.cos(angle - Math.PI / 6),
+                        lastY - arrowSize * Math.sin(angle - Math.PI / 6)
+                    );
+                    ctx.lineTo(
+                        lastX - arrowSize * Math.cos(angle + Math.PI / 6),
+                        lastY - arrowSize * Math.sin(angle + Math.PI / 6)
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+            
+            // Clear hint if player reached the goal
+            if (this.player.r === this.goal.r && this.player.c === this.goal.c) {
+                this.hintPath = null;
+                this.hintStartPos = null;
+            }
+        }
+
+        // Draw a star shape at (cx, cy)
+        drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, fill, stroke) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += Math.PI / spikes;
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += Math.PI / spikes;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = 2;
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+
+    // Bootstrap
+    const canvas = document.getElementById('maze');
+    const game = new Game(canvas);
+    </script>
+    <div class="bg-lock-toast" id="bgToast"></div>
+    </body>
+    </html>

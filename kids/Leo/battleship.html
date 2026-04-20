@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>battleship</title>
+    <script>
+        function placeShipImage(id, length) {
+            const imageContainer = g('board');
+            const imageSource = 'images/s'+length+'.png';
+            const startingBox = g(id);
+
+            const img = document.createElement('img');
+            img.src = imageSource;
+            img.alt = 'ship 2';
+            img.style.position = 'fixed';
+
+            const rect = startingBox.getBoundingClientRect();
+            const x = rect.left;
+            const y = rect.top;
+
+            console.log("x:" + x + " - y:" + y);
+
+            img.style.left = `${x}px`;
+            img.style.top = `${y+1}px`;
+            
+            img.style.width = `50px`;
+            img.style.height = `${length*50}px`;
+
+            imageContainer.appendChild(img);
+            console.log("bbb");
+        }
+
+        function onBoxClicked(id) {
+            console.log("clicked: " + id);
+            
+            if (g(id).innerHTML == "O") {
+                console.log("you clicked on a ship");
+            } else if (g(id).innerHTML == "") {
+                console.log("nothing here");
+            } 
+        }
+        function isShipFullyDetected(params) {
+            
+        }
+        function g(id) {
+            return document.getElementById(id);
+        }
+        function placeShips() {
+            const [row, col] = getARandomPoint();
+            const boxId = "b" + row + "-" + col;
+            console.log("first box:" + boxId);
+            
+            const direction = getRandomDirection();
+            const length = getRandomShipLength();
+            placeAShip(row, col, direction, length);
+
+        }
+        function placeAShip(row, col, direction, length) {
+            var boxIds = [];
+            boxIds.push("b"+row+"-"+col);
+            switch (direction) {
+                case 0: // down
+                    if (row+length > 10) {
+                        console.log("cannot place outside of the board")
+                    } else {
+                        
+                        placeShipImage("b"+row+"-"+col, length);
+                        for (let index = 0; index < length; index++) {
+                            newRow = row+index;
+                            const newBoxId = "b"+newRow+"-"+col;
+                            console.log(newBoxId);
+                            g(newBoxId).innerHTML = "O";
+                            boxIds.push(newBoxId);
+                        }
+                        console.log(boxIds);
+                    }
+                    break;
+                default:
+                break;       
+             
+            }
+            
+        }
+        function getARandomPoint() {
+            const row = Math.floor(Math.random() * 10);
+            const col = Math.floor(Math.random() * 10);
+            // console.log("ran point " + row + "," + col);
+            return [row, col];
+        }
+        function getRandomDirection() {
+            // 0 down
+            // 1 up
+            // 2 left
+            // 3 right
+            const direction = Math.floor(Math.random() * 4);
+            // console.log("direction:" + direction);
+            // return direction
+            return 0;
+        }
+        function getRandomShipLength() {
+            const length = Math.floor(Math.random() * 3) + 2;
+            console.log("ship length:" + length);
+            return length;
+        }
+    </script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        #board {
+            position: fixed;
+            /* top: 10%;
+            left: 10%; */
+            border: 1px solid black;
+        }
+        .row {
+            clear: both;
+        }
+        .box {
+            border: 1px solid black;
+            width: 50px;
+            height: 50px;
+            float: left;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 onclick="placeShips()">Start play</h1>
+    <div id="board">
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b0-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b1-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b2-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b3-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b4-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b5-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b6-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b7-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b8-9"></div>
+        </div>
+        <div class="row">
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-0"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-1"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-2"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-3"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-4"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-5"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-6"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-7"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-8"></div>
+            <div class="box"  onclick="onBoxClicked(this.id)" id="b9-9"></div>
+        </div>
+    </div>
+</body>
+</html>

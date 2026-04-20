@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>8-Bit Fighter</title>
+    <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+    <div id="title-screen">
+        <div id="title-decorations"></div>
+        <h1>8-BIT FIGHTER</h1>
+        <p class="subtitle">BECOME THE LEGENDARY WARRIOR</p>
+        <button id="arena-btn" class="title-btn arena pixel-border">⚔️ ARENA MODE</button>
+        <button id="training-btn" class="title-btn training pixel-border">TRAINING</button>
+        <button id="skip-btn" class="title-btn pixel-border" style="font-size: 10px; padding: 10px 24px;">SKIP TUTORIAL</button>
+        <button id="start-btn" class="title-btn pixel-border" style="display: none;">START ADVENTURE</button>
+        <button id="find-level-btn" class="title-btn pixel-border" style="font-size: 10px; padding: 10px 24px; background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);">FIND LEVEL</button>
+        <p class="subtitle" style="margin-top: 20px; font-size: 10px;">WASD: MOVE • SPACE: JUMP • CLICK: SWORD<br>R: BOW MODE • E: TALK • Q: SHOP</p>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <div id="hud" class="hidden">
+        <div class="hud-left">
+            <div class="hud-bar">LEVEL: <span id="level-name">TRAINING</span></div>
+            <div class="hp-bar"><div class="hp-fill" id="hp-fill"></div></div>
+            <div class="hud-bar">HP: <span id="hp-text">20/20</span></div>
+        </div>
+        <div class="hud-right">
+            <div class="hud-bar">ARROWS: <span id="arrows">10</span></div>
+            <div class="hud-bar" style="color:#FFD700">MONEY: <span id="money">0</span></div>
+            <div class="hud-bar" style="font-size:0.7em">SWORD: <span id="sword-info">WOODEN Lv1</span></div>
+            <div class="hud-bar" style="font-size:0.7em;color:#22c55e">PARTY: <span id="party-info">1/5</span></div>
+        </div>
+    </div>
+
+    <div id="tutorial-hint" class="hidden"></div>
+    <div id="dialogue-box" class="hidden"></div>
+    <div id="bow-indicator" class="hidden">BOW MODE - CLICK ENEMY TO TARGET</div>
+    <div id="shop-panel" class="hidden"></div>
+    <div id="shop-dialogue" class="hidden"></div>
+    
+    <!-- Store Panel -->
+    <div id="store-panel" class="hidden"></div>
+    
+    <!-- Force Field HUD -->
+    <div id="forcefield-hud" class="hidden">
+        🛡️ FORCE FIELD: <span id="forcefield-hp">5</span>/5
+    </div>
+    
+    <!-- World Map -->
+    <div id="world-map" class="hidden">
+        <h2>🗺️ WORLD MAP</h2>
+        <div class="world-grid">
+            <div class="area-card current" data-area="grassy" onclick="selectArea('grassy')">
+                <h3>🌱 GRASSY PLAIN</h3>
+                <div class="area-desc">THE PEACEFUL STARTING LANDS</div>
+                <div class="area-progress">PROGRESS: <span id="grassy-progress">0/300</span></div>
+            </div>
+            <div class="area-card locked" data-area="ice" onclick="selectArea('ice')">
+                <span class="lock-icon">🔒</span>
+                <h3>❄️ ICE PALACE</h3>
+                <div class="area-desc">FROZEN TUNDRA OF ETERNAL WINTER</div>
+                <div class="area-progress">PROGRESS: <span id="ice-progress">0/300</span></div>
+            </div>
+            <div class="area-card locked" data-area="lava" onclick="selectArea('lava')">
+                <span class="lock-icon">🔒</span>
+                <h3>🌋 LAVA MOUNTAIN</h3>
+                <div class="area-desc">VOLCANIC WASTELAND OF MOLTEN ROCK</div>
+                <div class="area-progress">PROGRESS: <span id="lava-progress">0/300</span></div>
+            </div>
+            <div class="area-card locked" data-area="lightning" onclick="selectArea('lightning')">
+                <span class="lock-icon">🔒</span>
+                <h3>⚡ LIGHTNING CLOUD</h3>
+                <div class="area-desc">STORMY SKIES OF ENDLESS THUNDER</div>
+                <div class="area-progress">PROGRESS: <span id="lightning-progress">0/300</span></div>
+            </div>
+        </div>
+        <button class="map-close-btn" onclick="closeWorldMap()">CLOSE MAP</button>
+    </div>
+    
+    <!-- Pause Menu -->
+    <div id="pause-menu" class="hidden">
+        <h2>⏸️ PAUSED</h2>
+        <div class="pause-section">
+            <h3>⚔️ EQUIPPED SWORD</h3>
+            <div class="equipment-grid" id="sword-grid"></div>
+        </div>
+        <div class="pause-section">
+            <h3>🛡️ EQUIPPED ARMOR</h3>
+            <div class="equipment-grid" id="armor-grid"></div>
+        </div>
+        <div class="pause-buttons">
+            <button class="pause-btn resume" onclick="resumeGame()">▶️ RESUME</button>
+            <button class="pause-btn map" onclick="openWorldMapFromPause()">🗺️ WORLD MAP</button>
+            <button class="pause-btn quit" onclick="quitToTitle()">❌ QUIT</button>
+        </div>
+    </div>
+    
+    <div id="potion-slots" class="hidden">
+        <div class="potion-slot empty" data-slot="0">
+            <div class="dot"></div>
+            <div class="key-hint">1</div>
+        </div>
+        <div class="potion-slot empty" data-slot="1">
+            <div class="dot"></div>
+            <div class="key-hint">2</div>
+        </div>
+        <div class="potion-slot empty" data-slot="2">
+            <div class="dot"></div>
+            <div class="key-hint">3</div>
+        </div>
+        <div class="potion-slot empty" data-slot="3" style="display:none">
+            <div class="dot"></div>
+            <div class="key-hint">4</div>
+        </div>
+        <div class="potion-slot empty" data-slot="4" style="display:none">
+            <div class="dot"></div>
+            <div class="key-hint">5</div>
+        </div>
+    </div>
+    
+    <div id="level-finder" class="hidden">
+        <h2>WHAT IS YOUR LEVEL'S NAME?</h2>
+        <input type="text" id="level-name-input" placeholder="TYPE LEVEL NAME HERE">
+        <p class="hint">⚠️ TYPE IN UPPERCASE LETTERS</p>
+        <div class="buttons">
+            <button onclick="goToLevel()">GO</button>
+            <button class="cancel" onclick="closeLevelFinder()">CANCEL</button>
+        </div>
+    </div>
+    
+    <!-- Arena Mode UI -->
+    <div id="arena-ui" class="hidden">
+        <h2>⚔️ ARENA MODE ⚔️</h2>
+        <div class="arena-hint">SELECT A MOB, THEN CLICK ON THE BATTLEFIELD TO SPAWN IT!</div>
+        
+        <div class="arena-section">
+            <h3>BASIC ENEMIES</h3>
+            <div class="mob-grid" id="basic-mobs"></div>
+        </div>
+        
+        <div class="arena-section">
+            <h3>ADVANCED ENEMIES</h3>
+            <div class="mob-grid" id="advanced-mobs"></div>
+        </div>
+        
+        <div class="arena-section">
+            <h3>VEHICLES</h3>
+            <div class="mob-grid" id="vehicle-mobs"></div>
+        </div>
+        
+        <div class="arena-section">
+            <h3>LEGENDARY CREATURES</h3>
+            <div class="mob-grid" id="legendary-mobs"></div>
+        </div>
+        
+        <div class="arena-controls">
+            <button class="arena-btn start" id="arena-start-btn">▶ START BATTLE</button>
+            <button class="arena-btn clear" id="arena-clear-btn">🗑️ CLEAR ALL</button>
+            <button class="arena-btn exit" id="arena-exit-btn">❌ EXIT ARENA</button>
+        </div>
+    </div>
+
+    <!-- Game Scripts (loaded in order) -->
+    <script src="code/constants.js"></script>
+    <script src="code/game-logic.js"></script>
+    <script src="code/combat.js"></script>
+    <script src="code/shop.js"></script>
+    <script src="drawing/draw.js"></script>
+    <script src="code/main.js"></script>
+</body>
+</html>

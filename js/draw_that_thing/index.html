@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Two Squares · 1/5 Screen Each</title>
+		<style>
+			html, body {
+				height: 100%;
+				margin: 0;
+				/* Colorful animated gradient background */
+				background: linear-gradient(135deg, #ff7eb3, #ff758c, #ffd86f, #72efdd, #8d84f2);
+				background-size: 300% 300%;
+				animation: bgMove 18s ease infinite;
+				color: #0f1317;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+			}
+			@keyframes bgMove {
+				0%   { background-position: 0% 50%; }
+				50%  { background-position: 100% 50%; }
+				100% { background-position: 0% 50%; }
+			}
+			.topbar {
+				height: 56px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 8px 12px;
+			}
+			.topbar .starbar .pill {
+				background: rgba(255,255,255,0.9);
+				border: 1px solid rgba(0,0,0,0.08);
+				border-radius: 999px;
+				padding: 6px 12px;
+				box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+				font-size: 16px;
+				color: #0f1317;
+			}
+			.wrap {
+				height: calc(100% - 56px);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 3vmin;
+			}
+			/* Each square side is 3/5 of screen height */
+			.square {
+				width: 60vh;
+				height: 60vh;
+				background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+				border-radius: 12px;
+				box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+			}
+			.left {
+				background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+				border: 2px solid rgba(255,255,255,0.15);
+				position: relative;
+				overflow: hidden;
+			}
+			.left canvas {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				border-radius: 12px;
+				touch-action: none; /* allow drawing on touch devices */
+			}
+			.left .toolbar {
+				position: absolute;
+				top: 8px;
+				left: 8px;
+				right: 8px;
+				display: flex;
+				gap: 8px;
+				z-index: 1;
+			}
+			.toolbar button {
+				background: rgba(17,21,24,0.75);
+				color: #fff;
+				border: 1px solid rgba(255,255,255,0.25);
+				border-radius: 8px;
+				padding: 6px 10px;
+				font-size: 14px;
+				cursor: pointer;
+				backdrop-filter: blur(4px);
+					transition: transform 120ms ease, filter 120ms ease;
+			}
+				.toolbar button.clicked {
+					transform: scale(0.96);
+					filter: brightness(1.15);
+				}
+			.toolbar button.active {
+				background: #2a6df6;
+				border-color: #2a6df6;
+			}
+			.toolbar .group {
+				display: inline-flex;
+				gap: 6px;
+				align-items: center;
+			}
+			.toolbar .label {
+				color: #eaeef3;
+				font-size: 12px;
+				opacity: 0.9;
+			}
+			.right {
+				background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+				border: 2px solid rgba(255,255,255,0.15);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+			}
+				.right .toolbar {
+				position: absolute;
+				top: 8px;
+				left: 8px;
+				right: 8px;
+				display: flex;
+				gap: 8px;
+					z-index: 5;
+					pointer-events: auto;
+			}
+			.right .content {
+				position: absolute;
+				top: 0; left: 0; right: 0; bottom: 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: space-evenly;
+				padding: 48px 16px 16px;
+			}
+			/* Ensure win overlay doesn't block toolbar clicks */
+			.right .win { pointer-events: none; }
+			.right .prompt, .right .guess {
+				text-align: center;
+				padding: 8px 12px;
+			}
+			.right .prompt {
+				font-size: clamp(22px, 4.8vh, 44px);
+				font-weight: 700;
+				color: #0f1317;
+				letter-spacing: 0.4px;
+				text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+			}
+			.right .guess {
+				font-size: clamp(18px, 3.6vh, 32px);
+				font-weight: 600;
+				color: #1b2430;
+				opacity: 0.95;
+			}
+			@keyframes popIn {
+				0% { transform: scale(0.85); opacity: 0; }
+				60% { transform: scale(1.08); opacity: 1; }
+				100% { transform: scale(1); }
+			}
+			.pop { animation: popIn 250ms ease-out; }
+			/* Optional: keep them side-by-side even on very narrow screens */
+			@media (max-width: 360px) {
+				.wrap { gap: 2vmin; }
+			}
+		</style>
+	</head>
+	<body>
+		<div class="topbar">
+			<div class="starbar"><div class="pill" id="starBarGlobal" aria-live="polite">☆☆☆☆☆☆☆☆☆☆</div></div>
+		</div>
+		<div class="wrap">
+			<div class="square left" aria-label="left square">
+				<canvas id="drawCanvas" aria-label="drawing canvas"></canvas>
+				<div class="toolbar">
+					<button id="eraserBtn" aria-pressed="false">Eraser</button>
+					<button id="clearBtn">Clear All</button>
+					<div class="group">
+						<span class="label">Eraser Size</span>
+						<button id="sizeS" data-size="8">S</button>
+						<button id="sizeM" data-size="16" class="active">M</button>
+						<button id="sizeL" data-size="28">L</button>
+					</div>
+				</div>
+			</div>
+			<div class="square right" aria-label="right square">
+				<div class="toolbar">
+					<select id="categorySel" aria-label="category">
+						<option value="all">All</option>
+						<option value="fruits">Fruits</option>
+						<option value="vegetables">Vegetables</option>
+						<option value="furniture">Furniture</option>
+						<option value="food">Food</option>
+						<option value="animals">Animals</option>
+						<option value="utensils">Utensils</option>
+						<option value="kitchen">Kitchen</option>
+						<option value="art">Art Supplies</option>
+						<option value="everyday">Everyday Objects</option>
+						<option value="school">School Supplies</option>
+						<option value="outdoor">Outdoor Items</option>
+						<option value="household">Household Items</option>
+					</select>
+					<button id="popBtn">Pop Word</button>
+				</div>
+				<div class="content">
+					<div class="prompt"><span id="promptDisplay" aria-live="polite">Click "Pop Word" to start!</span></div>
+					<div class="guess"><span id="guessDisplay" aria-live="polite">Guess: —</span></div>
+					<div id="winOverlay" class="win" style="display:none;">
+						<div style="font-size:64px;">🏆</div>
+						<div style="font-size:22px;font-weight:700;color:#0f1317;">You win!</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			(function() {
+									function addClickFeedback(el) {
+										if (!el) return;
+										el.classList.add('clicked');
+										setTimeout(() => el.classList.remove('clicked'), 180);
+									}
+				const canvas = document.getElementById('drawCanvas');
+				if (!canvas) return;
+				const ctx = canvas.getContext('2d');
+				const eraserBtn = document.getElementById('eraserBtn');
+				const clearBtn = document.getElementById('clearBtn');
+				const sizeBtns = [
+					document.getElementById('sizeS'),
+					document.getElementById('sizeM'),
+					document.getElementById('sizeL')
+				];
+				const starBarGlobal = document.getElementById('starBarGlobal');
+				const winOverlay = document.getElementById('winOverlay');
+				let stars = 0;
+				const MAX_STARS = 10;
+				let erasing = false;
+				let eraserSize = 16;
+				let strokes = [];
+				let currentStroke = null;
+				let currentPrompt = '';
+				let awardedForPrompt = false;
+
+				function setupCtx() {
+					ctx.lineCap = 'round';
+					ctx.lineJoin = 'round';
+					ctx.strokeStyle = '#222';
+					ctx.lineWidth = 4;
+					ctx.globalCompositeOperation = 'source-over';
+				}
+
+				function applyMode() {
+					ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
+					ctx.strokeStyle = erasing ? 'rgba(0,0,0,1)' : '#222';
+					ctx.lineWidth = erasing ? eraserSize : 4;
+				}
+
+				function renderStars() {
+					const filled = '★'.repeat(Math.min(stars, MAX_STARS));
+					const empty = '☆'.repeat(Math.max(0, MAX_STARS - Math.min(stars, MAX_STARS)));
+					const text = filled + empty + (stars >= MAX_STARS ? '  🏆' : '');
+					if (starBarGlobal) starBarGlobal.textContent = text;
+					if (stars >= MAX_STARS && winOverlay) {
+						winOverlay.style.display = 'flex';
+					}
+								function performClear() {
+									const prev = ctx.getTransform();
+									ctx.setTransform(1,0,0,1,0,0);
+									ctx.clearRect(0,0,canvas.width,canvas.height);
+									ctx.setTransform(prev);
+									strokes = [];
+									updateGuess(true);
+								}
+
+				}
+
+				function resizeCanvas() {
+					const rect = canvas.getBoundingClientRect();
+					const dpr = window.devicePixelRatio || 1;
+					canvas.width = Math.floor(rect.width * dpr);
+					canvas.height = Math.floor(rect.height * dpr);
+					ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+				}
+
+				let drawing = false;
+				let lastX = 0, lastY = 0;
+
+				function toLocal(e) {
+					const rect = canvas.getBoundingClientRect();
+					return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+				}
+
+				canvas.addEventListener('pointerdown', (e) => {
+					canvas.setPointerCapture(e.pointerId);
+					drawing = true;
+					const p = toLocal(e);
+					lastX = p.x;
+					lastY = p.y;
+					currentStroke = [{x: p.x, y: p.y}];
+				});
+
+				canvas.addEventListener('pointermove', (e) => {
+					if (!drawing) return;
+					const p = toLocal(e);
+					ctx.beginPath();
+					ctx.moveTo(lastX, lastY);
+					ctx.lineTo(p.x, p.y);
+					ctx.stroke();
+					lastX = p.x;
+					lastY = p.y;
+					if (currentStroke) currentStroke.push({x: p.x, y: p.y});
+				});
+
+				['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
+					canvas.addEventListener(type, (e) => {
+						drawing = false;
+						try { if (e && e.pointerId != null) canvas.releasePointerCapture(e.pointerId); } catch {}
+						if (currentStroke && currentStroke.length > 1) {
+							strokes.push(currentStroke);
+						}
+						currentStroke = null;
+						updateGuess();
+					});
+				});
+
+				window.addEventListener('resize', () => {
+					// Reset transform before resizing to avoid accumulation
+					ctx.setTransform(1, 0, 0, 1, 0, 0);
+					resizeCanvas();
+					setupCtx();
+					applyMode();
+				});
+
+				resizeCanvas();
+				setupCtx();
+				applyMode();
+				renderStars();
+
+					eraserBtn && eraserBtn.addEventListener('click', () => {
+					erasing = !erasing;
+					eraserBtn.setAttribute('aria-pressed', String(erasing));
+					eraserBtn.classList.toggle('active', erasing);
+					applyMode();
+						addClickFeedback(eraserBtn);
+				});
+					clearBtn && clearBtn.addEventListener('click', () => {
+					performClear();
+						addClickFeedback(clearBtn);
+				});
+					sizeBtns.forEach(btn => btn && btn.addEventListener('click', () => {
+					sizeBtns.forEach(b => b && b.classList.remove('active'));
+					btn.classList.add('active');
+					eraserSize = Number(btn.dataset.size || 16);
+					if (erasing) applyMode();
+						addClickFeedback(btn);
+				}));
+
+				// Right square word popper
+				const promptEl = document.getElementById('promptDisplay');
+				const popBtn = document.getElementById('popBtn');
+				const catSel = document.getElementById('categorySel');
+				const bank = {
+					// Simplified, easier-to-draw items per category
+					fruits: ['Apple','Banana','Orange','Grape','Watermelon','Pear'],
+					vegetables: ['Carrot','Potato','Tomato','Corn','Onion','Cucumber'],
+					furniture: ['Chair','Table','Bed','Desk','Stool','Couch'],
+					food: ['Pizza','Sandwich','Pancake','Ice Cream','Soup','Salad'],
+					animals: ['Dog','Cat','Fish','Bird','Rabbit'],
+					utensils: ['Spoon','Fork','Knife','Chopsticks','Spatula'],
+					kitchen: ['Plate','Bowl','Cup','Mug','Pan','Pot','Cutting Board','Tray'],
+					art: ['Pencil','Pen','Brush','Paint','Crayon','Marker','Ruler','Scissors','Paper'],
+					everyday: ['Phone','Book','Bottle','Key','Lamp','Clock','Backpack','Umbrella','Glasses','Wallet'],
+					school: ['Notebook','Binder','Folder','Highlighter','Marker','Eraser','Calculator','Tape'],
+					outdoor: ['Ball','Tent','Flashlight','Skateboard','Water Bottle','Cap'],
+					household: ['Towel','Toothbrush','Toothpaste','Soap','Sponge','Broom','Mop','Bucket','Trash Can','Pillow','Blanket','Curtain','Rug','Remote','Mirror','Plant']
+				};
+				const cats = Object.keys(bank);
+				function popWord() {
+					let cat = catSel && catSel.value ? catSel.value : 'all';
+					if (cat === 'all') cat = cats[Math.floor(Math.random() * cats.length)];
+					const list = bank[cat];
+					if (!list || list.length === 0) return;
+					const word = list[Math.floor(Math.random() * list.length)];
+					// Auto-clear when popping a new word to start fresh
+					if (strokes.length) performClear();
+					if (promptEl) {
+						promptEl.textContent = word;
+						promptEl.classList.remove('pop');
+						void promptEl.offsetWidth; // reflow to restart animation
+						promptEl.classList.add('pop');
+					}
+					currentPrompt = word;
+					awardedForPrompt = false;
+				}
+					popBtn && popBtn.addEventListener('click', (e) => { addClickFeedback(popBtn); popWord(); });
+
+				// Guessing heuristics from strokes
+				const guessEl = document.getElementById('guessDisplay');
+				function updateGuess(cleared=false) {
+					if (cleared || !strokes.length) { if (guessEl) guessEl.textContent = 'Guess: —'; return; }
+					const metrics = computeMetrics(strokes);
+					const guess = makeGuess(metrics);
+					if (guessEl) {
+						guessEl.textContent = 'Guess: ' + guess;
+						guessEl.classList.remove('pop');
+						void guessEl.offsetWidth;
+						guessEl.classList.add('pop');
+					}
+					if (!awardedForPrompt && currentPrompt && normalize(guess) === normalize(currentPrompt)) {
+						stars = Math.min(MAX_STARS, stars + 1);
+						awardedForPrompt = true;
+						renderStars();
+						// Auto-clear after earning a star
+						performClear();
+					}
+				}
+				function normalize(s) { return String(s||'').trim().toLowerCase(); }
+				function computeMetrics(strokes) {
+					let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+					let totalLen=0, turns=0, segments=0;
+					strokes.forEach(s => {
+						for (let i=0;i<s.length;i++) {
+							const p=s[i];
+							if (p.x<minX) minX=p.x; if (p.y<minY) minY=p.y;
+							if (p.x>maxX) maxX=p.x; if (p.y>maxY) maxY=p.y;
+							if (i>0) {
+								const a=s[i-1], b=s[i];
+								const dx=b.x-a.x, dy=b.y-a.y;
+								const len=Math.hypot(dx,dy);
+								totalLen+=len; segments++;
+								if (i>1) {
+									const c=s[i-2];
+									const ax=a.x-c.x, ay=a.y-c.y;
+									const ang1=Math.atan2(ay,ax);
+									const ang2=Math.atan2(dy,dx);
+									let dAng=Math.abs(ang2-ang1);
+									if (dAng>Math.PI) dAng=2*Math.PI-dAng;
+									if (dAng>0.35) turns++;
+								}
+							}
+						}
+					});
+					const w=Math.max(1,maxX-minX), h=Math.max(1,maxY-minY);
+					const aspect=w/h;
+					const turnRate=segments?turns/segments:0;
+					return { strokes: strokes.length, totalLen, aspect, turnRate, w, h, segments };
+				}
+				function makeGuess(m) {
+					// Unknown if too little signal (short length or few segments)
+					if (m.totalLen < 200 || m.segments < 20) return "I don't know";
+					// Extra guard: very noisy sketches look like nothing
+					if (m.turnRate > 0.40 && m.strokes > 6) return "I don't know";
+					// Build a reasonable guess pool based on selected category and a bit more
+					const sel = (catSel && catSel.value) ? catSel.value : 'all';
+					const allCats = Object.keys(bank);
+					function union(arrs){ return Array.from(new Set([].concat(...arrs))); }
+					const basePool = sel==='all' ? union(allCats.map(k=>bank[k])) : (bank[sel]||[]);
+					const extraPool = (function(){
+						if (sel==='utensils') return (bank.kitchen||[]);
+						if (sel==='kitchen') return (bank.utensils||[]).concat(bank.everyday||[]).concat(bank.household||[]);
+						if (sel==='art') return (bank.everyday||[]).concat(bank.school||[]);
+						if (sel==='everyday') return (bank.kitchen||[]).concat(bank.outdoor||[]).concat(bank.household||[]);
+						if (sel==='school') return (bank.art||[]).concat(bank.everyday||[]);
+						if (sel==='outdoor') return (bank.everyday||[]);
+						if (sel==='household') return (bank.kitchen||[]).concat(bank.everyday||[]);
+						return [];
+					})();
+					const pool = union([basePool, extraPool]);
+					// Prefer simpler, easier-to-draw items within pool
+					const easyOrder = ['Ball','Plate','Bowl','Cup','Clock','Apple','Orange','Banana','Book','Phone','Notebook','Paper','Table','Chair','Knife','Spoon','Fork','Key','Bottle','Carrot','Pencil','Brush'];
+					const easyPool = pool.filter(w => easyOrder.includes(w)).concat(pool.filter(w => !easyOrder.includes(w)));
+					// Shape-based groups for more reasonable guesses
+					const roundGroup = ['Ball','Plate','Bowl','Apple','Orange','Pizza','Pancake','Clock'];
+					const longGroup = ['Banana','Carrot','Knife','Spoon','Fork','Pencil','Pen','Brush','Ruler','Key','Umbrella','Bottle','Toothbrush','Broom','Remote'];
+					const flatGroup = ['Table','Desk','Book','Phone','Cutting Board','Paper','Tray','Notebook','Folder','Binder','Mirror','Picture Frame','Towel'];
+					// Category-aware priorities to avoid odd guesses
+					const byCat = {
+						round: {
+							kitchen: ['Plate','Bowl','Cup'], outdoor: ['Ball'], everyday: ['Clock','Bottle'], food: ['Pizza','Pancake'], fruits: ['Apple','Orange'], school: ['Tape']
+						},
+						long: {
+							vegetables: ['Carrot','Cucumber'], utensils: ['Knife','Spoon','Fork','Chopsticks'], art: ['Pencil','Brush','Ruler'], household: ['Toothbrush','Broom'], everyday: ['Umbrella','Bottle','Key']
+						},
+						flat: {
+							furniture: ['Table','Desk'], everyday: ['Book','Phone'], school: ['Notebook','Binder','Folder'], kitchen: ['Cutting Board','Tray'], household: ['Mirror','Towel']
+						}
+					};
+					function pick(list){
+						const cands = list.filter(w => easyPool.includes(w));
+						if (cands.length===0) return null;
+						return cands[0];
+					}
+					function pickByCat(cat, group){
+						const prefs = (byCat[group] && byCat[group][cat]) ? byCat[group][cat] : [];
+						const prefPick = pick(prefs);
+						if (prefPick) return prefPick;
+						// fallback to general group pick from easyPool
+						if (group==='round') return pick(roundGroup);
+						if (group==='long') return pick(longGroup);
+						if (group==='flat') return pick(flatGroup);
+						return null;
+					}
+					// Heuristic mapping to groups
+					// stricter round detection: compact bounding box and moderate turns
+					if (m.strokes<=2 && m.turnRate>0.16 && m.aspect>0.7 && m.aspect<1.3) {
+						const g = pickByCat(sel, 'round'); if (g) return g;
+					}
+					// long shapes: elongated aspect
+					if (m.strokes<=3 && m.turnRate>0.12 && (m.aspect<0.6 || m.aspect>1.35)) {
+						const g = pickByCat(sel, 'long'); if (g) return g;
+					}
+					// flat/rectilinear: low turns and near-square aspect
+					if (m.turnRate<0.08 && m.strokes>=3 && m.aspect>0.75 && m.aspect<1.35) {
+						const g = pickByCat(sel, 'flat'); if (g) return g;
+					}
+					if (m.turnRate<0.1 && m.aspect>1.6) {
+						const g = pickByCat(sel, 'long'); if (g) return g;
+					}
+					if (m.strokes>=3 && m.turnRate>0.1 && m.aspect>0.85 && m.aspect<1.25) {
+						const g = pickByCat(sel, 'round'); if (g) return g;
+					}
+					// No random fallback: if no heuristic matched, say "I don't know"
+					return "I don't know";
+				}
+			})();
+		</script>
+	</body>
+	</html>

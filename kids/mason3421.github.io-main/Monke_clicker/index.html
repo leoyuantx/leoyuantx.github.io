@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>monke_clicker
+    </title>
+    <style>
+        
+        .centered {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+
+        }
+        #nb{
+            width: 700px;
+            position: absolute;
+            top: 0px;
+        }
+        #aw{
+            position: absolute;
+            top: 350px;
+            left: 660px;
+        }
+        #ch{
+            position: absolute; 
+            top:483px ; 
+            left: 800px;
+            font-size: x-large;
+        }
+        #sc{
+            position: absolute; 
+            top:100px ; 
+            left:700px ;
+            font-size: xx-large;
+            color: rgb(252, 250, 250);
+        }
+        #upgrades{
+            position: absolute;
+            right:10px ;
+            background-color: black;
+            width: 400px ; 
+            height: 750px;
+            color: whitesmoke;
+        }
+        #shop_title{
+            font-size: xx-large;
+            width: 300px;
+            text-align: center;
+        }
+        body{
+            background-image: url("forest.webp");
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 100%;
+            background-size:cover;
+
+        }
+        #fat_monke{
+            width: 200px;
+            margin-left: 50px;
+            margin-top: 50px;
+        }
+        #button_MLB{
+            position: absolute;
+            left: 300px;
+            top: 100px;
+            z-index: 5;
+        }
+        #OQL{
+            position: absolute;
+            left: 10px;
+            top: 300px;
+            z-index:5 ;
+        }   
+        #OQR{
+            position: absolute;
+            right: 610px;
+            bottom: -10px;
+            z-index: 5;
+        }   
+        #gty{
+            position: absolute;
+            z-index:10;
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        #gbtns{
+              position: absolute;
+              display: none;
+              z-index: 20;
+              left: 900px;
+              top: 550px;            }
+    </style>
+    <script>
+        var score = 0
+        var scorePerClick = 1
+        function ac(params) {
+            score = score + scorePerClick;
+            document.getElementById("sc").innerHTML = score
+            const audio = new Audio('monkey_sound.mp3');
+            console.log("aaa")
+            audio.play()
+        }
+        function upgrades(params) {
+            if (score >= 10) {
+                score -= 10
+                document.getElementById("sc").innerHTML = score
+                scorePerClick += 1
+            }
+        }
+        function heli(params) {
+            if (score >= 50) {
+                score -= 50
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 10
+            }
+        }
+        function pool(params) {
+            if (score >= 70) {
+                score -= 70
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 20
+            }
+        }
+        function bank(params) {
+            if (score >= 120) {
+                score -= 120
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 50
+            }
+        }
+        function mansion(params) {
+            if (score >= 170) {
+                score -= 170
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 100
+            }
+        }
+        function hotel(params) {
+            if (score >= 250) {
+                score -= 250
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 225
+            }
+        }
+        function bm(params) {
+            if (score >= 300) {
+                score -= 300
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 250
+            }
+        }
+        function soid(params) {
+            if (score >= 2000) {
+                score -= 2000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 800
+            }
+        }
+        function tank(params) {
+            if (score >= 15000) {
+                score -= 15000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 5000
+            }
+        }
+        function army(params) {
+            if (score >= 70000) {
+                score -= 70000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 20000
+            }
+        }
+        function gyatt(params) {
+            if (score >= 400000) {
+                score -= 400000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 50000
+            }
+        }
+        function volc(params) {
+            if (score >= 600000) {
+                score -= 600000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 100000
+            }
+        }
+        function rizz(params) {
+            if (score >= 666000) {
+                score -= 666000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 120000
+            }
+        }
+        function sand(params) {
+            if (score >= 800000) {
+                score -= 800000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 200000
+            } 
+        }
+        function earth(params) {
+            if (score >= 860000) {
+                score -= 860000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 275000
+            }
+        }
+        function vr(params) {
+            if (score >= 1000000) {
+                score -= 1000000
+                document.getElementById("sc").innerHTML = score
+                scorePerClick = 300000
+            }
+        }
+        function show_lb(params) {
+            document.getElementById("gty").style.display="block"
+            document.getElementById("gbtns").style.display="block"
+        }
+        function go_back(params) {
+            document.getElementById("gty").style.display="none"
+            document.getElementById("gbtns").style.display="none"
+        }
+    </script>
+</head>
+<body>
+    <button id="button_MLB" onclick="show_lb()">MLB(click here)</button>
+    <img id="OQL" src="./oculusquest2_l.png" alt="">
+    <img id="OQR" src="oculusquest2_r.png" alt="">
+    <img id="nb" src="./monke.png" onclick="ac()">
+    <img id="aw" src="arrow.png" alt="">
+    <div id="ch">click here</div>
+    <div id="sc">0</div>
+    <div id="upgrades">
+        <div id="shop_title">shop</div>
+        <div onclick="upgrades()"> monke upgrade 10 clicks <button>click here to upgrade</button> </div>
+        <div onclick="heli()">monke helicopter 50 clicks <button>click here to upgrade</button> </div>
+        <div onclick="pool()">monke pool 70 clicks <button>click here to upgrade</button> </div>
+        <div onclick="bank()">monke bank 120 clicks <button>click here to upgrade</button> </div>
+        <div onclick="mansion()">monke mansion 170 clicks <button>click here to upgrade</button> </div>
+        <div onclick="hotel()">monke hotel 250 clicks <button>click here to upgrade</button> </div>
+        <div onclick="bm()">monke big mac 300 clicks <button>click here to upgrade</button> </div>
+           <div onclick="soid()">monke soiders 2,000 clicks  <button>click here to upgrade</button> </div>
+           <div onclick="tank()">monke tank 15,000 clicks <button>click here to upgrade</button> </div>
+           <div onclick="army()">monke army 70,000 clicks  <button>click here to upgrade</button> </div>
+           <div onclick="gyatt()">monke gyatt 400,000 clicks <button>click here to upgrade</button> </div>
+           <div onclick="volc()">monke volcano 600,000 clicks <button>click here to upgrade</button>         </div>  
+           <div onclick="rizz()">monke rizzler 666,000 clicks <button>click here to upgrade</button> </div>
+           <div onclick="sand()">monke sandwich 800,000 clicks <button>click here to upgrade</button>  </div>        
+            <div onclick="earth()">monke earth 860,000 clicks <button>click here to upgrade</button> </div>
+           <div onclick="vr()">vr monke 1,000,000 clicks <button>click here to upgrade</button> </div>
+           <img id="fat_monke" src="gorrla.jpg" alt="">
+    </div>
+    <img src="wip.jpg" id="gty" alt="">
+    <button id="gbtns" onclick="go_back()">go_back_to_normal_screen</button> 
+</body>    
+</html>

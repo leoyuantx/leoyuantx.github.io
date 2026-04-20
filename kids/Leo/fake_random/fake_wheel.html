@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        img{
+            transition: all 4s ease;
+        }
+        
+    </style>
+</head>
+<body>
+    <img id="myImg" src="./imgs/wheel.png" alt="" onclick="rotateImage()">
+    <script>
+        const image = document.getElementById("myImg");
+        let degree = 0;
+
+        // Function to rotate the image
+        function rotateImage() {
+            // degree = (degree + 10) % 360; // Increment by 10 degrees and loop back after 360
+            degree = 360
+            image.style.transform = `rotate(${degree}deg)`;
+        }
+
+        // Call rotateImage every 50 milliseconds (smooth animation)
+        // const intervalId = setInterval(rotateImage, 50);
+
+        // // Stop after 360 degrees (10 iterations of 36 degrees)
+        // setTimeout(() => {
+        //     clearInterval(intervalId);
+        //     console.log("Rotation completed");
+        // }, 3600); // 360 degrees / 10 degrees per interval = 3600 ms
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+move it to random position-done
+move it every 0.5 seconds
+clickable
+add score
+infinite number of rounds
+make it harder to see(fog and etc) and click(rain) per round
+add another (good and bad) character after every 5 rounds

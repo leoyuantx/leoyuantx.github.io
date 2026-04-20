@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>Dominic's gaming arcade</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    
+    body{
+     background-image: url(ArcadePlay.webp);
+     background-size: cover;
+     background-position: center;
+     background-attachment: fixed;
+     font-family: 'Press Start 2P', cursive;
+     margin: 0;
+     padding: 20px;
+     color: #fff;
+     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+     min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2.5em;
+        color: #ffeb3b;
+        margin-bottom: 20px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.9);
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 1em;
+        color: #ffeb3b;
+        margin-bottom: 40px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+
+    h2 {
+        margin: 0;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+        background-size: 400% 400%;
+        animation: gradientShift 3s ease infinite;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
+    }
+
+    h2:hover {
+        transform: scale(1.05);
+    }
+
+    h2 a {
+        display: block;
+        padding: 20px 15px;
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        font-size: 0.8em;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .footer {
+        text-align: center;
+        padding-top: 30px;
+        border-top: 2px solid #ffeb3b;
+    }
+
+    .footer h2 {
+        font-size: 0.6em;
+        color: #ffeb3b;
+        margin: 5px 0;
+    }
+
+    a:link {
+  color:lightskyblue;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: lightgoldenrodyellow;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: lightgrey;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: lightblue ;
+  background-color: transparent;
+  text-decoration: underline;
+}
+           
+        
+    </style>
+</head>
+<body>
+  <div class="container">
+    <h1> Welcome to Dominic's Gaming Arcade </h1>
+    <div class="subtitle">The Games Below are Computer Only</div>
+
+    <div class="games-grid">
+      <h2><a href="./rules.html">Click here to view the rules to each game</a></h2>
+      <h2> <a href="./codingsp.html">This is my coding journey click here to view</a></h2>
+      <h2><a href="./README.md">This is the link to read about myself</a></h2>
+      <h2> <a href="./tictac3.html">Click here to play 2 players tic-tac-toe</a></h2>  
+      <h2><a href="./rockps.html">This is the link to 2 players rock-paper-scissors game</a></h2>
+      <h2><a href="./ghostcatcher.html">This is the link to 1 player ghost catcher</a></h2>
+      <h2> <a href="./guessthenumber.html">Click here to play 1 player guess the number</a> </h2>
+      <h2><a href="./battleship.html">Click here to play 1 player battleship</a></h2>
+      <h2><a href="./monopoly.html">Click here to play 2-5 players monopoly</a></h2>
+    </div>
+
+    <div class="footer">
+      <h2>By Dominic Chen </h2>
+      <h2>Copyright 2026 BRAINLLC</h2>
+    </div>
+  </div>
+</body>
+</html>

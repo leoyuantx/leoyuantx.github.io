@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lava Arena Reforged</title>
+  <style>
+    :root {
+      --bg: #11131a;
+      --panel: #1b2130;
+      --panel-border: #5d6889;
+      --text: #eef3ff;
+      --accent: #ffd37a;
+      --good: #7ce6a2;
+      --bad: #ff8b7d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 15%, #2c3448 0%, #11131a 60%, #090b10 100%);
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      overflow: hidden;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      justify-items: center;
+      padding: 8px;
+    }
+
+    canvas {
+      width: calc(100vw - 16px);
+      height: calc(100vh - 76px);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border: 4px solid var(--panel-border);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      background: #000;
+      display: block;
+    }
+
+    .hud {
+      width: calc(100vw - 16px);
+      background: rgba(12, 16, 25, 0.92);
+      border: 2px solid var(--panel-border);
+      padding: 8px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .hud strong { color: var(--accent); }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7, 9, 14, 0.74);
+      z-index: 30;
+    }
+
+    .hidden { display: none; }
+
+    .panel {
+      width: min(820px, 95vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--panel);
+      border: 3px solid var(--panel-border);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
+      padding: 16px;
+    }
+
+    h1, h2, h3 { color: var(--accent); margin-bottom: 8px; }
+    p { line-height: 1.45; margin-top: 6px; }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .grid {
+      margin-top: 8px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    }
+
+    .card {
+      background: #232a3c;
+      border: 2px solid #5a6687;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .card h4 { color: #ffe6aa; margin-bottom: 4px; }
+
+    button, select {
+      border: 2px solid #d8af5d;
+      background: #ffd37a;
+      color: #2c1b00;
+      font: inherit;
+      font-weight: bold;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #dce4ff;
+      border-color: #98a9d6;
+      color: #14203d;
+    }
+
+    button.danger {
+      background: #ff9c8f;
+      border-color: #ca5c50;
+      color: #351008;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px;
+      border: 1px solid #8798c7;
+      padding: 2px 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <canvas id="game" width="1200" height="700"></canvas>
+    <div class="hud">
+      <span><strong>HP:</strong> <span id="hp">0</span></span>
+      <span><strong>Tokens:</strong> <span id="tokens">0</span></span>
+      <span><strong>Mode:</strong> <span id="modeHud">1v1</span></span>
+      <span><strong>Character:</strong> <span id="charHud">Squire</span></span>
+      <span><strong>Abilities:</strong> <span id="abilityHud">None</span></span>
+      <span><strong>Alive:</strong> <span id="aliveHud">0</span></span>
+      <span><strong>State:</strong> <span id="stateHud">Menu</span></span>
+    </div>
+  </div>
+
+  <div class="screen" id="menuScreen">
+    <div class="panel">
+      <h1>Lava Arena Reforged</h1>
+      <p>Square island over lava. Enemies and teammates can knock you off. AI fights AI too.</p>
+      <p>Win battle rewards: <strong>100-500 tokens</strong>. Obby race also rewards tokens.</p>
+      <p>Controls: WASD/Arrows move, Space attack/jump, Shift dash, Q activate weapon ability.</p>
+
+      <div class="row">
+        <label for="modeSelect"><strong>Battle Mode:</strong></label>
+        <select id="modeSelect">
+          <option value="1v1">1v1</option>
+          <option value="2v2">2v2</option>
+          <option value="3v3">3v3</option>
+          <option value="4v4">4v4</option>
+          <option value="ffa">Free For All</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <button id="startBattleBtn">Start Battle</button>
+        <button id="startObbyBtn" class="secondary">Play Obby Race</button>
+        <button id="openShopBtn" class="secondary">Open Shop</button>
+      </div>
+
+      <p id="menuInfo" style="margin-top:12px;color:#91f5b7;"></p>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="shopScreen">
+    <div class="panel">
+      <h2>Shop</h2>
+      <p>Buy and equip one character and up to two abilities.</p>
+      <p><strong>Tokens:</strong> <span id="shopTokens">0</span></p>
+
+      <h3 style="margin-top:8px;">Characters</h3>
+      <div class="grid" id="characterGrid"></div>
+
+      <h3 style="margin-top:10px;">Abilities</h3>
+      <div class="grid" id="abilityGrid"></div>
+
+      <div class="row">
+        <button id="closeShopBtn" class="secondary">Back</button>
+        <button id="resetSaveBtn" class="danger">Reset Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const hpEl = document.getElementById("hp");
+    const tokensEl = document.getElementById("tokens");
+    const modeHud = document.getElementById("modeHud");
+    const charHud = document.getElementById("charHud");
+    const abilityHud = document.getElementById("abilityHud");
+    const aliveHud = document.getElementById("aliveHud");
+    const stateHud = document.getElementById("stateHud");
+
+    const menuScreen = document.getElementById("menuScreen");
+    const shopScreen = document.getElementById("shopScreen");
+    const modeSelect = document.getElementById("modeSelect");
+    const startBattleBtn = document.getElementById("startBattleBtn");
+    const startObbyBtn = document.getElementById("startObbyBtn");
+    const openShopBtn = document.getElementById("openShopBtn");
+    const closeShopBtn = document.getElementById("closeShopBtn");
+    const resetSaveBtn = document.getElementById("resetSaveBtn");
+    const menuInfo = document.getElementById("menuInfo");
+
+    const shopTokens = document.getElementById("shopTokens");
+    const characterGrid = document.getElementById("characterGrid");
+    const abilityGrid = document.getElementById("abilityGrid");
+
+    const SAVE_KEY = "lava-arena-reforged-v1";
+    const keys = new Set();
+
+    const arena = {
+      x: 140,
+      y: 100,
+      w: 920,
+      h: 500
+    };
+
+    const modeConfigs = {
+      "1v1": { allies: 0, enemies: 1, ffaBots: 0 },
+      "2v2": { allies: 1, enemies: 2, ffaBots: 0 },
+      "3v3": { allies: 2, enemies: 3, ffaBots: 0 },
+      "4v4": { allies: 3, enemies: 4, ffaBots: 0 },
+      "ffa": { allies: 0, enemies: 0, ffaBots: 7 }
+    };
+
+    const characters = [
+      { id: "squire", name: "Squire", cost: 0, hp: 115, speed: 180, dmg: 18, desc: "Balanced." },
+      { id: "duelist", name: "Duelist", cost: 260, hp: 95, speed: 210, dmg: 21, desc: "Fast striker." },
+      { id: "warden", name: "Warden", cost: 420, hp: 165, speed: 160, dmg: 23, desc: "Heavy defender." },
+      { id: "inferno", name: "Inferno Knight", cost: 640, hp: 130, speed: 198, dmg: 31, desc: "Elite damage." }
+    ];
+
+    const abilities = [
+      { id: "dash_core", name: "Dash Core", cost: 170, desc: "Dash cooldown reduced.", apply: (s) => { s.dashCd *= 0.75; } },
+      { id: "lava_skin", name: "Lava Skin", cost: 220, desc: "Lava damage reduced.", apply: (s) => { s.lavaResist += 0.5; } },
+      { id: "vamp_edge", name: "Vamp Edge", cost: 300, desc: "Heal from hit damage.", apply: (s) => { s.lifeSteal += 0.1; } },
+      { id: "gun", name: "Gun", cost: 520, desc: "Q equips gun for 10s with cutscene.", apply: (s) => { s.hasGun = true; } },
+      { id: "tank", name: "Tank", cost: 980, requires: "gun", desc: "Upgrade from Gun. Q summons tank for 10s.", apply: (s) => { s.hasTank = true; } },
+      { id: "mechanist", name: "Mechanist", cost: 760, desc: "Q throws a chase bot that explodes on contact.", apply: (s) => { s.hasMechanist = true; } }
+    ];
+
+    const game = {
+      state: "menu",
+      running: false,
+      battleMode: "1v1",
+      lastTs: 0,
+      time: 0,
+      shake: 0,
+      entities: [],
+      mechBots: [],
+      player: null,
+      fx: [],
+      obby: null,
+      message: "",
+      msgTimer: 0,
+      save: {
+        tokens: 0,
+        ownedCharacters: ["squire"],
+        ownedAbilities: [],
+        equippedCharacter: "squire",
+        equippedAbilities: []
+      },
+      inputAttackConsumed: false,
+      inputDashConsumed: false,
+      inputAbilityConsumed: false
+    };
+
+    function loadSave() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return;
+        game.save.tokens = Number(parsed.tokens) || 0;
+        game.save.ownedCharacters = Array.isArray(parsed.ownedCharacters) ? parsed.ownedCharacters : ["squire"];
+        game.save.ownedAbilities = Array.isArray(parsed.ownedAbilities) ? parsed.ownedAbilities : [];
+        game.save.equippedCharacter = parsed.equippedCharacter || "squire";
+        game.save.equippedAbilities = Array.isArray(parsed.equippedAbilities) ? parsed.equippedAbilities.slice(0, 2) : [];
+        if (!game.save.ownedCharacters.includes("squire")) game.save.ownedCharacters.push("squire");
+        if (!game.save.ownedCharacters.includes(game.save.equippedCharacter)) game.save.equippedCharacter = "squire";
+        game.save.equippedAbilities = game.save.equippedAbilities.filter((id) => game.save.ownedAbilities.includes(id));
+      } catch (e) {
+        // Ignore corrupted save.
+      }
+    }
+
+    function save() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(game.save));
+    }
+
+    function findCharacter(id) {
+      return characters.find((c) => c.id === id) || characters[0];
+    }
+
+    function findAbility(id) {
+      return abilities.find((a) => a.id === id);
+    }
+
+    function getLoadout() {
+      const c = findCharacter(game.save.equippedCharacter);
+      const s = {
+        hp: c.hp,
+        speed: c.speed,
+        dmg: c.dmg,
+        attackCd: 0.36,
+        dashCd: 1.2,
+        dashPower: 360,
+        lifeSteal: 0,
+        lavaResist: 0,
+        hasGun: false,
+        hasTank: false,
+        hasMechanist: false
+      };
+      for (const id of game.save.equippedAbilities) {
+        const ab = findAbility(id);
+        if (ab) ab.apply(s);
+      }
+      return s;
+    }
+
+    function insideArena(x, y, r = 0) {
+      return x - r >= arena.x && x + r <= arena.x + arena.w && y - r >= arena.y && y + r <= arena.y + arena.h;
+    }
+
+    function clampWorld(e) {
+      e.x = Math.max(-120, Math.min(canvas.width + 120, e.x));
+      e.y = Math.max(-120, Math.min(canvas.height + 120, e.y));
+    }
+
+    function spawnEntity(team, isPlayer, x, y) {
+      const base = isPlayer ? getLoadout() : getLoadout();
+      const hpScale = isPlayer ? 1 : 0.9 + Math.random() * 0.35;
+      const speedScale = isPlayer ? 1 : 0.9 + Math.random() * 0.2;
+      const dmgScale = isPlayer ? 1 : 0.9 + Math.random() * 0.35;
+
+      return {
+        id: Math.random().toString(36).slice(2),
+        team,
+        isPlayer,
+        x,
+        y,
+        r: 14,
+        hp: base.hp * hpScale,
+        maxHp: base.hp * hpScale,
+        speed: base.speed * speedScale,
+        dmg: base.dmg * dmgScale,
+        attackCd: 0,
+        attackCdBase: base.attackCd,
+        dashCd: 0,
+        dashCdBase: base.dashCd,
+        dashVx: 0,
+        dashVy: 0,
+        facing: 0,
+        lifeSteal: isPlayer ? base.lifeSteal : 0,
+        lavaResist: isPlayer ? base.lavaResist : 0,
+        hasGun: isPlayer ? base.hasGun : false,
+        hasTank: isPlayer ? base.hasTank : false,
+        hasMechanist: isPlayer ? base.hasMechanist : false,
+        gunTimer: 0,
+        tankTimer: 0,
+        weaponCd: 0,
+        abilityCutscene: null,
+        aiMoveTimer: 0,
+        aiDir: 0,
+        bob: Math.random() * Math.PI * 2,
+        hitFlash: 0,
+        fallState: null,
+        dead: false
+      };
+    }
+
+    function pickSpawnNear(centerX, centerY) {
+      return {
+        x: centerX + (Math.random() - 0.5) * 120,
+        y: centerY + (Math.random() - 0.5) * 120
+      };
+    }
+
+    function startBattle() {
+      game.state = "battle";
+      game.running = true;
+      game.time = 0;
+      game.shake = 0;
+      game.fx = [];
+      game.entities = [];
+      game.mechBots = [];
+      game.battleMode = modeSelect.value;
+      game.message = "Fight! Knock enemies into lava or finish them on island.";
+      game.msgTimer = 3;
+
+      const cfg = modeConfigs[game.battleMode];
+      const px = arena.x + arena.w * 0.3;
+      const py = arena.y + arena.h * 0.5;
+      const player = spawnEntity("player", true, px, py);
+      game.player = player;
+      game.entities.push(player);
+
+      if (game.battleMode === "ffa") {
+        const cx = arena.x + arena.w * 0.5;
+        const cy = arena.y + arena.h * 0.5;
+        for (let i = 0; i < cfg.ffaBots; i++) {
+          const sp = pickSpawnNear(cx + (Math.random() - 0.5) * 420, cy + (Math.random() - 0.5) * 250);
+          game.entities.push(spawnEntity("bot_" + i, false, sp.x, sp.y));
+        }
+      } else {
+        const allyCx = arena.x + arena.w * 0.27;
+        const enemyCx = arena.x + arena.w * 0.73;
+        const cy = arena.y + arena.h * 0.5;
+
+        for (let i = 0; i < cfg.allies; i++) {
+          const sp = pickSpawnNear(allyCx, cy + (i - 1) * 70);
+          game.entities.push(spawnEntity("player", false, sp.x, sp.y));
+        }
+
+        for (let i = 0; i < cfg.enemies; i++) {
+          const sp = pickSpawnNear(enemyCx, cy + (i - 1) * 70);
+          game.entities.push(spawnEntity("enemy", false, sp.x, sp.y));
+        }
+      }
+
+      game.lastTs = performance.now();
+      menuScreen.classList.add("hidden");
+      shopScreen.classList.add("hidden");
+      requestAnimationFrame(loop);
+    }
+
+    function startObbyRace() {
+      game.state = "obby";
+      game.running = true;
+      game.time = 0;
+      game.shake = 0;
+      game.fx = [];
+
+      const lanes = 5;
+      const laneGap = 78;
+      const baseY = 150;
+      const length = 3600 + Math.floor(Math.random() * 1200);
+      const obstacles = [];
+
+      for (let lane = 0; lane < lanes; lane++) {
+        let x = 280;
+        while (x < length - 180) {
+          const w = 28 + Math.floor(Math.random() * 44);
+          const h = 22 + Math.floor(Math.random() * 32);
+          obstacles.push({ lane, x, w, h });
+          x += 180 + Math.floor(Math.random() * 130);
+        }
+      }
+
+      const racers = [];
+      racers.push({ name: "You", isPlayer: true, lane: 2, x: 0, z: 0, vz: 0, speed: 220, baseSpeed: 220, jump: 340, laneCd: 0, stun: 0, finished: false, color: "#ffd37a" });
+      for (let i = 0; i < 5; i++) {
+        racers.push({ name: "AI-" + (i + 1), isPlayer: false, lane: i % lanes, x: -i * 16, z: 0, vz: 0, speed: 198 + Math.random() * 34, baseSpeed: 198 + Math.random() * 34, jump: 290 + Math.random() * 36, laneCd: 0, stun: 0, reaction: 0.1 + Math.random() * 0.2, finished: false, color: i % 2 ? "#9fc6ff" : "#95e5ad" });
+      }
+
+      game.obby = {
+        lanes,
+        laneGap,
+        baseY,
+        length,
+        obstacles,
+        racers,
+        cameraX: 0,
+        finishOrder: [],
+        done: false
+      };
+
+      game.message = "Generated obby race. Move lanes with up/down and jump with space.";
+      game.msgTimer = 4;
+      game.lastTs = performance.now();
+      menuScreen.classList.add("hidden");
+      shopScreen.classList.add("hidden");
+      requestAnimationFrame(loop);
+    }
+
+    function startFalling(ent) {
+      if (ent.dead || ent.fallState) return;
+      const toX = ent.x + (ent.x < arena.x ? -40 : (ent.x > arena.x + arena.w ? 40 : (Math.random() - 0.5) * 28));
+      const toY = ent.y + (ent.y < arena.y ? -40 : (ent.y > arena.y + arena.h ? 40 : (Math.random() - 0.5) * 28));
+      ent.fallState = {
+        t: 0,
+        duration: 0.65,
+        fromX: ent.x,
+        fromY: ent.y,
+        toX,
+        toY,
+        spin: (Math.random() < 0.5 ? -1 : 1) * (1.8 + Math.random() * 1.4)
+      };
+      if (ent.isPlayer) {
+        game.message = "You slipped off the island!";
+        game.msgTimer = 1.2;
+      }
+    }
+
+    function spawnMechanistBot(owner) {
+      const target = nearestHostile(owner);
+      if (!target) return;
+      game.mechBots.push({
+        ownerId: owner.id,
+        team: owner.team,
+        x: owner.x + Math.cos(owner.facing) * 18,
+        y: owner.y + Math.sin(owner.facing) * 18,
+        r: 8,
+        speed: 250,
+        targetId: target.id,
+        life: 8,
+        bob: Math.random() * Math.PI * 2,
+        dead: false
+      });
+    }
+
+    function nearestHostile(ent) {
+      let best = null;
+      let bestD = Infinity;
+      for (const other of game.entities) {
+        if (other === ent || other.dead || other.fallState) continue;
+        const hostile = game.battleMode === "ffa" ? true : (other.team !== ent.team);
+        if (!hostile) continue;
+        const dx = other.x - ent.x;
+        const dy = other.y - ent.y;
+        const d = Math.hypot(dx, dy);
+        if (d < bestD) { bestD = d; best = other; }
+      }
+      return best;
+    }
+
+    function slashAttack(attacker) {
+      attacker.attackCd = attacker.attackCdBase;
+      const range = 42;
+      const arc = 1.0;
+
+      for (const t of game.entities) {
+        if (t === attacker || t.dead || t.fallState) continue;
+        const hostile = game.battleMode === "ffa" ? true : (t.team !== attacker.team);
+        if (!hostile) continue;
+
+        const dx = t.x - attacker.x;
+        const dy = t.y - attacker.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > range + t.r) continue;
+
+        const ang = Math.atan2(dy, dx);
+        let diff = Math.abs(ang - attacker.facing);
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        diff = Math.abs(diff);
+        if (diff > arc) continue;
+
+        const dmg = attacker.dmg * (0.9 + Math.random() * 0.2);
+        t.hp -= dmg;
+        t.hitFlash = 0.1;
+
+        const ux = dx / (dist || 1);
+        const uy = dy / (dist || 1);
+        const knock = 34;
+        t.x += ux * knock;
+        t.y += uy * knock;
+        clampWorld(t);
+
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + dmg * attacker.lifeSteal);
+        game.shake = Math.max(game.shake, 0.08);
+
+        for (let i = 0; i < 5; i++) {
+          game.fx.push({ x: t.x, y: t.y, vx: (Math.random() - 0.5) * 90, vy: (Math.random() - 0.5) * 90, life: 0.28, color: "#ffd699" });
+        }
+      }
+    }
+
+    function weaponCutsceneStart(ent, kind) {
+      if (ent.abilityCutscene || ent.gunTimer > 0 || ent.tankTimer > 0) return;
+      ent.abilityCutscene = {
+        kind,
+        t: 0,
+        duration: kind === "mechanist" ? 1.05 : 1.1,
+        target: nearestHostile(ent)
+      };
+      if (kind === "tank") game.message = "Deploying tank...";
+      else if (kind === "mechanist") game.message = "Mechanist: deploying chase bot...";
+      else game.message = "Drawing gun...";
+      game.msgTimer = 1.2;
+    }
+
+    function fireWeapon(ent) {
+      if (ent.weaponCd > 0) return;
+      ent.weaponCd = ent.tankTimer > 0 ? 0.12 : 0.22;
+
+      const target = nearestHostile(ent);
+      if (!target) return;
+
+      const dx = target.x - ent.x;
+      const dy = target.y - ent.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const ux = dx / dist;
+      const uy = dy / dist;
+      ent.facing = Math.atan2(uy, ux);
+
+      const dmg = ent.tankTimer > 0 ? 14 : 8;
+      target.hp -= dmg;
+      target.hitFlash = 0.1;
+      target.x += ux * (ent.tankTimer > 0 ? 28 : 18);
+      target.y += uy * (ent.tankTimer > 0 ? 28 : 18);
+      clampWorld(target);
+
+      game.fx.push({ x: ent.x + ux * 14, y: ent.y + uy * 14, vx: ux * 420, vy: uy * 420, life: 0.16, color: ent.tankTimer > 0 ? "#ffb36e" : "#c8e5ff" });
+      game.shake = Math.max(game.shake, ent.tankTimer > 0 ? 0.1 : 0.05);
+      if (target.hp <= 0) target.dead = true;
+      if (!insideArena(target.x, target.y, target.r)) startFalling(target);
+    }
+
+    function updateEntity(ent, dt) {
+      if (ent.dead) return;
+
+      if (ent.fallState) {
+        ent.fallState.t += dt;
+        const p = Math.min(1, ent.fallState.t / ent.fallState.duration);
+        ent.x = ent.fallState.fromX + (ent.fallState.toX - ent.fallState.fromX) * p;
+        ent.y = ent.fallState.fromY + (ent.fallState.toY - ent.fallState.fromY) * p;
+        ent.bob += dt * 14;
+        if (p >= 1) {
+          ent.dead = true;
+          game.fx.push({ x: ent.x, y: ent.y, vx: 0, vy: 0, life: 0.36, color: "#ff9a66" });
+          game.shake = Math.max(game.shake, 0.12);
+        }
+        return;
+      }
+
+      ent.attackCd = Math.max(0, ent.attackCd - dt);
+      ent.dashCd = Math.max(0, ent.dashCd - dt);
+      ent.weaponCd = Math.max(0, ent.weaponCd - dt);
+      ent.hitFlash = Math.max(0, ent.hitFlash - dt);
+      ent.bob += dt * 7;
+
+      if (ent.abilityCutscene) {
+        ent.abilityCutscene.t += dt;
+        if (ent.abilityCutscene.t >= ent.abilityCutscene.duration) {
+          const kind = ent.abilityCutscene.kind;
+          ent.abilityCutscene = null;
+          if (kind === "tank") ent.tankTimer = 10;
+          else if (kind === "mechanist") spawnMechanistBot(ent);
+          else ent.gunTimer = 10;
+        }
+        return;
+      }
+
+      if (ent.gunTimer > 0) ent.gunTimer -= dt;
+      if (ent.tankTimer > 0) ent.tankTimer -= dt;
+
+      if (ent.gunTimer > 0 || ent.tankTimer > 0) {
+        fireWeapon(ent);
+      }
+
+      let mx = 0;
+      let my = 0;
+
+      if (ent.isPlayer) {
+        if (keys.has("arrowleft") || keys.has("a")) mx -= 1;
+        if (keys.has("arrowright") || keys.has("d")) mx += 1;
+        if (keys.has("arrowup") || keys.has("w")) my -= 1;
+        if (keys.has("arrowdown") || keys.has("s")) my += 1;
+
+        if (keys.has(" ")) {
+          if (!game.inputAttackConsumed && ent.attackCd <= 0) {
+            slashAttack(ent);
+            game.inputAttackConsumed = true;
+          }
+        } else {
+          game.inputAttackConsumed = false;
+        }
+
+        if (keys.has("shift")) {
+          if (!game.inputDashConsumed && ent.dashCd <= 0) {
+            const len = Math.hypot(mx, my) || 1;
+            const dx = mx / len || Math.cos(ent.facing);
+            const dy = my / len || Math.sin(ent.facing);
+            ent.dashVx += dx * 340;
+            ent.dashVy += dy * 340;
+            ent.dashCd = ent.dashCdBase;
+            game.inputDashConsumed = true;
+          }
+        } else {
+          game.inputDashConsumed = false;
+        }
+
+        if (keys.has("q")) {
+          if (!game.inputAbilityConsumed) {
+            if (ent.hasTank) weaponCutsceneStart(ent, "tank");
+            else if (ent.hasMechanist) weaponCutsceneStart(ent, "mechanist");
+            else if (ent.hasGun) weaponCutsceneStart(ent, "gun");
+            game.inputAbilityConsumed = true;
+          }
+        } else {
+          game.inputAbilityConsumed = false;
+        }
+      } else {
+        const target = nearestHostile(ent);
+        if (target) {
+          const dx = target.x - ent.x;
+          const dy = target.y - ent.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const ux = dx / dist;
+          const uy = dy / dist;
+          ent.facing = Math.atan2(uy, ux);
+
+          if (dist > 40) {
+            mx = ux;
+            my = uy;
+          }
+
+          if (dist <= 52 && ent.attackCd <= 0) {
+            slashAttack(ent);
+          }
+
+          if ((ent.hasGun || ent.hasTank || ent.hasMechanist) && Math.random() < dt * 0.12 && !ent.abilityCutscene && ent.gunTimer <= 0 && ent.tankTimer <= 0) {
+            const kind = ent.hasTank ? "tank" : (ent.hasMechanist ? "mechanist" : "gun");
+            weaponCutsceneStart(ent, kind);
+          }
+        } else {
+          ent.aiMoveTimer -= dt;
+          if (ent.aiMoveTimer <= 0) {
+            ent.aiMoveTimer = 0.7 + Math.random() * 1.1;
+            ent.aiDir = Math.random() * Math.PI * 2;
+          }
+          mx = Math.cos(ent.aiDir) * 0.35;
+          my = Math.sin(ent.aiDir) * 0.35;
+        }
+      }
+
+      if (mx || my) {
+        const len = Math.hypot(mx, my) || 1;
+        mx /= len;
+        my /= len;
+        ent.facing = Math.atan2(my, mx);
+      }
+
+      const tankSlow = ent.tankTimer > 0 ? 0.7 : 1;
+      ent.x += (mx * ent.speed * tankSlow + ent.dashVx) * dt;
+      ent.y += (my * ent.speed * tankSlow + ent.dashVy) * dt;
+      ent.dashVx *= Math.pow(0.08, dt * 8);
+      ent.dashVy *= Math.pow(0.08, dt * 8);
+      clampWorld(ent);
+
+      if (!insideArena(ent.x, ent.y, ent.r)) {
+        startFalling(ent);
+      }
+
+      if (ent.hp <= 0) ent.dead = true;
+    }
+
+    function updateMechanistBots(dt) {
+      for (const b of game.mechBots) {
+        if (b.dead) continue;
+        b.life -= dt;
+        b.bob += dt * 10;
+
+        let target = game.entities.find((e) => e.id === b.targetId && !e.dead && !e.fallState);
+        if (!target) {
+          const ownerLike = { team: b.team, x: b.x, y: b.y };
+          target = nearestHostile(ownerLike);
+          b.targetId = target ? target.id : null;
+        }
+
+        if (!target) {
+          b.dead = true;
+          continue;
+        }
+
+        const dx = target.x - b.x;
+        const dy = target.y - b.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        b.x += (dx / dist) * b.speed * dt;
+        b.y += (dy / dist) * b.speed * dt;
+
+        if (dist <= b.r + target.r + 4) {
+          b.dead = true;
+          target.hp -= 36;
+          target.hitFlash = 0.16;
+          target.x += (dx / dist) * 28;
+          target.y += (dy / dist) * 28;
+          clampWorld(target);
+          if (!insideArena(target.x, target.y, target.r)) startFalling(target);
+
+          for (let i = 0; i < 12; i++) {
+            game.fx.push({
+              x: b.x,
+              y: b.y,
+              vx: (Math.random() - 0.5) * 180,
+              vy: (Math.random() - 0.5) * 180,
+              life: 0.32,
+              color: i % 2 ? "#ffd699" : "#ff8f66"
+            });
+          }
+          game.shake = Math.max(game.shake, 0.14);
+        }
+
+        if (b.life <= 0) b.dead = true;
+      }
+      game.mechBots = game.mechBots.filter((b) => !b.dead);
+    }
+
+    function updateBattle(dt) {
+      for (const ent of game.entities) updateEntity(ent, dt);
+      updateMechanistBots(dt);
+      game.entities = game.entities.filter((e) => !e.dead);
+
+      const playerAlive = game.player && !game.player.dead && game.entities.includes(game.player);
+      if (!playerAlive) {
+        finishBattle(false);
+        return;
+      }
+
+      if (game.battleMode === "ffa") {
+        if (game.entities.length === 1 && game.entities[0].isPlayer) {
+          finishBattle(true);
+        }
+      } else {
+        const allyAlive = game.entities.some((e) => e.team === "player");
+        const enemyAlive = game.entities.some((e) => e.team === "enemy");
+        if (!allyAlive) finishBattle(false);
+        else if (!enemyAlive) finishBattle(true);
+      }
+    }
+
+    function finishBattle(win) {
+      game.running = false;
+      game.state = "menu";
+      menuScreen.classList.remove("hidden");
+      if (win) {
+        const reward = 100 + Math.floor(Math.random() * 401);
+        game.save.tokens += reward;
+        save();
+        menuInfo.textContent = "Victory! You earned " + reward + " tokens.";
+      } else {
+        menuInfo.textContent = "Defeat. You got knocked out in lava arena.";
+      }
+      refreshHud();
+    }
+
+    function obstacleAhead(r, o) {
+      let best = null;
+      for (const obs of o.obstacles) {
+        if (obs.lane !== r.lane) continue;
+        if (obs.x + obs.w < r.x) continue;
+        if (!best || obs.x < best.x) best = obs;
+      }
+      return best;
+    }
+
+    function updateObby(dt) {
+      const o = game.obby;
+      if (!o) return;
+
+      const gravity = 760;
+
+      for (const r of o.racers) {
+        if (r.finished) continue;
+        r.laneCd = Math.max(0, r.laneCd - dt);
+        r.stun = Math.max(0, r.stun - dt);
+
+        if (r.isPlayer) {
+          if ((keys.has("arrowup") || keys.has("w")) && r.lane > 0 && r.laneCd <= 0) {
+            r.lane -= 1;
+            r.laneCd = 0.14;
+          }
+          if ((keys.has("arrowdown") || keys.has("s")) && r.lane < o.lanes - 1 && r.laneCd <= 0) {
+            r.lane += 1;
+            r.laneCd = 0.14;
+          }
+          if (keys.has(" ") && r.z === 0) r.vz = r.jump;
+        } else {
+          const ahead = obstacleAhead(r, o);
+          if (ahead) {
+            const d = ahead.x - r.x;
+            if (d < 90 && d > 10 && r.z === 0 && Math.random() < r.reaction) r.vz = r.jump;
+            if (d < 95 && d > 24 && ahead.h > 34 && r.laneCd <= 0 && Math.random() < 0.1) {
+              r.lane += Math.random() < 0.5 ? -1 : 1;
+              r.lane = Math.max(0, Math.min(o.lanes - 1, r.lane));
+              r.laneCd = 0.2;
+            }
+          }
+        }
+
+        r.vz -= gravity * dt;
+        r.z = Math.max(0, r.z + r.vz * dt);
+        if (r.z === 0) r.vz = Math.max(0, r.vz);
+
+        const stunMul = r.stun > 0 ? 0.35 : 1;
+        r.x += r.speed * stunMul * dt;
+
+        for (const obs of o.obstacles) {
+          if (obs.lane !== r.lane) continue;
+          const hitX = (r.x + 11 > obs.x && r.x - 11 < obs.x + obs.w);
+          const hitZ = r.z < obs.h - 3;
+          if (hitX && hitZ) {
+            r.stun = 0.55;
+            r.x -= 26;
+            break;
+          }
+        }
+
+        if (r.x >= o.length) {
+          r.finished = true;
+          o.finishOrder.push(r);
+        }
+      }
+
+      const player = o.racers[0];
+      o.cameraX += ((player.x - 260) - o.cameraX) * Math.min(1, dt * 6);
+      o.cameraX = Math.max(-20, Math.min(o.length - 260, o.cameraX));
+
+      if (!o.done && o.finishOrder.length === o.racers.length) {
+        o.done = true;
+        const rank = o.finishOrder.findIndex((r) => r.isPlayer) + 1;
+        let reward = 35 + Math.floor(Math.random() * 35);
+        if (rank === 1) reward = 210 + Math.floor(Math.random() * 190);
+        else if (rank <= 3) reward = 95 + Math.floor(Math.random() * 110);
+
+        game.save.tokens += reward;
+        save();
+        game.running = false;
+        game.state = "menu";
+        menuScreen.classList.remove("hidden");
+        menuInfo.textContent = "Obby complete. Rank #" + rank + " reward " + reward + " tokens.";
+        refreshHud();
+      }
+    }
+
+    function drawLavaBackground(dt) {
+      game.time += dt;
+      const t = game.time;
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, "#3f120c");
+      grad.addColorStop(1, "#1a0507");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < 70; i++) {
+        const x = (i * 53 + t * 95) % (canvas.width + 80) - 40;
+        const y = ((i * 97) % canvas.height) + Math.sin(t * 2 + i) * 8;
+        const w = 26 + (i % 6) * 8;
+        ctx.fillStyle = i % 2 ? "#ff7b3f5c" : "#ffbb6150";
+        ctx.fillRect(x, y, w, 8);
+      }
+    }
+
+    function drawArenaRect() {
+      ctx.fillStyle = "#473f2f";
+      ctx.fillRect(arena.x - 8, arena.y - 8, arena.w + 16, arena.h + 16);
+
+      const grd = ctx.createLinearGradient(arena.x, arena.y, arena.x, arena.y + arena.h);
+      grd.addColorStop(0, "#6c7a55");
+      grd.addColorStop(1, "#3f4a36");
+      ctx.fillStyle = grd;
+      ctx.fillRect(arena.x, arena.y, arena.w, arena.h);
+
+      ctx.strokeStyle = "#b9a37f";
+      ctx.lineWidth = 5;
+      ctx.strokeRect(arena.x, arena.y, arena.w, arena.h);
+
+      ctx.fillStyle = "#566248";
+      for (let i = 0; i < 180; i++) {
+        const x = arena.x + ((i * 73) % arena.w);
+        const y = arena.y + ((i * 101) % arena.h);
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+
+    function drawShadow(x, y, r) {
+      ctx.beginPath();
+      ctx.ellipse(x, y + r + 3, r * 0.95, r * 0.42, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.fill();
+    }
+
+    function drawCutscene(ent) {
+      const c = ent.abilityCutscene;
+      if (!c) return;
+      const p = Math.min(1, c.t / c.duration);
+      const stageA = p < 0.33;
+      const stageB = p >= 0.33 && p < 0.66;
+      const stageC = p >= 0.66;
+
+      ctx.save();
+      ctx.translate(ent.x, ent.y - 8);
+
+      let ang = ent.facing;
+      if (stageA) ang = ent.facing + 2.2 * (p / 0.33);
+      if (stageB) ang = ent.facing + Math.sin((p - 0.33) / 0.33 * Math.PI * 2) * 1.3;
+      if (stageC) {
+        const tar = c.target;
+        if (tar) ang = Math.atan2(tar.y - ent.y, tar.x - ent.x);
+      }
+
+      ctx.rotate(ang);
+
+      if (c.kind === "mechanist") {
+        const backPull = stageA ? (1 - p / 0.33) * 10 : 0;
+        const spin = stageB ? ((p - 0.33) / 0.33) * Math.PI * 2 : 0;
+        ctx.save();
+        ctx.translate(-10 - backPull, 0);
+        ctx.rotate(spin);
+        ctx.fillStyle = "#8cc8ff";
+        ctx.fillRect(-4, -4, 8, 8);
+        ctx.fillStyle = "#1e2e44";
+        ctx.fillRect(-2, -2, 4, 4);
+        ctx.restore();
+
+        if (stageC) {
+          ctx.fillStyle = "#b8dfff";
+          ctx.fillRect(12, -2, 10, 4);
+        }
+      } else {
+        const color = c.kind === "tank" ? "#ffba70" : "#d3e6ff";
+        ctx.fillStyle = color;
+        ctx.fillRect(10, -3, 18, 6);
+        ctx.fillStyle = "#59688a";
+        ctx.fillRect(4, -5, 8, 10);
+      }
+
+      ctx.restore();
+    }
+
+    function drawEntity(ent) {
+      const bob = Math.sin(ent.bob) * 1.5;
+      drawShadow(ent.x, ent.y, ent.r);
+
+      ctx.save();
+      if (ent.fallState) {
+        const p = Math.min(1, ent.fallState.t / ent.fallState.duration);
+        const drop = p * 26;
+        const scale = Math.max(0.25, 1 - p * 0.72);
+        ctx.translate(ent.x, ent.y + drop);
+        ctx.rotate(ent.fallState.spin * p * Math.PI);
+        ctx.scale(scale, scale);
+      } else {
+        ctx.translate(ent.x, ent.y - bob);
+        ctx.rotate(ent.facing * 0.14);
+      }
+
+      let body = "#84d7a3";
+      if (ent.isPlayer) body = "#ffd37a";
+      else if (game.battleMode !== "ffa") body = ent.team === "player" ? "#8ec0ff" : "#ff8b7d";
+      if (ent.hitFlash > 0) body = "#fff0ee";
+
+      if (ent.tankTimer > 0) {
+        ctx.fillStyle = "#586b82";
+        ctx.fillRect(-20, -14, 40, 28);
+        ctx.fillStyle = "#d9e3f2";
+        ctx.fillRect(8, -3, 20, 6);
+        ctx.fillStyle = "#2b3647";
+        ctx.fillRect(-18, 10, 36, 4);
+      }
+
+      ctx.fillStyle = body;
+      ctx.fillRect(-ent.r, -ent.r, ent.r * 2, ent.r * 2);
+      ctx.fillStyle = "#1f2c3d";
+      ctx.fillRect(-7, -6, 4, 4);
+      ctx.fillRect(3, -6, 4, 4);
+
+      if (ent.gunTimer > 0) {
+        ctx.fillStyle = "#d5e9ff";
+        ctx.fillRect(12, -3, 16, 6);
+      }
+
+      ctx.restore();
+
+      drawCutscene(ent);
+      if (!ent.fallState) drawHp(ent);
+    }
+
+    function drawMechBots() {
+      for (const b of game.mechBots) {
+        const bob = Math.sin(b.bob) * 1.4;
+        drawShadow(b.x, b.y, b.r);
+        ctx.save();
+        ctx.translate(b.x, b.y - bob);
+        ctx.fillStyle = "#9fd4ff";
+        ctx.fillRect(-8, -8, 16, 16);
+        ctx.fillStyle = "#26374f";
+        ctx.fillRect(-3, -3, 6, 6);
+        ctx.fillStyle = "#ffd699";
+        ctx.fillRect(8, -1, 4, 2);
+        ctx.restore();
+      }
+    }
+
+    function drawHp(ent) {
+      const w = 32;
+      const h = 4;
+      const r = Math.max(0, Math.min(1, ent.hp / ent.maxHp));
+      ctx.fillStyle = "#0f131c";
+      ctx.fillRect(ent.x - w / 2, ent.y - ent.r - 15, w, h);
+      ctx.fillStyle = ent.isPlayer ? "#82e7ad" : "#ff9b8b";
+      ctx.fillRect(ent.x - w / 2, ent.y - ent.r - 15, w * r, h);
+      ctx.strokeStyle = "#65779b";
+      ctx.strokeRect(ent.x - w / 2, ent.y - ent.r - 15, w, h);
+    }
+
+    function drawFx() {
+      for (const f of game.fx) {
+        ctx.globalAlpha = Math.max(0, f.life / 0.28);
+        ctx.fillStyle = f.color;
+        ctx.fillRect(f.x, f.y, 3, 3);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function updateFx(dt) {
+      for (const f of game.fx) {
+        f.life -= dt;
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        f.vx *= Math.pow(0.25, dt * 8);
+        f.vy *= Math.pow(0.25, dt * 8);
+      }
+      game.fx = game.fx.filter((f) => f.life > 0);
+      game.shake = Math.max(0, game.shake - dt * 0.8);
+    }
+
+    function drawMessage() {
+      if (!game.message) return;
+      ctx.fillStyle = "rgba(9, 12, 19, 0.8)";
+      ctx.fillRect(20, canvas.height - 56, canvas.width - 40, 36);
+      ctx.strokeStyle = "#667aa3";
+      ctx.strokeRect(20, canvas.height - 56, canvas.width - 40, 36);
+      ctx.fillStyle = "#eef4ff";
+      ctx.font = "15px Courier New";
+      ctx.fillText(game.message, 32, canvas.height - 33);
+    }
+
+    function drawObby() {
+      const o = game.obby;
+      drawLavaBackground(0.012);
+
+      ctx.fillStyle = "#2a2f3d";
+      ctx.fillRect(0, 120, canvas.width, 430);
+      ctx.fillStyle = "#202533";
+      ctx.fillRect(0, 550, canvas.width, 150);
+
+      for (let i = 0; i <= o.lanes; i++) {
+        const y = o.baseY + i * o.laneGap;
+        ctx.strokeStyle = i === 0 || i === o.lanes ? "#aca2c4" : "#7a7297";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      const finishX = o.length - o.cameraX;
+      ctx.fillStyle = "#ffe59c";
+      ctx.fillRect(finishX, o.baseY, 9, o.laneGap * o.lanes);
+
+      for (const obs of o.obstacles) {
+        const x = obs.x - o.cameraX;
+        if (x + obs.w < -30 || x > canvas.width + 30) continue;
+        const laneY = o.baseY + obs.lane * o.laneGap;
+        ctx.fillStyle = "#ab4f4f";
+        ctx.fillRect(x, laneY + (o.laneGap - obs.h), obs.w, obs.h);
+        ctx.fillStyle = "#de7b7b";
+        ctx.fillRect(x + 2, laneY + (o.laneGap - obs.h) + 3, obs.w - 4, 5);
+      }
+
+      for (const r of o.racers) {
+        const x = r.x - o.cameraX;
+        const yBase = o.baseY + r.lane * o.laneGap + 9;
+        const y = yBase - r.z;
+
+        drawShadow(x, yBase, 11);
+        ctx.fillStyle = r.color;
+        ctx.fillRect(x - 11, y - 18, 22, 18);
+        ctx.fillStyle = "#182537";
+        ctx.fillRect(x - 7, y - 14, 4, 4);
+        ctx.fillRect(x + 3, y - 14, 4, 4);
+        if (r.stun > 0) {
+          ctx.fillStyle = "#ffd28c";
+          ctx.fillRect(x - 2, y - 24, 4, 4);
+        }
+      }
+
+      ctx.fillStyle = "#eef4ff";
+      ctx.font = "15px Courier New";
+      ctx.fillText("Obby Race", 18, 28);
+      ctx.fillText("Order: " + o.finishOrder.map((r) => r.name).join(", "), 18, 48);
+    }
+
+    function updateHud() {
+      const c = findCharacter(game.save.equippedCharacter);
+      hpEl.textContent = game.player ? Math.max(0, Math.ceil(game.player.hp)).toString() : "0";
+      tokensEl.textContent = game.save.tokens.toString();
+      modeHud.textContent = game.battleMode;
+      charHud.textContent = c.name;
+      abilityHud.textContent = game.save.equippedAbilities.length
+        ? game.save.equippedAbilities.map((id) => findAbility(id)?.name).filter(Boolean).join(", ")
+        : "None";
+
+      if (game.state === "obby" && game.obby) {
+        aliveHud.textContent = game.obby.racers.filter((r) => !r.finished).length.toString();
+      } else {
+        aliveHud.textContent = game.entities.filter((e) => !e.dead).length.toString();
+      }
+
+      stateHud.textContent = game.state;
+      shopTokens.textContent = game.save.tokens.toString();
+    }
+
+    function loop(ts) {
+      if (!game.running) return;
+
+      const dt = Math.min(0.033, (ts - game.lastTs) / 1000 || 0);
+      game.lastTs = ts;
+
+      if (game.msgTimer > 0) {
+        game.msgTimer -= dt;
+        if (game.msgTimer <= 0) game.message = "";
+      }
+
+      if (game.state === "obby") {
+        updateObby(dt);
+        updateFx(dt);
+        drawObby();
+        drawFx();
+        drawMessage();
+        updateHud();
+        if (game.running) requestAnimationFrame(loop);
+        return;
+      }
+
+      updateBattle(dt);
+      updateFx(dt);
+
+      ctx.save();
+      if (game.shake > 0) {
+        const mag = game.shake * 9;
+        ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+      }
+
+      drawLavaBackground(dt);
+      drawArenaRect();
+      const drawList = [...game.entities].sort((a, b) => a.y - b.y);
+      for (const ent of drawList) drawEntity(ent);
+      drawMechBots();
+      drawFx();
+      drawMessage();
+      ctx.restore();
+
+      updateHud();
+      if (game.running) requestAnimationFrame(loop);
+    }
+
+    function canAfford(cost) {
+      return game.save.tokens >= cost;
+    }
+
+    function buyCharacter(c) {
+      if (game.save.ownedCharacters.includes(c.id)) return true;
+      if (!canAfford(c.cost)) return false;
+      game.save.tokens -= c.cost;
+      game.save.ownedCharacters.push(c.id);
+      save();
+      return true;
+    }
+
+    function buyAbility(a) {
+      if (game.save.ownedAbilities.includes(a.id)) return true;
+      if (a.requires && !game.save.ownedAbilities.includes(a.requires)) return false;
+      if (!canAfford(a.cost)) return false;
+      game.save.tokens -= a.cost;
+      game.save.ownedAbilities.push(a.id);
+      save();
+      return true;
+    }
+
+    function renderShop() {
+      characterGrid.innerHTML = "";
+      abilityGrid.innerHTML = "";
+
+      for (const c of characters) {
+        const owned = game.save.ownedCharacters.includes(c.id);
+        const equipped = game.save.equippedCharacter === c.id;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = "<h4>" + c.name + "</h4>"
+          + "<div>Cost: " + c.cost + "</div>"
+          + "<div>HP " + c.hp + " | SPD " + c.speed + " | DMG " + c.dmg + "</div>"
+          + "<div>" + c.desc + "</div>";
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const btn = document.createElement("button");
+        if (!owned) {
+          btn.textContent = "Buy";
+          btn.onclick = () => {
+            if (!buyCharacter(c)) menuInfo.textContent = "Not enough tokens.";
+            renderShop();
+            updateHud();
+          };
+        } else if (!equipped) {
+          btn.textContent = "Equip";
+          btn.className = "secondary";
+          btn.onclick = () => {
+            game.save.equippedCharacter = c.id;
+            save();
+            renderShop();
+            updateHud();
+          };
+        } else {
+          btn.textContent = "Equipped";
+          btn.disabled = true;
+        }
+        row.appendChild(btn);
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = owned ? (equipped ? "Owned + Equipped" : "Owned") : "Locked";
+        row.appendChild(tag);
+
+        card.appendChild(row);
+        characterGrid.appendChild(card);
+      }
+
+      for (const a of abilities) {
+        const owned = game.save.ownedAbilities.includes(a.id);
+        const equipped = game.save.equippedAbilities.includes(a.id);
+        const lockedByRequirement = a.requires && !game.save.ownedAbilities.includes(a.requires);
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = "<h4>" + a.name + "</h4>"
+          + "<div>Cost: " + a.cost + "</div>"
+          + (a.requires ? "<div>Requires: " + (findAbility(a.requires)?.name || a.requires) + "</div>" : "")
+          + "<div>" + a.desc + "</div>";
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const btn = document.createElement("button");
+        if (!owned) {
+          btn.textContent = lockedByRequirement ? "Locked" : "Buy";
+          btn.disabled = !!lockedByRequirement;
+          btn.onclick = () => {
+            if (!buyAbility(a)) menuInfo.textContent = "Not enough tokens or requirement missing.";
+            renderShop();
+            updateHud();
+          };
+        } else if (!equipped) {
+          btn.textContent = "Equip";
+          btn.className = "secondary";
+          btn.onclick = () => {
+            if (game.save.equippedAbilities.length >= 2) {
+              menuInfo.textContent = "You can equip up to 2 abilities.";
+              return;
+            }
+            game.save.equippedAbilities.push(a.id);
+            save();
+            renderShop();
+            updateHud();
+          };
+        } else {
+          btn.textContent = "Unequip";
+          btn.className = "danger";
+          btn.onclick = () => {
+            game.save.equippedAbilities = game.save.equippedAbilities.filter((id) => id !== a.id);
+            save();
+            renderShop();
+            updateHud();
+          };
+        }
+        row.appendChild(btn);
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = owned ? (equipped ? "Owned + Equipped" : "Owned") : (lockedByRequirement ? "Need Gun" : "Locked");
+        row.appendChild(tag);
+
+        card.appendChild(row);
+        abilityGrid.appendChild(card);
+      }
+
+      updateHud();
+    }
+
+    function openShop() {
+      shopScreen.classList.remove("hidden");
+      menuScreen.classList.add("hidden");
+      renderShop();
+    }
+
+    function closeShop() {
+      shopScreen.classList.add("hidden");
+      menuScreen.classList.remove("hidden");
+      updateHud();
+    }
+
+    function resetSave() {
+      game.save = {
+        tokens: 0,
+        ownedCharacters: ["squire"],
+        ownedAbilities: [],
+        equippedCharacter: "squire",
+        equippedAbilities: []
+      };
+      save();
+      renderShop();
+      updateHud();
+      menuInfo.textContent = "Save reset.";
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+      if ([" ", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) e.preventDefault();
+      keys.add(key);
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys.delete(e.key.toLowerCase());
+    });
+
+    startBattleBtn.addEventListener("click", startBattle);
+    startObbyBtn.addEventListener("click", startObbyRace);
+    openShopBtn.addEventListener("click", openShop);
+    closeShopBtn.addEventListener("click", closeShop);
+    resetSaveBtn.addEventListener("click", resetSave);
+
+    loadSave();
+    updateHud();
+    menuInfo.textContent = "Tip: Buy Gun first, then Tank (upgrade path).";
+
+    drawLavaBackground(0);
+    drawArenaRect();
+  </script>
+</body>
+</html>

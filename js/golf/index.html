@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twilight Golf - Relax & Play</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="container">
+  <div id="ui">
+    <div class="ui-kicker">Twilight Circuit</div>
+    <h2 id="tournament-name">Tournament 1</h2>
+    <div class="info ui-row">
+      <span id="hole-label">Hole 1/3</span>
+      <span id="strokes-label">Strokes: 0</span>
+      <span id="par-label">Par: 3</span>
+    </div>
+    <div class="info ui-row ui-row-secondary">
+      <span id="total-score">Total: 0</span>
+      <span id="wins-label">Wins: 0</span>
+    </div>
+  </div>
+
+  <div id="vignette"></div>
+  <div class="power-label" id="power-label">Click to aim, then TAP to build power!</div>
+  <div class="tap-hint hidden" id="tap-hint">⚡ TAP TAP TAP! ⚡</div>
+  <div class="power-bar-container hidden" id="power-bar">
+    <div class="power-bar-fill" id="power-fill"></div>
+  </div>
+
+  <div id="overlay">
+    <div class="menu-backdrop">
+      <div class="menu-firefly f1"></div>
+      <div class="menu-firefly f2"></div>
+      <div class="menu-firefly f3"></div>
+      <div class="menu-firefly f4"></div>
+      <div class="menu-pond"></div>
+    </div>
+    <div class="overlay-card">
+      <div class="overlay-kicker">Night Golf Adventure</div>
+      <h1 id="overlay-title">🌙 Twilight Golf</h1>
+      <p id="overlay-text">Aim with your mouse, then tap gently to build power.<br>Press <b>Space</b> or <b>Right-click</b> to putt.<br>Take your time. Enjoy the scenery.<br><span class="overlay-accent">Each course hides a secret... explore at your own pace.</span></p>
+      <div class="overlay-features">
+        <span>Glowing fairways</span>
+        <span>Hidden secrets</span>
+        <span>Custom holes</span>
+      </div>
+      <div class="overlay-actions">
+        <button id="continue-btn" type="button" class="hidden">▶ Continue</button>
+        <button id="overlay-btn" type="button">Begin</button>
+        <button id="shop-btn" type="button">🛒 Shop</button>
+        <button id="design-btn" type="button">🎨 Design</button>
+        <button id="settings-btn" type="button">⚙ Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shop-panel">
+    <div class="panel-shell shop-shell">
+      <div class="panel-kicker">Unlock Visual Effects</div>
+      <h2>🛍️ Shop</h2>
+      <div id="shop-coins">Your coins: <span id="shop-coin-count">0</span> &nbsp;|&nbsp; <span class="shop-exclusive-total">💎 <span id="shop-excl-count">0</span></span></div>
+      <div id="shop-grid"></div>
+      <div id="shop-msg"></div>
+      <button id="shop-close" type="button">Back</button>
+    </div>
+  </div>
+
+  <div id="editor-panel">
+    <div class="panel-kicker editor-kicker">Creative Mode</div>
+    <h2>🎨 Build Your Own Hole</h2>
+    <div id="editor-summary"></div>
+    <div id="editor-info">Place a start, a hole, and any obstacles you want.</div>
+    <div id="editor-actions">
+      <button type="button" id="editor-play">▶ Play Level</button>
+      <button type="button" id="editor-erase">Erase</button>
+      <button type="button" id="editor-clear">Clear All</button>
+      <button type="button" id="editor-back">Back</button>
+    </div>
+    <div id="editor-theme-dock">
+      <div id="editor-theme-label">Theme</div>
+      <div id="editor-theme-strip"></div>
+    </div>
+    <div id="editor-dock">
+      <div id="editor-dock-label">Placeable Items</div>
+      <div id="editor-dock-help">Select an item, hover for the green placement preview, then click the map to place it.</div>
+      <div id="editor-item-strip"></div>
+    </div>
+  </div>
+
+  <div id="settings-panel">
+    <div class="panel-kicker settings-kicker">Tune The Atmosphere</div>
+    <h2>⚙ Settings</h2>
+    <div class="settings-row">
+      <label for="view-mode-select">Level View</label>
+      <select id="view-mode-select">
+        <option value="3d">3D View</option>
+        <option value="2d">2D View</option>
+      </select>
+    </div>
+    <div class="settings-row settings-slider-row">
+      <label for="music-volume">Music Volume</label>
+      <div class="settings-slider-wrap">
+        <input id="music-volume" type="range" min="0" max="100" step="1" value="35">
+        <span class="settings-slider-value" id="music-volume-value">35%</span>
+      </div>
+    </div>
+    <div class="settings-row settings-slider-row">
+      <label for="sfx-volume">Sound Volume</label>
+      <div class="settings-slider-wrap">
+        <input id="sfx-volume" type="range" min="0" max="100" step="1" value="70">
+        <span class="settings-slider-value" id="sfx-volume-value">70%</span>
+      </div>
+    </div>
+    <div id="settings-help">2D view uses a flat top-down course layout.</div>
+    <div class="settings-row settings-toggle-row">
+      <label for="rage-mode-toggle">🔥 Rage Mode</label>
+      <div class="toggle-wrap">
+        <input id="rage-mode-toggle" type="checkbox">
+        <label class="toggle-label" for="rage-mode-toggle"><span class="toggle-inner"></span></label>
+      </div>
+    </div>
+    <div id="rage-help" class="settings-help-sub">Insanely hard levels. More obstacles, more hazards, tighter pars.</div>
+    <button id="settings-close" type="button">Back</button>
+  </div>
+
+  <div id="hud-counters">
+    <div id="coin-display" class="hud-chip"><div class="coin-icon">$</div><span id="coin-count">0</span></div>
+    <div id="stars-display" class="hud-chip">⭐ <span id="star-count">0</span></div>
+    <div id="exclusive-display" class="hud-chip"><div class="excl-icon"></div><span id="exclusive-count">0</span></div>
+  </div>
+  <div id="exclusive-toast"><div class="toast-diamond"></div><h3>Exclusive Coin!</h3><p>All lights in one shot!</p></div>
+  <div id="secret-toast"><h3 id="secret-title">🎁 Secret Found!</h3><p id="secret-desc"></p><div class="gift-coins" id="secret-reward"></div></div>
+  <div id="secret-hint"></div>
+  <div id="confetti-container"></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="js/game.js"></script>
+</body>
+</html>

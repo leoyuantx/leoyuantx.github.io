@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <title>My Coding Journey</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .section p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .image-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .image-section img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .image-caption {
+            margin-top: 15px;
+            font-style: italic;
+            color: #718096;
+        }
+        
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Coding Journey</h1>
+        
+        <div class="section">
+            <h2>Getting Started</h2>
+            <p>This is my first website. I recently joined GitHub and completed the Swift Playgrounds course. It was an exciting introduction to programming!</p>
+        </div>
+        
+        <div class="section">
+            <h2>What I Learned</h2>
+            <p>In Swift, 'let' declares constants that cannot be changed after initialization, while 'var' declares variables that can be modified. I learned how to write code, manipulate text sizes, and control characters like Blu and Byte.</p>
+            <p>Key concepts include:</p>
+            <ul>
+                <li>Making characters jump with blu.jump</li>
+                <li>Turning locks with expert.turnLockUp</li>
+                <li>Activating teleporters</li>
+                <li>Creating loops for repetition</li>
+                <li>Collecting gems with byte.collectGem</li>
+                <li>Using if-else statements for conditional logic</li>
+                <li>Toggling switches on and off</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>My First Coding Story</h2>
+            <p>Variables can change, but constants stay the same. Blu jumps while the expert secures the lock. They got tired, and so did I! Byte moves forward to collect the reddest gem, turns left, and toggles the switch. I was exhausted but incredibly happy - time for a break!</p>
+            <p>I also learned to incorporate images and sounds into my programs.</p>
+        </div>
+        
+        <div class="section">
+            <h2>The Funny Story</h2>
+            <p>Row trusts you, Vivi locks you up and toggles switches for gems. The expert rests while Blu jumps on him. Byte navigates through functions and loops, turns switches, and teleports. So happy! Yay! Bye bye, thanks for reading!</p>
+        </div>
+        
+        <div class="image-section">
+            <img src="./sp.png" width="759" height="600" alt="Swift Playground Screenshot" />
+            <p class="image-caption">Screenshot from Swift Playgrounds</p>
+        </div>
+        
+        <div class="button-container">
+            <button class="back-button" onclick="gohome()">Back to Main Page</button>
+        </div>
+        
+        <script>
+            function gohome(){
+                window.location.href = "./index.html";
+            }
+        </script>
+    </div>
+</body>
+</html>

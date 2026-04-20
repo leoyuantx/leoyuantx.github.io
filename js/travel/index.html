@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Team Travel Options</title>
+		<style>
+			:root {
+				--bg: #f6f1e8;
+				--panel: rgba(255, 252, 247, 0.9);
+				--panel-strong: #fffaf1;
+				--ink: #213547;
+				--muted: #5f6f7a;
+				--line: rgba(33, 53, 71, 0.14);
+				--accent: #007c91;
+				--accent-soft: #dff3f7;
+				--accent-warm: #f4b860;
+				--shadow: 0 20px 50px rgba(33, 53, 71, 0.12);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+				color: var(--ink);
+				background:
+					radial-gradient(circle at top right, rgba(0, 124, 145, 0.18), transparent 28%),
+					radial-gradient(circle at left 20%, rgba(244, 184, 96, 0.22), transparent 22%),
+					linear-gradient(180deg, #fcf8f1 0%, var(--bg) 100%);
+			}
+
+			.page {
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 48px 20px 64px;
+			}
+
+			.planner-layout {
+				display: grid;
+				grid-template-columns: minmax(0, auto) 460px;
+				align-items: start;
+				gap: 14px;
+			}
+
+			.table-wrap {
+				overflow-x: auto;
+				border-radius: 24px;
+				border: 1px solid var(--line);
+				background: var(--panel-strong);
+				box-shadow: var(--shadow);
+				width: fit-content;
+				max-width: 100%;
+			}
+
+			table {
+				width: auto;
+				border-collapse: collapse;
+				min-width: 0;
+			}
+
+			thead th {
+				padding: 18px;
+				text-align: left;
+				font-size: 0.92rem;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				color: var(--muted);
+				background: rgba(255, 255, 255, 0.72);
+			}
+
+			tbody td {
+				vertical-align: top;
+				padding: 20px 18px;
+				border-top: 1px solid var(--line);
+			}
+
+			tbody tr:nth-child(odd) {
+				background: rgba(255, 255, 255, 0.46);
+			}
+
+			.team-name {
+				margin: 0 0 6px;
+				font-weight: 700;
+			}
+
+			.team-function {
+				color: var(--muted);
+				font-size: 0.95rem;
+			}
+
+			.people {
+				margin: 0;
+				padding-left: 18px;
+				color: var(--ink);
+				line-height: 1.7;
+			}
+
+			.people.checklist {
+				padding-left: 0;
+				list-style: none;
+			}
+
+			.people.checklist li {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.people.checklist label {
+				display: inline-flex;
+				align-items: center;
+				gap: 10px;
+				cursor: pointer;
+			}
+
+			.people.checklist input {
+				width: 16px;
+				height: 16px;
+				accent-color: var(--accent);
+			}
+
+			.option {
+				display: grid;
+				gap: 10px;
+			}
+
+			.badge {
+				width: fit-content;
+				padding: 6px 10px;
+				border-radius: 999px;
+				font-size: 0.78rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+			}
+
+			.badge.atlanta {
+				background: rgba(0, 124, 145, 0.12);
+				color: var(--accent);
+			}
+
+			.badge.dallas {
+				background: rgba(244, 184, 96, 0.18);
+				color: #9b5f00;
+			}
+
+			.option p {
+				margin: 0;
+				color: var(--muted);
+				line-height: 1.6;
+			}
+
+			.summary-panel {
+				padding: 24px;
+				min-width: 460px;
+				border: 1px solid var(--line);
+				border-radius: 24px;
+				background: var(--panel);
+				box-shadow: var(--shadow);
+				display: grid;
+				gap: 18px;
+			}
+
+			.summary-label {
+				margin: 0;
+				color: var(--ink);
+				font-size: 1.25rem;
+				font-weight: 700;
+			}
+
+			.summary-count {
+				color: var(--muted);
+				font-weight: 500;
+				margin: 0;
+				line-height: 1.7;
+				font-size: 1.08rem;
+			}
+
+			@media (max-width: 720px) {
+				.page {
+					padding: 32px 14px 48px;
+				}
+
+				.planner-layout {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main class="page">
+			<section class="planner-layout">
+				<div class="table-wrap">
+					<table>
+					<thead>
+						<tr>
+							<th scope="col">Team</th>
+							<th scope="col">Members</th>
+							<th scope="col">City</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								<div class="team-name">Team 1</div>
+								<div class="team-function">Purchasing</div>
+							</td>
+							<td>
+								<ul class="people checklist">
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Ala</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Natalia</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Ali</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Dallas" checked />Yang</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Dallas" checked />Sai</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Arkansas" checked />Garrett</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Miami" checked />Chris</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="NYC" checked />Paula</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Austin" checked />Radek</label></li>
+								</ul>
+							</td>
+							<td>
+								<ul class="people">
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+									<li>Dallas</li>
+									<li>Dallas</li>
+									<li>Arkansas</li>
+									<li>Miami</li>
+									<li>NYC</li>
+									<li>Austin</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div class="team-name">Team 2</div>
+								<div class="team-function">Plan and Manage</div>
+							</td>
+							<td>
+								<ul class="people checklist">
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Bianca</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Matt</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Erfan</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Tiffany</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Dallas" checked />Rajal</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Wha</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Dallas" checked />Richard</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Austin" checked />Eric</label></li>
+								</ul>
+							</td>
+							<td>
+								<ul class="people">
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+									<li>Dallas</li>
+									<li>Atlanta</li>
+									<li>Dallas</li>
+									<li>Austin</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div class="team-name">Team 3</div>
+								<div class="team-function">Context and Signals</div>
+							</td>
+							<td>
+								<ul class="people checklist">
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Shaheen</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Austin" checked />Tony</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Indiana" checked />Hamzah</label></li>
+								</ul>
+							</td>
+							<td>
+								<ul class="people">
+									<li>Atlanta</li>
+									<li>Austin</li>
+									<li>Indiana</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div class="team-name">Leaders</div>
+								<div class="team-function">Leadership</div>
+							</td>
+							<td>
+								<ul class="people checklist">
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Dallas" checked />Lalith</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Jessica</label></li>
+									<li><label><input type="checkbox" class="traveler-toggle" data-city="Atlanta" checked />Jesus</label></li>
+								</ul>
+							</td>
+							<td>
+								<ul class="people">
+									<li>Dallas</li>
+									<li>Atlanta</li>
+									<li>Atlanta</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody>
+					</table>
+				</div>
+				<aside class="summary-panel" aria-live="polite">
+					<h2 class="summary-label">Summary</h2>
+					<p class="summary-count" id="selected-summary">0 people selected</p>
+					<p class="summary-count" id="atlanta-summary">If meet in Atlanta: 0 people need to travel</p>
+					<p class="summary-count" id="dallas-summary">If meet in Dallas: 0 people need to travel</p>
+				</aside>
+			</section>
+		</main>
+		<script>
+			const travelerToggles = document.querySelectorAll(".traveler-toggle");
+			const selectedSummary = document.getElementById("selected-summary");
+			const atlantaSummary = document.getElementById("atlanta-summary");
+			const dallasSummary = document.getElementById("dallas-summary");
+
+			function countSelectedPeople() {
+				let count = 0;
+				travelerToggles.forEach((toggle) => {
+					if (toggle.checked) {
+						count += 1;
+					}
+				});
+				return count;
+			}
+
+			function countTravelersFor(destination) {
+				let count = 0;
+				travelerToggles.forEach((toggle) => {
+					if (toggle.checked && toggle.dataset.city !== destination) {
+						count += 1;
+					}
+				});
+				return count;
+			}
+
+			function updateSummary() {
+				const selectedCount = countSelectedPeople();
+				const atlantaCount = countTravelersFor("Atlanta");
+				const dallasCount = countTravelersFor("Dallas");
+
+				selectedSummary.textContent = `${selectedCount} people selected`;
+				atlantaSummary.textContent = `If meet in Atlanta: ${atlantaCount} people need to travel`;
+				dallasSummary.textContent = `If meet in Dallas: ${dallasCount} people need to travel`;
+			}
+
+			travelerToggles.forEach((toggle) => {
+				toggle.addEventListener("change", updateSummary);
+			});
+
+			updateSummary();
+		</script>
+	</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory game</title>
+    <link rel="stylesheet" href="./memory.css">
+    <script src="./memory.js"></script>
+
+</head> 
+<body background="./bg.jpg" onload="init()">
+    <div class="board" id="board">
+        <div class="block" id="b1""></div>
+        <div class="block" id="b2""></div>
+        <div class="block" id="b3""></div> 
+        <div class="block" id="b4""></div>
+    </div>
+
+    <div id="instruction">
+        <span>Now it's your turn!</span>
+    </div>
+
+    <div id="onboarding">
+        <span>Welcome to the sound memory game!</span>
+        <div id="start" onclick="startGame()">Click here to start the game</div>
+    </div>
+
+    <div id="board_cover"></div>
+    <a href="./audios/success_meow.wav">meow_sound</a>
+</body>
+</html>

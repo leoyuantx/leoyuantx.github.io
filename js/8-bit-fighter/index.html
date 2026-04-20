@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>8-Bit Fighter</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+	<div id="title-screen" class="screen">
+		<canvas id="particles-canvas"></canvas>
+		<div class="ground-silhouette"></div>
+		<div class="scanlines"></div>
+		<h1>8-BIT FIGHTER</h1>
+		<p>BECOME THE LEGENDARY WARRIOR</p>
+		<div class="menu-stack">
+			<button id="training-btn" class="btn warn">TRAINING</button>
+			<button id="start-btn" class="btn success hidden">START ADVENTURE</button>
+			<button id="find-level-btn" class="btn info">FIND LEVEL</button>
+			<button id="title-map-btn" class="btn info">🗺 WORLD MAP</button>
+			<button id="arena-btn" class="btn danger">⚔ ARENA MODE</button>
+		</div>
+		<p class="hint">WASD: MOVE • SPACE: JUMP • CLICK: SWORD • R: BOW MODE • E: TALK • Q: SHOP • C: GUARD • X: ELEMENT (HOLD 3s: SWITCH)</p>
+	</div>
+
+	<canvas id="game"></canvas>
+
+	<div id="hud" class="hidden">
+		<div class="hud-col">
+			<div class="hud-box">LEVEL: <span id="level-name">TRAINING</span></div>
+			<div class="bar-wrap"><div id="hp-fill"></div></div>
+			<div class="hud-box">HP: <span id="hp-text">20/20</span></div>
+			<div class="hud-box">FORCE FIELD: <span id="forcefield-text">OFF</span></div>
+		</div>
+		<div class="hud-col right">
+			<div class="hud-box">ARROWS: <span id="arrows">10</span></div>
+			<div class="hud-box money">MONEY: <span id="money">0</span></div>
+			<div class="hud-box">GEAR: <span id="gear">WOODEN Lv1</span></div>
+			<div class="hud-box">ELEMENT: <span id="element-hud">NONE</span></div>
+			<div class="hud-box">PARTY: <span id="party">1/5</span></div>
+		</div>
+		<div id="quest-hud" class="hud-box" style="display:none; position:absolute; bottom:4px; left:50%; transform:translateX(-50%); color:#facc15; font-size:9px; white-space:nowrap;"></div>
+	</div>
+
+	<div id="tutorial-hint" class="floating hidden"></div>
+	<div id="dialogue" class="panel hidden"></div>
+	<div id="bow-indicator" class="floating hidden">BOW MODE - CLICK ENEMY TO TARGET</div>
+
+	<div id="potion-slots" class="hidden"></div>
+
+	<div id="level-finder" class="panel hidden">
+		<h2>PLEASE ENTER YOUR LEVEL'S NAME</h2>
+		<input id="level-name-input" placeholder="TYPE LEVEL NAME HERE" />
+		<p class="hint">TYPE IN UPPERCASE</p>
+		<div class="row">
+			<button id="go-level-btn" class="btn success">GO</button>
+			<button id="cancel-level-btn" class="btn danger">CANCEL</button>
+		</div>
+	</div>
+
+	<div id="arena-ui" class="panel hidden">
+		<h2>⚔ ARENA ⚔</h2>
+		<p class="hint">CLICK A MOB THEN CLICK THE FIELD</p>
+
+		<h3 style="font-size:9px;color:#22d3ee;margin:4px 0 2px">⚙ PLAYER SETUP</h3>
+		<div class="arena-setup">
+			<label>ELEMENT
+				<select id="arena-element">
+					<option value="">NONE</option>
+					<option value="fire">🔥 FIRE</option>
+					<option value="lightning">⚡ LIGHTNING</option>
+					<option value="water">🌊 WATER</option>
+				</select>
+			</label>
+			<label>SWORD
+				<select id="arena-sword"></select>
+			</label>
+			<label>BOW
+				<select id="arena-bow"></select>
+			</label>
+			<label>ARROWS
+				<select id="arena-arrow"></select>
+			</label>
+			<label>SHIELD
+				<select id="arena-shield">
+					<option value="">NONE</option>
+				</select>
+			</label>
+			<label>ARMOR
+				<select id="arena-armor">
+					<option value="">NONE</option>
+				</select>
+			</label>
+			<label>HELMET
+				<select id="arena-helmet">
+					<option value="">NONE</option>
+				</select>
+			</label>
+			<label class="arena-toggle">
+				<input type="checkbox" id="arena-jetpack" /> 🚀 JETPACK
+			</label>
+			<label class="arena-toggle">
+				<input type="checkbox" id="arena-forcefield" /> 🛡 FORCE FIELD
+			</label>
+			<label>HP: <span id="arena-hp-val">20</span>
+				<input type="range" id="arena-hp" min="1" max="9999" value="20" />
+			</label>
+			<label>ARROWS: <span id="arena-arrows-val">10</span>
+				<input type="range" id="arena-arrows" min="0" max="999" value="10" />
+			</label>
+		</div>
+
+		<h3 style="font-size:9px;color:#94a3b8;margin:4px 0 2px">ENEMIES</h3>
+		<div class="arena-grid" id="arena-mobs"></div>
+		<h3 style="font-size:9px;color:#dc2626;margin:4px 0 2px">BOSSES</h3>
+		<div class="arena-grid" id="arena-bosses"></div>
+		<div class="row">
+			<button id="arena-start-btn" class="btn success">FIGHT</button>
+			<button id="arena-clear-btn" class="btn warn">CLEAR</button>
+			<button id="arena-exit-btn" class="btn danger">EXIT</button>
+		</div>
+	</div>
+
+	<div id="element-picker" class="panel hidden">
+		<h2>🔥 CHOOSE YOUR ELEMENT ⚡</h2>
+		<p class="hint">MASTER REN REWARDS YOUR STRENGTH</p>
+		<div class="element-grid">
+			<button class="btn element-btn fire" data-element="fire">🔥 FIRE</button>
+			<button class="btn element-btn lightning" data-element="lightning">⚡ LIGHTNING</button>
+			<button class="btn element-btn water" data-element="water">🌊 WATER</button>
+		</div>
+		<p class="hint">PRESS X TO USE CHARGED ATTACK (15s COOLDOWN)</p>
+	</div>
+
+	<div id="shop-panel" class="panel hidden"></div>
+
+	<div id="pause-menu" class="panel hidden">
+		<h2>⏸ PAUSED</h2>
+		<div id="equipment-view"></div>
+		<div class="row">
+			<button id="resume-btn" class="btn success">RESUME</button>
+			<button id="map-btn" class="btn info">WORLD MAP</button>
+			<button id="quit-btn" class="btn danger">QUIT</button>
+		</div>
+	</div>
+
+	<div id="world-map" class="panel hidden">
+		<h2>🗺 WORLD MAP</h2>
+		<div id="world-map-wrap">
+			<canvas id="world-map-canvas"></canvas>
+			<div id="world-map-labels"></div>
+		</div>
+		<div id="world-cards"></div>
+		<button id="close-map-btn" class="btn danger">CLOSE</button>
+	</div>
+
+	<script>
+	// Floating pixel particles on the title screen
+	(function(){
+		const cvs = document.getElementById('particles-canvas');
+		if (!cvs) return;
+		const ctx = cvs.getContext('2d');
+		let W, H;
+		const resize = () => { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; };
+		window.addEventListener('resize', resize);
+		resize();
+
+		const colors = [
+			'rgba(34,211,238,', 'rgba(168,85,247,', 'rgba(59,130,246,',
+			'rgba(236,72,153,', 'rgba(250,204,21,', 'rgba(45,212,191,'
+		];
+		const N = 60;
+		const particles = [];
+		for (let i = 0; i < N; i++) {
+			particles.push({
+				x: Math.random() * W,
+				y: Math.random() * H,
+				s: Math.random() * 3 + 1,          // pixel size
+				vx: (Math.random() - 0.5) * 0.3,
+				vy: -Math.random() * 0.4 - 0.1,
+				a: Math.random() * 0.6 + 0.2,       // alpha
+				da: (Math.random() - 0.5) * 0.008,  // alpha drift
+				c: colors[Math.floor(Math.random() * colors.length)]
+			});
+		}
+
+		// Shooting stars
+		const shootingStars = [];
+		function spawnShootingStar() {
+			shootingStars.push({
+				x: Math.random() * W * 0.6,
+				y: Math.random() * H * 0.4,
+				vx: 4 + Math.random() * 3,
+				vy: 1.5 + Math.random() * 1.5,
+				life: 60 + Math.random() * 40,
+				age: 0,
+				len: 20 + Math.random() * 30
+			});
+		}
+
+		let frame = 0;
+		function draw() {
+			ctx.clearRect(0, 0, W, H);
+
+			// Particles
+			for (const p of particles) {
+				p.x += p.vx;
+				p.y += p.vy;
+				p.a += p.da;
+				if (p.a > 0.8) p.da = -Math.abs(p.da);
+				if (p.a < 0.15) p.da = Math.abs(p.da);
+				if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+				if (p.x < -10) p.x = W + 10;
+				if (p.x > W + 10) p.x = -10;
+				ctx.fillStyle = p.c + p.a + ')';
+				ctx.fillRect(Math.round(p.x), Math.round(p.y), Math.round(p.s), Math.round(p.s));
+			}
+
+			// Shooting stars
+			if (frame % 180 === 0 && shootingStars.length < 2) spawnShootingStar();
+			for (let i = shootingStars.length - 1; i >= 0; i--) {
+				const s = shootingStars[i];
+				s.x += s.vx;
+				s.y += s.vy;
+				s.age++;
+				const progress = s.age / s.life;
+				const alpha = progress < 0.2 ? progress * 5 : (1 - progress);
+				if (alpha <= 0 || s.age > s.life) { shootingStars.splice(i, 1); continue; }
+				const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * s.len / s.vx, s.y - s.vy * s.len / s.vy);
+				grad.addColorStop(0, `rgba(255,255,255,${alpha})`);
+				grad.addColorStop(1, `rgba(255,255,255,0)`);
+				ctx.strokeStyle = grad;
+				ctx.lineWidth = 1.5;
+				ctx.beginPath();
+				ctx.moveTo(s.x, s.y);
+				ctx.lineTo(s.x - s.vx * (s.len / 5), s.y - s.vy * (s.len / 5));
+				ctx.stroke();
+				ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+				ctx.fillRect(Math.round(s.x), Math.round(s.y), 2, 2);
+			}
+
+			frame++;
+			requestAnimationFrame(draw);
+		}
+		draw();
+	})();
+	</script>
+	<script type="module" src="./js/main.js"></script>
+</body>
+</html>

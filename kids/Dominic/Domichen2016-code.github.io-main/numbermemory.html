@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Memory</title>
+    <link rel="icon" type="image/x-icon" href="Favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 40px 36px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4c1d95;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+        }
+
+        .game-subtitle {
+            font-size: 0.95rem;
+            color: #7c3aed;
+            margin-bottom: 28px;
+            font-weight: 400;
+        }
+
+        #startGame, #nextLevel, #confirmNumber {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            margin: 10px 0;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        #startGame:hover, #nextLevel:hover, #confirmNumber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5);
+        }
+
+        #startGame:active, #nextLevel:active, #confirmNumber:active {
+            transform: translateY(0);
+        }
+
+        #giveUp {
+            display: block;
+            width: 100%;
+            padding: 14px 24px;
+            margin: 10px 0;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #9ca3af;
+            background: transparent;
+            border: 2px dashed #d1d5db;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+
+        #giveUp:hover {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        #numberDisplay {
+            font-size: clamp(3.5rem, 14vw, 6rem);
+            font-weight: 700;
+            color: #4c1d95;
+            padding: 20px;
+            margin: 16px 0;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border-radius: 20px;
+            letter-spacing: 0.1em;
+            text-shadow: 0 2px 4px rgba(76, 29, 149, 0.1);
+        }
+
+        #countdownTimer {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #6d28d9;
+            padding: 14px 20px;
+            margin: 14px 0;
+            background: #f5f3ff;
+            border-radius: 12px;
+            border: 1px solid #ede9fe;
+        }
+
+        #msg {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #059669;
+            padding: 16px 20px;
+            margin: 12px 0;
+            min-height: 0;
+            cursor: pointer;
+            border-radius: 14px;
+            transition: background 0.15s ease;
+        }
+
+        #msg:not(:empty) {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+        }
+
+        #msg:hover:not(:empty) {
+            background: #d1fae5;
+        }
+
+        #userInput {
+            width: 100%;
+            padding: 16px 20px;
+            margin: 12px 0;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+            color: #4c1d95;
+            background: #f5f3ff;
+            border: 2px solid #ddd6fe;
+            border-radius: 14px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            -moz-appearance: textfield;
+        }
+
+        #userInput::-webkit-outer-spin-button,
+        #userInput::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #userInput:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 28px 20px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+    <script>
+        var currentLevel = 1;
+        var isWrongOnce = false;
+        
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }   
+        function countdown(seconds) {
+            var countdownElement = document.getElementById("countdownTimer");
+            countdownElement.innerHTML = "Memorize the number: " + seconds;
+            if (seconds > 0) {
+                setTimeout(function() {
+                    countdown(seconds - 1);
+                }, 1000);
+            } else {
+                countdownElement.innerHTML = "Time's up! Enter the number.";
+                document.getElementById("numberDisplay").style.display = "none";
+                document.getElementById("confirmNumber").style.display = "block";
+                document.getElementById("userInput").style.display = "block";
+            }
+            
+        }
+        function confirmNumber() {
+            var userInput = document.getElementById("userInput").value;
+            document.getElementById("confirmNumber").style.display = "none";
+            document.getElementById("userInput").style.display = "none";
+            document.getElementById("countdownTimer").style.display = "none";
+            if (parseInt(userInput) == targetNumber) {
+                currentLevel++;
+                document.getElementById("msg").style.display = "block";
+                document.getElementById("msg").innerHTML = "Correct! Click here to move to the next level.";
+            } else {
+                if (!isWrongOnce) {
+                    isWrongOnce = true;
+                    document.getElementById("msg").style.display = "block";
+                    document.getElementById("msg").innerHTML = "Incorrect. Try again!";
+                } else {
+                    document.getElementById("refreshGame").style.display = "block";
+                    document.getElementById("msg").style.display = "none";
+                    document.getElementById("refreshGame").innerHTML = "Incorrect. Game over! You got to level " + currentLevel + ". Click here to try again." ;
+                }
+            }
+        }
+
+        var targetNumber = 0;
+
+        function nextLevel() {
+            document.getElementById("startGame").style.display = "none";
+            document.getElementById("nextLevel").style.display = "none";
+            document.getElementById("giveUp").style.display = "none";
+            document.getElementById("confirmNumber").style.display = "none";
+            document.getElementById("userInput").style.display = "none";
+            
+            document.getElementById("countdownTimer").style.display = "block";
+
+
+            document.getElementById("msg").innerHTML = "";
+            const scale = Math.pow(10, currentLevel - 1);
+            var min = 1 * scale;
+            var max = 9 * scale;
+            console.log(min, max);
+            
+            targetNumber = getRandomInt(min, max);
+            document.getElementById("numberDisplay").innerHTML = targetNumber;
+            document.getElementById("numberDisplay").style.display = "block";
+            countdown(3);
+        }
+        function pressearly() {
+            confirmNumber();
+        }
+
+        function rg() {
+            location.reload();
+        }
+    </script>
+</head>
+<body>
+<div class="game-container">
+   <div class="game-title">🧠 Number Memory</div>
+   <div class="game-subtitle">How many digits can you remember?</div>
+   <div id="startGame" onclick="nextLevel()">Click here to start the game</div>
+   <div id="nextLevel" onclick="nextLevel()">Advance to Next Level</div>  
+   <div id="giveUp">Give Up</div>
+   <div id="confirmNumber" onclick="confirmNumber()">Confirm Number</div>
+   <div id="numberDisplay"></div>
+   <div id="countdownTimer"></div>
+   <div id="msg" onclick="nextLevel()"></div>
+   <input type="number" id="userInput" placeholder="Your answer..." >
+   <div id="refreshGame" onclick="rg()">Click here to refresh the game</div>
+</div>
+
+<script>
+    function initGame(params) {
+        currentLevel = 1;
+        isWrongOnce = false;
+        document.getElementById("numberDisplay").style.display = "none";
+        document.getElementById("confirmNumber").style.display = "none";
+        document.getElementById("userInput").style.display = "none";
+        document.getElementById("nextLevel").style.display = "none";
+        document.getElementById("giveUp").style.display = "none";
+        document.getElementById("refreshGame").style.display = "none";
+        document.getElementById("msg").style.display = "none";
+    }
+    initGame();
+
+    document.addEventListener(
+        'keyup', function(event){     
+            console.log(event.key);
+            if (event.key == "Enter") {
+                confirmNumber();
+            } 
+        }
+    ); 
+</script>
+
+</body>
+</html>

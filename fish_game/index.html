@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flop Fish</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #hud {
+      position: absolute;
+      top: 16px;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 24px;
+      color: #7ef4ff;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 8px #00d4ff;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    canvas {
+      display: block;
+      border: 3px solid #1e5f74;
+      border-radius: 12px;
+      box-shadow: 0 0 40px #0066aa88;
+    }
+
+    #overlay {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    #overlay h1 {
+      font-size: 52px;
+      color: #7ef4ff;
+      text-shadow: 0 0 20px #00d4ff;
+      letter-spacing: 3px;
+    }
+
+    #overlay p {
+      font-size: 20px;
+      color: #aee;
+    }
+
+    #overlay #score-display {
+      font-size: 28px;
+      color: #ffd700;
+      text-shadow: 0 0 10px #ffaa00;
+    }
+
+    #btn {
+      pointer-events: all;
+      cursor: pointer;
+      padding: 14px 40px;
+      font-size: 20px;
+      border: none;
+      border-radius: 40px;
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 0 20px #00aaff88;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #btn:hover { transform: scale(1.06); box-shadow: 0 0 30px #00aaff; }
+    #btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <span id="score-hud">Score: 0</span>
+  <span id="best-hud">Best: 0</span>
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="overlay">
+  <h1 id="title">🐟 Flop Fish</h1>
+  <p id="sub">Press <b>SPACE</b> or <b>tap</b> to flop!</p>
+  <div id="score-display" style="display:none"></div>
+  <button id="btn">Start</button>
+</div>
+
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  // Responsive canvas
+  const W = canvas.width  = Math.min(window.innerWidth  - 32, 520);
+  const H = canvas.height = Math.min(window.innerHeight - 80, 680);
+
+  // ── Game state ──────────────────────────────────────────────────────────────
+  const GRAVITY    = 0.55;
+  const FLOP_VY    = -10.5;
+  const FLOP_VX    =  5;
+  const FRICTION   =  0.82;
+  const GROUND     = H - 60;
+  const PIPE_W     = 54;
+  const PIPE_GAP   = 160;
+  const PIPE_SPEED = 2.8;
+  const PIPE_INTERVAL = 90; // frames
+
+  let state = 'idle'; // idle | playing | dead
+  let score = 0;
+  let best  = 0;
+  let frame = 0;
+  let pipes = [];
+  let particles = [];
+
+  const fish = {
+    x: W * 0.25, y: GROUND,
+    vx: 0, vy: 0,
+    w: 54, h: 30,
+    angle: 0, flopCharging: false,
+    onGround: true,
+    reset() {
+      this.x = W * 0.25; this.y = GROUND;
+      this.vx = 0; this.vy = 0;
+      this.angle = 0; this.onGround = true;
+    }
+  };
+
+  // ── Input ───────────────────────────────────────────────────────────────────
+  function flop() {
+    if (state === 'idle' || state === 'dead') { startGame(); return; }
+    if (state !== 'playing') return;
+    fish.vy = FLOP_VY;
+    fish.vx = FLOP_VX;
+    fish.onGround = false;
+    spawnParticles(fish.x, fish.y + fish.h / 2, 6, '#7ef4ff');
+  }
+
+  document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); flop(); } });
+  canvas.addEventListener('pointerdown', flop);
+  document.getElementById('btn').addEventListener('click', flop);
+
+  // ── Game flow ────────────────────────────────────────────────────────────────
+  function startGame() {
+    state   = 'playing';
+    score   = 0;
+    frame   = 0;
+    pipes   = [];
+    particles = [];
+    fish.reset();
+    document.getElementById('overlay').style.display = 'none';
+    updateHUD();
+  }
+
+  function die() {
+    state = 'dead';
+    spawnParticles(fish.x, fish.y, 20, '#ff6655');
+    best = Math.max(best, score);
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+    document.getElementById('title').textContent = '💀 You Flopped Out';
+    document.getElementById('sub').textContent = '';
+    const sd = document.getElementById('score-display');
+    sd.style.display = 'block';
+    sd.textContent = `Score: ${score}  |  Best: ${best}`;
+    document.getElementById('btn').textContent = 'Try Again';
+    document.getElementById('best-hud').textContent = `Best: ${best}`;
+  }
+
+  function updateHUD() {
+    document.getElementById('score-hud').textContent = `Score: ${score}`;
+    document.getElementById('best-hud').textContent  = `Best: ${best}`;
+  }
+
+  // ── Pipes ────────────────────────────────────────────────────────────────────
+  function spawnPipe() {
+    const minTop = 60;
+    const maxTop = H - GROUND + PIPE_GAP + 40;
+    const topH   = minTop + Math.random() * (H - minTop - maxTop - PIPE_GAP);
+    pipes.push({ x: W + PIPE_W, topH, scored: false });
+  }
+
+  // ── Particles ────────────────────────────────────────────────────────────────
+  function spawnParticles(x, y, n, color) {
+    for (let i = 0; i < n; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 4;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1, color,
+        r: 3 + Math.random() * 4
+      });
+    }
+  }
+
+  // ── Collision ────────────────────────────────────────────────────────────────
+  function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  // ── Update ───────────────────────────────────────────────────────────────────
+  function update() {
+    if (state !== 'playing') return;
+    frame++;
+
+    // Fish physics
+    fish.vy += GRAVITY;
+    fish.vx *= FRICTION;
+    fish.x  += fish.vx;
+    fish.y  += fish.vy;
+
+    // Ground bounce / land
+    if (fish.y >= GROUND) {
+      fish.y  = GROUND;
+      fish.vy = 0; fish.vx *= 0.5;
+      fish.onGround = true;
+    }
+
+    // Left wall
+    if (fish.x < 0) { fish.x = 0; fish.vx = 0; }
+
+    // Angle: tilt up when rising, tilt down when falling
+    const targetAngle = fish.onGround ? 0 : Math.max(-30, Math.min(30, fish.vy * 3));
+    fish.angle += (targetAngle - fish.angle) * 0.2;
+
+    // Scroll fish forward (camera effect — fish can also slide back into pipes)
+    // Actually fish moves, pipes move left
+    // Pipes
+    if (frame % PIPE_INTERVAL === 0) spawnPipe();
+
+    for (let i = pipes.length - 1; i >= 0; i--) {
+      const p = pipes[i];
+      p.x -= PIPE_SPEED;
+
+      // Score
+      if (!p.scored && p.x + PIPE_W < fish.x) {
+        p.scored = true;
+        score++;
+        updateHUD();
+        spawnParticles(fish.x, fish.y, 8, '#ffd700');
+      }
+
+      // Collision with pipe
+      const bottomY = p.topH + PIPE_GAP;
+      const hitTop    = rectOverlap(fish.x - fish.w/2, fish.y - fish.h/2, fish.w, fish.h,
+                                    p.x, 0, PIPE_W, p.topH);
+      const hitBottom = rectOverlap(fish.x - fish.w/2, fish.y - fish.h/2, fish.w, fish.h,
+                                    p.x, bottomY, PIPE_W, H - bottomY);
+      if (hitTop || hitBottom) { die(); return; }
+
+      if (p.x + PIPE_W < 0) pipes.splice(i, 1);
+    }
+
+    // Off top
+    if (fish.y < -fish.h) { die(); return; }
+
+    // Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x  += p.vx; p.y  += p.vy;
+      p.vy += 0.15;
+      p.life -= 0.04;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // ── Draw ──────────────────────────────────────────────────────────────────────
+  function drawBackground() {
+    // Sky gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND);
+    sky.addColorStop(0, '#0a1a2e');
+    sky.addColorStop(1, '#0a3a5e');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, GROUND);
+
+    // Ground (land)
+    const grd = ctx.createLinearGradient(0, GROUND, 0, H);
+    grd.addColorStop(0, '#5a3a1a');
+    grd.addColorStop(1, '#3a2010');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, GROUND, W, H - GROUND);
+
+    // Ground line
+    ctx.strokeStyle = '#7a5a2a';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND); ctx.stroke();
+
+    // Stars (idle / dead only — during play they scroll)
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    const starSeed = [0.1,0.3,0.5,0.7,0.9,0.15,0.55,0.82,0.42,0.66].map((v,i) => ({
+      x: v * W, y: (i % 5) * 40 + 10
+    }));
+    starSeed.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1.2, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  function drawPipes() {
+    pipes.forEach(p => {
+      const bottomY = p.topH + PIPE_GAP;
+
+      // Top pipe (hanging down)
+      drawPipeRect(p.x, 0, PIPE_W, p.topH, true);
+      // Bottom pipe
+      drawPipeRect(p.x, bottomY, PIPE_W, H - bottomY, false);
+    });
+  }
+
+  function drawPipeRect(x, y, w, h, fromTop) {
+    // Pipe body
+    const grad = ctx.createLinearGradient(x, 0, x + w, 0);
+    grad.addColorStop(0,   '#1a6e3a');
+    grad.addColorStop(0.4, '#2cb85a');
+    grad.addColorStop(1,   '#1a6e3a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, w, h);
+
+    // Cap
+    const capH = 18;
+    const capX = x - 4;
+    const capW = w + 8;
+    const capY = fromTop ? y + h - capH : y;
+    const capGrad = ctx.createLinearGradient(capX, 0, capX + capW, 0);
+    capGrad.addColorStop(0,   '#1a8e3a');
+    capGrad.addColorStop(0.4, '#3de870');
+    capGrad.addColorStop(1,   '#1a8e3a');
+    ctx.fillStyle = capGrad;
+    ctx.fillRect(capX, capY, capW, capH);
+
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(x + 6, y, 8, h);
+  }
+
+  function drawFish() {
+    ctx.save();
+    ctx.translate(fish.x, fish.y);
+    ctx.rotate((fish.angle * Math.PI) / 180);
+
+    // Flop animation: wiggle when on ground
+    const wiggle = fish.onGround ? Math.sin(frame * 0.25) * 4 : 0;
+
+    // Body
+    ctx.fillStyle = '#ff8c00';
+    ctx.beginPath();
+    ctx.ellipse(0, wiggle, fish.w / 2, fish.h / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = '#ffd080';
+    ctx.beginPath();
+    ctx.ellipse(4, wiggle + 4, fish.w / 2 - 10, fish.h / 2 - 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tail
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.moveTo(-fish.w / 2, wiggle);
+    ctx.lineTo(-fish.w / 2 - 18, wiggle - 14 + wiggle * 0.5);
+    ctx.lineTo(-fish.w / 2 - 18, wiggle + 14 - wiggle * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dorsal fin
+    ctx.fillStyle = '#ff5500';
+    ctx.beginPath();
+    ctx.moveTo(-10, wiggle - fish.h / 2);
+    ctx.lineTo(4,   wiggle - fish.h / 2 - 14);
+    ctx.lineTo(16,  wiggle - fish.h / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(16, wiggle - 4, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(18, wiggle - 4, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(19, wiggle - 6, 1.2, 0, Math.PI * 2); ctx.fill();
+
+    // Mouth
+    ctx.strokeStyle = '#aa4400';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(24, wiggle + 4, 4, 0.3, 1.2);
+    ctx.stroke();
+
+    // Scales
+    ctx.strokeStyle = 'rgba(200, 100, 0, 0.3)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(i * 12 - 8, wiggle + 2, 9, 0.5, Math.PI - 0.5);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawGroundDeco() {
+    // Rocks
+    ctx.fillStyle = '#6a4a2a';
+    [[50,GROUND+10,20,12],[180,GROUND+8,14,9],[320,GROUND+12,22,13],[460,GROUND+9,16,10]].forEach(([x,y,rx,ry]) => {
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  // ── Main loop ─────────────────────────────────────────────────────────────────
+  function loop() {
+    update();
+
+    ctx.clearRect(0, 0, W, H);
+    drawBackground();
+    drawGroundDeco();
+    drawPipes();
+    drawParticles();
+    drawFish();
+
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+</script>
+</body>
+</html>
