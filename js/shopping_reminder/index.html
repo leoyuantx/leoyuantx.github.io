@@ -596,13 +596,13 @@
                 <div class="form-group">
                     <label>🔄 Remind me to refill after:</label>
                     <div class="preset-buttons" id="refill-presets">
+                        <button type="button" class="preset-btn" data-days="0">Now</button>
                         <button type="button" class="preset-btn" data-days="7">1 week</button>
                         <button type="button" class="preset-btn" data-days="14">2 weeks</button>
-                        <button type="button" class="preset-btn" data-days="21">3 weeks</button>
                         <div class="preset-row-break"></div>
+                        <button type="button" class="preset-btn" data-days="21">3 weeks</button>
                         <button type="button" class="preset-btn" data-days="28">4 weeks</button>
                         <button type="button" class="preset-btn" data-days="90">3 months</button>
-                        <button type="button" class="preset-btn" data-days="180">6 months</button>
                     </div>
                     <input type="hidden" id="refill-days" />
                 </div>
@@ -640,13 +640,13 @@
             <div id="edit-refill-section" style="display:none; margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 10px; font-weight: 700; color: #555;">🔄 Refill after:</label>
                 <div class="preset-buttons" id="edit-refill-presets">
+                    <button type="button" class="preset-btn" data-days="0">Now</button>
                     <button type="button" class="preset-btn" data-days="7">1 week</button>
                     <button type="button" class="preset-btn" data-days="14">2 weeks</button>
-                    <button type="button" class="preset-btn" data-days="21">3 weeks</button>
                     <div class="preset-row-break"></div>
+                    <button type="button" class="preset-btn" data-days="21">3 weeks</button>
                     <button type="button" class="preset-btn" data-days="28">4 weeks</button>
                     <button type="button" class="preset-btn" data-days="90">3 months</button>
-                    <button type="button" class="preset-btn" data-days="180">6 months</button>
                 </div>
                 <input type="hidden" id="edit-refill-days" />
             </div>
@@ -757,6 +757,17 @@
         window.openAddItemModal = function() {
             document.getElementById('add-modal').classList.add('active');
             document.getElementById('item-name').focus();
+            // Select defaults
+            const defaultRefill = document.querySelector('#refill-presets .preset-btn[data-days="0"]');
+            if (defaultRefill && !document.getElementById('refill-days').value) {
+                defaultRefill.classList.add('selected');
+                document.getElementById('refill-days').value = '0';
+            }
+            const defaultConsume = document.querySelector('#consume-presets .preset-btn[data-days="3"]');
+            if (defaultConsume && !document.getElementById('consume-days').value) {
+                defaultConsume.classList.add('selected');
+                document.getElementById('consume-days').value = '3';
+            }
         };
 
         window.closeAddModal = function() {
@@ -764,6 +775,8 @@
             // Reset form
             document.getElementById('add-item-form').reset();
             document.querySelectorAll('#add-modal .preset-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('refill-days').value = '';
+            document.getElementById('consume-days').value = '';
             // document.getElementById('refill-selected').textContent = '';
             // document.getElementById('consume-selected').textContent = '';
         };
@@ -914,9 +927,9 @@
                 const allItems = loadItems();
                 allItems.push({
                     id: savedItem.id,
-                    name: savedItem.name,
-                    refill: Number(savedItem.refill),
-                    consume: Number(savedItem.consume)
+                    name: savedItem.name ?? name,
+                    refill: Number.isFinite(Number(savedItem.refill)) ? Number(savedItem.refill) : refillDays,
+                    consume: Number.isFinite(Number(savedItem.consume)) ? Number(savedItem.consume) : consumeDays
                 });
                 saveItems(allItems);
                 renderList();
