@@ -244,7 +244,7 @@ cartridge
 segregation
 tortillas
 civilian
-fertilizer (or fertiliser)
+fertilizer
 apprentice
 synthetic
 Caesar
@@ -262,7 +262,7 @@ initiation
 mascara
 perimeter
 precedent
-materialize (or materialise)
+materialize
 magnesium
 meticulous
 haddock
@@ -368,7 +368,7 @@ undulating
 credenza
 comprehensible
 protectorate
-brazier**
+brazier
 phenomenon
 trenchant
 pulmonary
@@ -387,7 +387,7 @@ pathologically
 embodiment
 butane
 thermotaxis
-glycerin**
+glycerin
 porpoises
 cataract
 inaugurate
@@ -412,7 +412,7 @@ annelids
 Tripoli
 endothermy
 cerulean
-kerosene**
+kerosene
 neurological
 éclair
 cul-de-sac
