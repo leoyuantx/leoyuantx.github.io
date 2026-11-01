@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.sheet {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    justify-items: stretch;
+}
+
+.sheet-box {
+    width: 50vw;
+    aspect-ratio: 3 / 2;
+    border: 1px solid #d8d8d8;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.photo {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border: 1px solid #e6e6e6;
+    box-sizing: border-box;
+}
+
+</style>
+</head>
+<body>
+
+<div class="sheet-box">
+    <div class="sheet">
+        <div class="photo"><img src="lina.jpg"></div>
+        <div class="photo"><img src="leo.jpg"></div>
+        <div class="photo"><img src="lina.jpg"></div>
+        <div class="photo"><img src="leo.jpg"></div>
+        <div class="photo"><img src="lina.jpg"></div>
+        <div class="photo"><img src="leo.jpg"></div>
+        <div class="photo"><img src="lina.jpg"></div>
+        <div class="photo"><img src="leo.jpg"></div>
+    </div>
+</div>
+
+</body>
+</html>

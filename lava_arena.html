@@ -150,6 +150,7 @@
       <span><strong>Character:</strong> <span id="charHud">Squire</span></span>
       <span><strong>Abilities:</strong> <span id="abilityHud">None</span></span>
       <span><strong>Alive:</strong> <span id="aliveHud">0</span></span>
+      <span><strong>Food:</strong> <span id="foodHud">0</span></span>
       <span><strong>State:</strong> <span id="stateHud">Menu</span></span>
     </div>
   </div>
@@ -160,6 +161,7 @@
       <p>Square island over lava. Enemies and teammates can knock you off. AI fights AI too.</p>
       <p>Win battle rewards: <strong>100-500 tokens</strong>. Obby race also rewards tokens.</p>
       <p>Controls: WASD/Arrows move, Space attack/jump, Shift dash, Q activate weapon ability.</p>
+      <p>Food spawns on the island. Walk over it to regain health.</p>
 
       <div class="row">
         <label for="modeSelect"><strong>Battle Mode:</strong></label>
@@ -211,6 +213,7 @@
     const charHud = document.getElementById("charHud");
     const abilityHud = document.getElementById("abilityHud");
     const aliveHud = document.getElementById("aliveHud");
+    const foodHud = document.getElementById("foodHud");
     const stateHud = document.getElementById("stateHud");
 
     const menuScreen = document.getElementById("menuScreen");
@@ -270,6 +273,8 @@
       shake: 0,
       entities: [],
       mechBots: [],
+      food: [],
+      foodTimer: 0,
       player: null,
       fx: [],
       obby: null,
@@ -398,6 +403,55 @@
       };
     }
 
+    const FOOD_MAX = 5;
+    const FOOD_HEAL_RATIO = 0.2;
+
+    function spawnFood() {
+      const pad = 46;
+      game.food.push({
+        x: arena.x + pad + Math.random() * (arena.w - pad * 2),
+        y: arena.y + pad + Math.random() * (arena.h - pad * 2),
+        r: 10,
+        bob: Math.random() * Math.PI * 2
+      });
+    }
+
+    function updateFood(dt) {
+      for (const f of game.food) f.bob += dt * 3;
+
+      game.foodTimer -= dt;
+      if (game.food.length < FOOD_MAX && game.foodTimer <= 0) {
+        spawnFood();
+        game.foodTimer = 4 + Math.random() * 3;
+      }
+
+      const player = game.player;
+      if (!player || player.dead || player.fallState) return;
+
+      for (let i = game.food.length - 1; i >= 0; i--) {
+        const f = game.food[i];
+        if (player.hp >= player.maxHp) break;
+        if (Math.hypot(player.x - f.x, player.y - f.y) > f.r + player.r + 4) continue;
+
+        const heal = Math.round(player.maxHp * FOOD_HEAL_RATIO);
+        player.hp = Math.min(player.maxHp, player.hp + heal);
+        game.food.splice(i, 1);
+        game.message = "Ate food: +" + heal + " HP";
+        game.msgTimer = 1.2;
+
+        for (let k = 0; k < 10; k++) {
+          game.fx.push({
+            x: f.x,
+            y: f.y,
+            vx: (Math.random() - 0.5) * 110,
+            vy: -40 - Math.random() * 90,
+            life: 0.35,
+            color: k % 2 ? "#7ce6a2" : "#d7ffe6"
+          });
+        }
+      }
+    }
+
     function startBattle() {
       game.state = "battle";
       game.running = true;
@@ -406,8 +460,10 @@
       game.fx = [];
       game.entities = [];
       game.mechBots = [];
+      game.food = [];
+      game.foodTimer = 3;
       game.battleMode = modeSelect.value;
-      game.message = "Fight! Knock enemies into lava or finish them on island.";
+      game.message = "Fight! Knock enemies into lava, eat food to heal.";
       game.msgTimer = 3;
 
       const cfg = modeConfigs[game.battleMode];
@@ -439,6 +495,8 @@
           game.entities.push(spawnEntity("enemy", false, sp.x, sp.y));
         }
       }
+
+      for (let i = 0; i < 3; i++) spawnFood();
 
       game.lastTs = performance.now();
       menuScreen.classList.add("hidden");
@@ -821,6 +879,7 @@
     function updateBattle(dt) {
       for (const ent of game.entities) updateEntity(ent, dt);
       updateMechanistBots(dt);
+      updateFood(dt);
       game.entities = game.entities.filter((e) => !e.dead);
 
       const playerAlive = game.player && !game.player.dead && game.entities.includes(game.player);
@@ -990,6 +1049,35 @@
       ctx.ellipse(x, y + r + 3, r * 0.95, r * 0.42, 0, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(0,0,0,0.28)";
       ctx.fill();
+    }
+
+    function drawFood() {
+      for (const f of game.food) {
+        const bob = Math.sin(f.bob) * 2;
+        drawShadow(f.x, f.y + 2, f.r * 0.9);
+
+        ctx.save();
+        ctx.globalAlpha = 0.2 + Math.sin(f.bob * 1.6) * 0.06;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y - bob, f.r + 7, 0, Math.PI * 2);
+        ctx.fillStyle = "#7ce6a2";
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(f.x, f.y - bob);
+        ctx.fillStyle = "#d94f3a";
+        ctx.fillRect(-8, -6, 16, 12);
+        ctx.fillStyle = "#ff8b6b";
+        ctx.fillRect(-8, -6, 16, 4);
+        ctx.fillStyle = "#6b4320";
+        ctx.fillRect(-1, -11, 3, 5);
+        ctx.fillStyle = "#7ce6a2";
+        ctx.fillRect(2, -11, 6, 4);
+        ctx.fillStyle = "#fff6d8";
+        ctx.fillRect(-5, -3, 3, 3);
+        ctx.restore();
+      }
     }
 
     function drawCutscene(ent) {
@@ -1221,6 +1309,7 @@
       }
 
       stateHud.textContent = game.state;
+      foodHud.textContent = game.state === "obby" ? "-" : game.food.length.toString();
       shopTokens.textContent = game.save.tokens.toString();
     }
 
@@ -1257,6 +1346,7 @@
 
       drawLavaBackground(dt);
       drawArenaRect();
+      drawFood();
       const drawList = [...game.entities].sort((a, b) => a.y - b.y);
       for (const ent of drawList) drawEntity(ent);
       drawMechBots();
