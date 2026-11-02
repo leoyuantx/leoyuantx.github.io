@@ -112,6 +112,171 @@
     .sort-switch-label:hover {
       opacity: 0.8;
     }
+
+    .title-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-button {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      background: white;
+      color: #555;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .settings-button:hover {
+      background: #f0f1ff;
+      color: #667eea;
+    }
+
+    .settings-button img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .settings-dialog {
+      width: min(420px, calc(100% - 32px));
+      margin: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .settings-dialog::backdrop {
+      background: rgba(25, 28, 48, 0.55);
+      backdrop-filter: blur(2px);
+    }
+
+    .settings-panel {
+      display: flex;
+      min-height: min(360px, calc(100dvh - 40px));
+      flex-direction: column;
+      padding: 32px;
+    }
+
+    .settings-panel h2 {
+      margin: 0 0 20px;
+      color: #222;
+      font-size: 1.35rem;
+    }
+
+    .sound-setting {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 28px;
+      color: #444;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .sound-picker {
+      position: relative;
+    }
+
+    .sound-picker-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d8d9e2;
+      border-radius: 8px;
+      background: white;
+      color: #333;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .sound-picker-toggle img {
+      width: 14px;
+      height: 14px;
+      object-fit: contain;
+    }
+
+    .sound-options {
+      position: absolute;
+      z-index: 1;
+      top: calc(100% + 4px);
+      right: 0;
+      left: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px;
+      border: 1px solid #d8d9e2;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    }
+
+    .sound-options[hidden] {
+      display: none;
+    }
+
+    .sound-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sound-choice,
+    .sound-preview {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #444;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .sound-choice {
+      flex: 1;
+      padding: 9px 10px;
+      text-align: left;
+    }
+
+    .sound-choice:hover,
+    .sound-choice[aria-pressed="true"] {
+      background: #f0f1ff;
+      color: #5264cf;
+    }
+
+    .sound-preview {
+      min-width: 42px;
+      height: 36px;
+      padding: 0 8px;
+      color: #667eea;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .sound-preview:hover {
+      background: #f0f1ff;
+    }
+
+    .settings-close {
+      display: block;
+      margin: auto 0 0 auto;
+      padding: 9px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #667eea;
+      color: white;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
     
     .subtitle {
       text-align: center;
@@ -354,6 +519,31 @@
       <p>✏️ Spelling Bee Word List | Last updated: December 2025</p>
     </div>
   </div>
+
+  <dialog class="settings-dialog" id="sound-settings-dialog" aria-labelledby="sound-settings-title">
+    <div class="settings-panel">
+      <h2 id="sound-settings-title">Sound settings</h2>
+      <div class="sound-setting">
+        <span id="correct-sound-label">Correct sound</span>
+        <div class="sound-picker" data-sound-type="correct" data-sound-count="6">
+          <button class="sound-picker-toggle" type="button" aria-expanded="false" aria-haspopup="true" aria-labelledby="correct-sound-label correct-sound-value">
+            <span id="correct-sound-value">Random</span><img src="./images/down_arrow.png" alt="" aria-hidden="true">
+          </button>
+          <div class="sound-options" hidden></div>
+        </div>
+      </div>
+      <div class="sound-setting">
+        <span id="wrong-sound-label">Wrong sound</span>
+        <div class="sound-picker" data-sound-type="wrong" data-sound-count="6">
+          <button class="sound-picker-toggle" type="button" aria-expanded="false" aria-haspopup="true" aria-labelledby="wrong-sound-label wrong-sound-value">
+            <span id="wrong-sound-value">Random</span><img src="./images/down_arrow.png" alt="" aria-hidden="true">
+          </button>
+          <div class="sound-options" hidden></div>
+        </div>
+      </div>
+      <button class="settings-close" id="close-sound-settings" type="button">Done</button>
+    </div>
+  </dialog>
   
   <script type="module">
     const words = await fetch('./sources/words.txt')
@@ -382,6 +572,99 @@
 
     const tabsContainer = document.getElementById('tabs-container');
     const contentsContainer = document.getElementById('tab-contents-container');
+    const soundSettingsDialog = document.getElementById('sound-settings-dialog');
+    const soundSettings = {
+      correct: localStorage.getItem('correctSound') || 'random',
+      wrong: localStorage.getItem('wrongSound') || 'random'
+    };
+
+    document.querySelectorAll('.sound-picker').forEach(picker => {
+      const type = picker.dataset.soundType;
+      const count = Number(picker.dataset.soundCount);
+      const toggle = picker.querySelector('.sound-picker-toggle');
+      const valueLabel = picker.querySelector(`#${type}-sound-value`);
+      const options = picker.querySelector('.sound-options');
+      const savedSound = soundSettings[type];
+      if (savedSound !== 'random' && (!Number.isInteger(Number(savedSound)) || Number(savedSound) < 1 || Number(savedSound) > count)) {
+        soundSettings[type] = 'random';
+      }
+
+      const closePicker = () => {
+        options.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+      };
+
+      const setSelectedSound = value => {
+        soundSettings[type] = value;
+        valueLabel.textContent = value === 'random' ? 'Random' : `${type}_${value}`;
+        localStorage.setItem(`${type}Sound`, value);
+        options.querySelectorAll('.sound-choice').forEach(choice => {
+          choice.setAttribute('aria-pressed', String(choice.dataset.soundNumber === value));
+        });
+        closePicker();
+      };
+
+      const addSoundOption = (value, label) => {
+        const row = document.createElement('div');
+        row.className = 'sound-option';
+
+        const choice = document.createElement('button');
+        choice.className = 'sound-choice';
+        choice.type = 'button';
+        choice.textContent = label;
+        choice.dataset.soundNumber = value;
+        choice.setAttribute('aria-pressed', String(soundSettings[type] === value));
+        choice.addEventListener('click', () => setSelectedSound(value));
+
+        const preview = document.createElement('button');
+        preview.className = 'sound-preview';
+        preview.type = 'button';
+        preview.textContent = 'Play';
+        preview.setAttribute('aria-label', `Play ${label}`);
+        preview.title = `Play ${label}`;
+        preview.addEventListener('click', () => {
+          const soundNumber = value === 'random'
+            ? Math.floor(Math.random() * count) + 1
+            : Number(value);
+          playSound(type, soundNumber);
+        });
+
+        row.appendChild(choice);
+        row.appendChild(preview);
+        options.appendChild(row);
+      };
+
+      addSoundOption('random', 'Random');
+      for (let soundNumber = 1; soundNumber <= count; soundNumber++) {
+        addSoundOption(String(soundNumber), `${type}_${soundNumber}`);
+      }
+      valueLabel.textContent = soundSettings[type] === 'random'
+        ? 'Random'
+        : `${type}_${soundSettings[type]}`;
+
+      toggle.addEventListener('click', () => {
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        document.querySelectorAll('.sound-picker').forEach(otherPicker => {
+          otherPicker.querySelector('.sound-options').hidden = true;
+          otherPicker.querySelector('.sound-picker-toggle').setAttribute('aria-expanded', 'false');
+        });
+        options.hidden = isExpanded;
+        toggle.setAttribute('aria-expanded', String(!isExpanded));
+      });
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.sound-picker')) {
+        document.querySelectorAll('.sound-picker').forEach(picker => {
+          picker.querySelector('.sound-options').hidden = true;
+          picker.querySelector('.sound-picker-toggle').setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+
+    document.getElementById('close-sound-settings').addEventListener('click', () => {
+      soundSettingsDialog.close();
+    });
 
     // Generate tabs
     pages.forEach((page, idx) => {
@@ -425,8 +708,26 @@
       sortSwitch.appendChild(sortCheckbox);
       sortSwitch.appendChild(sortLabel);
 
+      const titleActions = document.createElement('div');
+      titleActions.className = 'title-actions';
+      titleActions.appendChild(sortSwitch);
+
+      const settingsButton = document.createElement('button');
+      settingsButton.className = 'settings-button';
+      settingsButton.type = 'button';
+      settingsButton.setAttribute('aria-label', 'Open sound settings');
+      settingsButton.title = 'Sound settings';
+      const settingsIcon = document.createElement('img');
+      settingsIcon.src = './images/gear.png';
+      settingsIcon.alt = '';
+      settingsButton.appendChild(settingsIcon);
+      settingsButton.addEventListener('click', () => {
+        soundSettingsDialog.showModal();
+      });
+      titleActions.appendChild(settingsButton);
+
       titleContainer.appendChild(title);
-      titleContainer.appendChild(sortSwitch);
+      titleContainer.appendChild(titleActions);
       content.appendChild(titleContainer);
 
       const grid = document.createElement('div');
@@ -648,6 +949,19 @@
       }
     }
 
+    function playSound(prefix, soundNumber) {
+      const sound = new Audio(`./sound_effects/${prefix}_${soundNumber}.mp3`);
+      sound.play().catch(error => console.error('Unable to play sound:', error));
+    }
+
+    function playRandomSound(prefix, count) {
+      const selectedSound = soundSettings[prefix];
+      const soundNumber = selectedSound === 'random'
+        ? Math.floor(Math.random() * count) + 1
+        : Number(selectedSound);
+      playSound(prefix, soundNumber);
+    }
+
     // Function for minus button
     async function onMinusClick(word, btn) {
       const counter = btn.parentElement.querySelector('.word-counter');
@@ -656,8 +970,7 @@
       
       const success = await updateWordCounterAPI(word, newCount);
       if (success) {
-        var coinSound = new Audio('./sounds/correct.mp3');
-        coinSound.play();
+        playRandomSound('correct', 6);
         counter.textContent = newCount;
         counter.dataset.count = newCount;
       }
@@ -671,8 +984,7 @@
       
       const success = await updateWordCounterAPI(word, newCount);
       if (success) {
-        var oofSound = new Audio('./sounds/oof.mp3');
-        oofSound.play();
+        playRandomSound('wrong', 6);
 
         counter.textContent = newCount;
         counter.dataset.count = newCount;
