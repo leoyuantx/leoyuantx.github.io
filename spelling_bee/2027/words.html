@@ -284,6 +284,110 @@
       margin-bottom: 30px;
       font-size: 16px;
     }
+
+    .login-screen {
+      display: grid;
+      min-height: calc(100vh - 80px);
+      place-items: center;
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      padding: 36px;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-card h1 {
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+
+    .login-description {
+      margin-bottom: 28px;
+      color: #666;
+      text-align: center;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 16px;
+    }
+
+    .login-form label {
+      display: grid;
+      gap: 7px;
+      color: #444;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d8d9e2;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    .login-form input:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 1px;
+    }
+
+    .login-submit {
+      margin-top: 6px;
+      padding: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .login-error {
+      min-height: 20px;
+      color: #b42318;
+      font-size: 14px;
+    }
+
+    .account-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 24px;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .logout-button {
+      padding: 8px 12px;
+      border: 1px solid #d8d9e2;
+      border-radius: 7px;
+      background: white;
+      color: #555;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .logout-button:hover {
+      background: #f0f1ff;
+      color: #5264cf;
+    }
+
+    .storage-error {
+      margin-bottom: 16px;
+      color: #b42318;
+      font-size: 14px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
     
     .tabs {
       display: flex;
@@ -504,7 +608,29 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <main class="login-screen" id="login-screen">
+    <section class="login-card" aria-labelledby="login-title">
+      <h1 id="login-title">Words of Champions</h1>
+      <p class="login-description">Sign in to continue to your spelling practice.</p>
+      <form class="login-form" id="login-form">
+        <label for="username">Username
+          <input id="username" name="username" autocomplete="username" required autofocus>
+        </label>
+        <label for="password">Password
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="login-error" id="login-error" role="alert" aria-live="polite"></p>
+        <button class="login-submit" type="submit" disabled>Log in</button>
+      </form>
+    </section>
+  </main>
+
+  <div class="container" id="app-shell" hidden>
+    <div class="account-bar">
+      <span>Signed in as <strong id="active-username"></strong></span>
+      <button class="logout-button" id="logout-button" type="button">Log out</button>
+    </div>
+    <p class="storage-error" id="storage-error" role="alert" hidden></p>
     <h1>Words of Champions </h1>
     
     <div class="tabs" id="tabs-container">
@@ -516,7 +642,7 @@
     </div>
     
     <div class="footer">
-      <p>✏️ Spelling Bee Word List | Last updated: December 2025</p>
+      <p>✏️ Spelling Bee Word List | Last updated: November 2026</p>
     </div>
   </div>
 
@@ -546,28 +672,99 @@
   </dialog>
   
   <script type="module">
-    const words = await fetch('./sources/words.txt')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to load source words: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then(text => text
-        .split(/\r?\n/)
-        .map(word => word.trim())
-        .filter(Boolean)
-      );
+    const loginScreen = document.getElementById('login-screen');
+    const appShell = document.getElementById('app-shell');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const storageError = document.getElementById('storage-error');
+    const activeUsernameLabel = document.getElementById('active-username');
+    const loginButton = loginForm.querySelector('button[type="submit"]');
+    const LOGIN_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/logIn';
+    let activeUsername = null;
+    let userCounters = {};
+    let wordCounterDefaults = {};
 
-    const pageSize = Math.ceil(words.length / 5);
-    const pages = Array.from({ length: 5 }, (_, index) => {
-      const start = index * pageSize;
-      const end = start + pageSize;
-      return {
-        words: words.slice(start, end),
-        label: `📖 ${index + 1}`,
-        title: `page ${index + 1}`
-      };
+    function showSignedInState(username) {
+      activeUsername = username;
+      activeUsernameLabel.textContent = username;
+      loginScreen.hidden = true;
+      appShell.hidden = false;
+      storageError.hidden = true;
+    }
+
+    loginForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const formData = new FormData(loginForm);
+      const username = String(formData.get('username')).trim();
+      const password = String(formData.get('password'));
+      loginError.textContent = '';
+      loginButton.disabled = true;
+
+      try {
+        const response = await fetch(LOGIN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const result = await response.json();
+
+        if (response.status === 401) {
+          loginError.textContent = 'Username or password is incorrect.';
+          return;
+        }
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || `Login request failed: ${response.status}`);
+        }
+        if (!Array.isArray(result.words) || result.words.length === 0) {
+          loginError.textContent = 'No words are available for this account yet.';
+          return;
+        }
+        if (result.words.some(entry => !entry || typeof entry.word !== 'string' || !entry.word.trim())) {
+          throw new Error('The login response contains an invalid word list.');
+        }
+
+        let parsedCounters;
+        try {
+          const savedCounters = localStorage.getItem(`spellingBeeCounters:${username}`);
+          parsedCounters = savedCounters === null ? {} : JSON.parse(savedCounters);
+          if (typeof parsedCounters !== 'object' || parsedCounters === null || Array.isArray(parsedCounters)) {
+            throw new Error('Saved word counters have an invalid format.');
+          }
+          if (Object.values(parsedCounters).some(count => !Number.isInteger(count) || count < 0)) {
+            throw new Error('Saved word counters contain invalid values.');
+          }
+        } catch (error) {
+          console.error('Unable to load this user’s word counters:', error);
+          loginError.textContent = 'Unable to load your saved counters in this browser.';
+          return;
+        }
+        wordCounterDefaults = Object.fromEntries(result.words.map(entry => [
+          entry.word,
+          Number.isInteger(entry.count) && entry.count >= 0 ? entry.count : 3
+        ]));
+        userCounters = parsedCounters;
+        renderWordPages(result.words.map(entry => entry.word));
+        showSignedInState(username);
+        loadWordCounters();
+      } catch (error) {
+        console.error('Unable to log in:', error);
+        loginError.textContent = 'Unable to log in right now. Please try again.';
+      } finally {
+        loginButton.disabled = false;
+      }
+    });
+
+    document.getElementById('logout-button').addEventListener('click', () => {
+      activeUsername = null;
+      userCounters = {};
+      wordCounterDefaults = {};
+      tabsContainer.replaceChildren();
+      contentsContainer.replaceChildren();
+      appShell.hidden = true;
+      loginScreen.hidden = false;
+      loginForm.reset();
+      loginError.textContent = '';
+      document.getElementById('username').focus();
     });
 
     const tabsContainer = document.getElementById('tabs-container');
@@ -666,7 +863,22 @@
       soundSettingsDialog.close();
     });
 
-    // Generate tabs
+    function renderWordPages(words) {
+      const pageSize = Math.ceil(words.length / 5);
+      const pages = Array.from({ length: 5 }, (_, index) => {
+        const start = index * pageSize;
+        const end = start + pageSize;
+        return {
+          words: words.slice(start, end),
+          label: `📖 ${index + 1}`,
+          title: `page ${index + 1}`
+        };
+      });
+
+      tabsContainer.replaceChildren();
+      contentsContainer.replaceChildren();
+
+      // Generate tabs
     pages.forEach((page, idx) => {
       const btn = document.createElement('button');
       btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
@@ -877,76 +1089,19 @@
       });
     }
 
-    // Set up tabs after all content is generated
-    setupTabSwitching();
-
-    // API endpoint for updating word counters
-    const API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/updateWordCounter';
-    const GET_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/getWordCounters';
-
-    // Function to fetch all word counters on page load
-    async function loadWordCounters() {
-      try {
-        const response = await fetch(GET_API_URL, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          // Update all counter displays with fetched data
-          document.querySelectorAll('.word-counter').forEach(counter => {
-            const wordElement = counter.parentElement.parentElement.querySelector('.word');
-            const word = wordElement.textContent.trim();
-            
-            if (data.data[word] !== undefined) {
-              counter.textContent = data.data[word];
-              counter.dataset.count = data.data[word];
-            } else {
-              // If counter doesn't exist in backend, set to 3
-              counter.textContent = '3';
-              counter.dataset.count = '3';
-            }
-          });
-          console.log('Word counters loaded successfully');
-        } else {
-          console.warn('Failed to load word counters:', data.error);
-        }
-      } catch (error) {
-        console.error('Failed to fetch word counters:', error);
-      }
+      // Set up tabs after all content is generated
+      setupTabSwitching();
     }
 
-    // Function to call the API
-    async function updateWordCounterAPI(word, count) {
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            word: word,
-            count: count
-          })
-        });
+    loginButton.disabled = false;
 
-        const data = await response.json();
-        
-        if (data.success) {
-          console.log('Counter updated:', data.message);
-          return true;
-        } else {
-          console.error('Error:', data.error);
-          return false;
-        }
-      } catch (error) {
-        console.error('Request failed:', error);
-        return false;
-      }
+    function loadWordCounters() {
+      document.querySelectorAll('.word-counter').forEach(counter => {
+        const word = counter.parentElement.parentElement.querySelector('.word').textContent.trim();
+        const count = userCounters[word] ?? wordCounterDefaults[word] ?? 3;
+        counter.textContent = count;
+        counter.dataset.count = count;
+      });
     }
 
     function playSound(prefix, soundNumber) {
@@ -962,37 +1117,45 @@
       playSound(prefix, soundNumber);
     }
 
-    // Function for minus button
-    async function onMinusClick(word, btn) {
+    function updateWordCounter(word, count) {
+      try {
+        const updatedCounters = { ...userCounters, [word]: count };
+        localStorage.setItem(`spellingBeeCounters:${activeUsername}`, JSON.stringify(updatedCounters));
+        userCounters = updatedCounters;
+        storageError.hidden = true;
+        return true;
+      } catch (error) {
+        console.error('Unable to save this user’s word counters:', error);
+        storageError.textContent = 'Your counter change could not be saved in this browser.';
+        storageError.hidden = false;
+        return false;
+      }
+    }
+
+    function onMinusClick(word, btn) {
       const counter = btn.parentElement.querySelector('.word-counter');
       let currentCount = parseInt(counter.dataset.count || 0);
       const newCount = Math.max(0, currentCount - 1);
       
-      const success = await updateWordCounterAPI(word, newCount);
-      if (success) {
+      if (updateWordCounter(word, newCount)) {
         playRandomSound('correct', 6);
         counter.textContent = newCount;
         counter.dataset.count = newCount;
       }
     }
 
-    // Function for plus button
-    async function onPlusClick(word, btn) {
+    function onPlusClick(word, btn) {
       const counter = btn.parentElement.querySelector('.word-counter');
       let currentCount = parseInt(counter.dataset.count || 0);
       const newCount = currentCount + 1;
       
-      const success = await updateWordCounterAPI(word, newCount);
-      if (success) {
+      if (updateWordCounter(word, newCount)) {
         playRandomSound('wrong', 6);
 
         counter.textContent = newCount;
         counter.dataset.count = newCount;
       }
     }
-
-    // Load word counters when page is ready
-    loadWordCounters();
   </script>
 </body>
 </html>

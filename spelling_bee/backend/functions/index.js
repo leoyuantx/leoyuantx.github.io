@@ -98,3 +98,131 @@ exports.updateWordCounter = onRequest(async (request, response) => {
     response.status(500).json({success: false, error: error.message});
   }
 });
+
+// POST endpoint - Verify a user's credentials
+exports.logIn = onRequest(async (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (request.method === "OPTIONS") {
+    response.status(204).send("");
+    return;
+  }
+
+  if (request.method !== "POST") {
+    response.status(405).json({success: false, error: "Method not allowed"});
+    return;
+  }
+
+  try {
+    const {username, password} = request.body || {};
+    if (typeof username !== "string" || !username.trim() ||
+        typeof password !== "string" || !password) {
+      response.status(400).json({
+        success: false,
+        error: "Username and password are required"
+      });
+      return;
+    }
+
+    const snapshot = await db.collection("users")
+        .where("name", "==", username.trim())
+        .limit(1)
+        .get();
+    const userDocument = snapshot.docs[0];
+    const user = userDocument?.data();
+
+    if (!userDocument || user.password !== password) {
+      response.status(401).json({
+        success: false,
+        error: "Invalid username or password"
+      });
+      return;
+    }
+
+    const wordsSnapshot = await userDocument.ref.collection("words").get();
+    const words = wordsSnapshot.docs
+        .map(document => ({...document.data(), word: document.id}))
+        .sort((a, b) => {
+          const orderA = Number.isInteger(a.order) ? a.order : Number.MAX_SAFE_INTEGER;
+          const orderB = Number.isInteger(b.order) ? b.order : Number.MAX_SAFE_INTEGER;
+          const orderDifference = orderA - orderB;
+          return orderDifference || a.word.localeCompare(b.word);
+        });
+
+    response.status(200).json({
+      success: true,
+      username: username.trim(),
+      words
+    });
+  } catch (error) {
+    logger.error("Error verifying user credentials:", error);
+    response.status(500).json({
+      success: false,
+      error: "Unable to verify credentials"
+    });
+  }
+});
+
+// POST endpoint - Seed word counters for an authenticated user
+exports.seedUserWords = onRequest(async (request, response) => {
+  if (request.method !== "POST") {
+    response.status(405).json({success: false, error: "Method not allowed"});
+    return;
+  }
+
+  try {
+    const {username, password, words} = request.body || {};
+    if (typeof username !== "string" || !username.trim() ||
+        typeof password !== "string" || !password ||
+        !Array.isArray(words) || words.length === 0 || words.length > 500 ||
+        words.some(word => typeof word !== "string" || !word.trim() ||
+          word.includes("/") || Buffer.byteLength(word, "utf8") > 1500) ||
+        new Set(words).size !== words.length) {
+      response.status(400).json({
+        success: false,
+        error: "Provide a username, password, and 1 to 500 unique, valid words"
+      });
+      return;
+    }
+
+    const userSnapshot = await db.collection("users")
+        .where("name", "==", username.trim())
+        .limit(1)
+        .get();
+    const userDocument = userSnapshot.docs[0];
+    if (!userDocument || userDocument.data().password !== password) {
+      response.status(401).json({success: false, error: "Invalid username or password"});
+      return;
+    }
+
+    const wordsCollection = userDocument.ref.collection("words");
+    const existingWords = await wordsCollection.get();
+    const existingCounts = new Map(
+        existingWords.docs.map(document => [document.id, document.data().count]),
+    );
+    const batch = db.batch();
+    words.forEach((word, index) => {
+      const currentCount = existingCounts.get(word);
+      batch.set(wordsCollection.doc(word), {
+        count: Number.isInteger(currentCount) && currentCount >= 0 ? currentCount : 3,
+        order: index + 1,
+      }, {merge: true});
+    });
+    await batch.commit();
+
+    logger.info("Seeded ordered word counters", {user: username.trim(), count: words.length});
+    response.status(200).json({
+      success: true,
+      user: username.trim(),
+      count: words.length
+    });
+  } catch (error) {
+    logger.error("Error seeding word counters:", error);
+    response.status(500).json({
+      success: false,
+      error: "Unable to seed word counters"
+    });
+  }
+});
