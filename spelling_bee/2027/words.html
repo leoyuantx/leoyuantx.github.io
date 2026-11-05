@@ -679,10 +679,34 @@
     const storageError = document.getElementById('storage-error');
     const activeUsernameLabel = document.getElementById('active-username');
     const loginButton = loginForm.querySelector('button[type="submit"]');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
     const LOGIN_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/logIn';
+    const SAVED_CREDENTIALS_KEY = 'spellingBeeCredentials';
     let activeUsername = null;
     let userCounters = {};
     let wordCounterDefaults = {};
+
+    function populateSavedCredentials() {
+      try {
+        const savedCredentials = localStorage.getItem(SAVED_CREDENTIALS_KEY);
+        if (!savedCredentials) return;
+
+        const credentials = JSON.parse(savedCredentials);
+        if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials) ||
+            typeof credentials.username !== 'string' || !credentials.username.trim() ||
+            typeof credentials.password !== 'string' || !credentials.password) {
+          throw new Error('Saved login details have an invalid format.');
+        }
+        usernameInput.value = credentials.username;
+        passwordInput.value = credentials.password;
+      } catch (error) {
+        console.error('Unable to load saved login details:', error);
+        loginError.textContent = 'Unable to load saved login details from this browser.';
+      }
+    }
+
+    populateSavedCredentials();
 
     function showSignedInState(username) {
       activeUsername = username;
@@ -743,8 +767,19 @@
           Number.isInteger(entry.count) && entry.count >= 0 ? entry.count : 3
         ]));
         userCounters = parsedCounters;
+        let credentialSaveError = null;
+        try {
+          localStorage.setItem(SAVED_CREDENTIALS_KEY, JSON.stringify({ username, password }));
+        } catch (error) {
+          console.error('Unable to save login details:', error);
+          credentialSaveError = 'Your login succeeded, but saved login details could not be stored in this browser.';
+        }
         renderWordPages(result.words.map(entry => entry.word));
         showSignedInState(username);
+        if (credentialSaveError) {
+          storageError.textContent = credentialSaveError;
+          storageError.hidden = false;
+        }
         loadWordCounters();
       } catch (error) {
         console.error('Unable to log in:', error);
@@ -764,7 +799,8 @@
       loginScreen.hidden = false;
       loginForm.reset();
       loginError.textContent = '';
-      document.getElementById('username').focus();
+      populateSavedCredentials();
+      usernameInput.focus();
     });
 
     const tabsContainer = document.getElementById('tabs-container');
