@@ -682,22 +682,32 @@
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const LOGIN_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/logIn';
+    const UPDATE_COUNTER_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/updateWordCounter';
     const SAVED_CREDENTIALS_KEY = 'spellingBeeCredentials';
     let activeUsername = null;
     let userCounters = {};
     let wordCounterDefaults = {};
 
+    function readSavedCredentials() {
+      const savedCredentials = localStorage.getItem(SAVED_CREDENTIALS_KEY);
+      if (!savedCredentials) {
+        throw new Error('Saved login details are unavailable.');
+      }
+
+      const credentials = JSON.parse(savedCredentials);
+      if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials) ||
+          typeof credentials.username !== 'string' || !credentials.username.trim() ||
+          typeof credentials.password !== 'string' || !credentials.password) {
+        throw new Error('Saved login details have an invalid format.');
+      }
+      return credentials;
+    }
+
     function populateSavedCredentials() {
       try {
         const savedCredentials = localStorage.getItem(SAVED_CREDENTIALS_KEY);
         if (!savedCredentials) return;
-
-        const credentials = JSON.parse(savedCredentials);
-        if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials) ||
-            typeof credentials.username !== 'string' || !credentials.username.trim() ||
-            typeof credentials.password !== 'string' || !credentials.password) {
-          throw new Error('Saved login details have an invalid format.');
-        }
+        const credentials = readSavedCredentials();
         usernameInput.value = credentials.username;
         passwordInput.value = credentials.password;
       } catch (error) {
@@ -747,26 +757,11 @@
           throw new Error('The login response contains an invalid word list.');
         }
 
-        let parsedCounters;
-        try {
-          const savedCounters = localStorage.getItem(`spellingBeeCounters:${username}`);
-          parsedCounters = savedCounters === null ? {} : JSON.parse(savedCounters);
-          if (typeof parsedCounters !== 'object' || parsedCounters === null || Array.isArray(parsedCounters)) {
-            throw new Error('Saved word counters have an invalid format.');
-          }
-          if (Object.values(parsedCounters).some(count => !Number.isInteger(count) || count < 0)) {
-            throw new Error('Saved word counters contain invalid values.');
-          }
-        } catch (error) {
-          console.error('Unable to load this user’s word counters:', error);
-          loginError.textContent = 'Unable to load your saved counters in this browser.';
-          return;
-        }
         wordCounterDefaults = Object.fromEntries(result.words.map(entry => [
           entry.word,
           Number.isInteger(entry.count) && entry.count >= 0 ? entry.count : 3
         ]));
-        userCounters = parsedCounters;
+        userCounters = {};
         let credentialSaveError = null;
         try {
           localStorage.setItem(SAVED_CREDENTIALS_KEY, JSON.stringify({ username, password }));
@@ -1153,43 +1148,62 @@
       playSound(prefix, soundNumber);
     }
 
-    function updateWordCounter(word, count) {
+    async function updateWordCounter(word, count) {
       try {
-        const updatedCounters = { ...userCounters, [word]: count };
-        localStorage.setItem(`spellingBeeCounters:${activeUsername}`, JSON.stringify(updatedCounters));
-        userCounters = updatedCounters;
+        const credentials = readSavedCredentials();
+        const response = await fetch(UPDATE_COUNTER_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...credentials, word, count })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || `Counter update failed: ${response.status}`);
+        }
+        userCounters = { ...userCounters, [word]: count };
         storageError.hidden = true;
         return true;
       } catch (error) {
-        console.error('Unable to save this user’s word counters:', error);
-        storageError.textContent = 'Your counter change could not be saved in this browser.';
+        console.error('Unable to update this user’s word counter:', error);
+        storageError.textContent = 'Your counter change could not be saved. Check your connection and saved login details.';
         storageError.hidden = false;
         return false;
       }
     }
 
-    function onMinusClick(word, btn) {
+    async function onMinusClick(word, btn) {
       const counter = btn.parentElement.querySelector('.word-counter');
       let currentCount = parseInt(counter.dataset.count || 0);
       const newCount = Math.max(0, currentCount - 1);
-      
-      if (updateWordCounter(word, newCount)) {
-        playRandomSound('correct', 6);
-        counter.textContent = newCount;
-        counter.dataset.count = newCount;
+
+      const controls = btn.parentElement.querySelectorAll('button');
+      controls.forEach(control => { control.disabled = true; });
+      try {
+        if (await updateWordCounter(word, newCount)) {
+          playRandomSound('correct', 6);
+          counter.textContent = newCount;
+          counter.dataset.count = newCount;
+        }
+      } finally {
+        controls.forEach(control => { control.disabled = false; });
       }
     }
 
-    function onPlusClick(word, btn) {
+    async function onPlusClick(word, btn) {
       const counter = btn.parentElement.querySelector('.word-counter');
       let currentCount = parseInt(counter.dataset.count || 0);
       const newCount = currentCount + 1;
-      
-      if (updateWordCounter(word, newCount)) {
-        playRandomSound('wrong', 6);
 
-        counter.textContent = newCount;
-        counter.dataset.count = newCount;
+      const controls = btn.parentElement.querySelectorAll('button');
+      controls.forEach(control => { control.disabled = true; });
+      try {
+        if (await updateWordCounter(word, newCount)) {
+          playRandomSound('wrong', 6);
+          counter.textContent = newCount;
+          counter.dataset.count = newCount;
+        }
+      } finally {
+        controls.forEach(control => { control.disabled = false; });
       }
     }
   </script>

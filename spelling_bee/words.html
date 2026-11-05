@@ -583,19 +583,33 @@
     const API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/updateWordCounter';
     const GET_API_URL = 'https://us-central1-incandescent-heat-4745.cloudfunctions.net/getWordCounters';
 
+    function getSavedCredentials() {
+      const savedCredentials = localStorage.getItem('spellingBeeCredentials');
+      if (!savedCredentials) {
+        throw new Error('Saved login details are unavailable.');
+      }
+
+      const credentials = JSON.parse(savedCredentials);
+      if (!credentials || typeof credentials.username !== 'string' ||
+          typeof credentials.password !== 'string' || !credentials.username.trim() ||
+          !credentials.password) {
+        throw new Error('Saved login details have an invalid format.');
+      }
+      return credentials;
+    }
+
     // Function to fetch all word counters on page load
     async function loadWordCounters() {
       try {
+        const credentials = getSavedCredentials();
         const response = await fetch(GET_API_URL, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(credentials)
         });
 
         const data = await response.json();
-        
-        if (data.success && data.data) {
+        if (response.ok && data.success && data.data) {
           // Update all counter displays with fetched data
           document.querySelectorAll('.word-counter').forEach(counter => {
             const wordElement = counter.parentElement.parentElement.querySelector('.word');
@@ -612,7 +626,7 @@
           });
           console.log('Word counters loaded successfully');
         } else {
-          console.warn('Failed to load word counters:', data.error);
+          throw new Error(data.error || `Counter load failed: ${response.status}`);
         }
       } catch (error) {
         console.error('Failed to fetch word counters:', error);
@@ -622,15 +636,14 @@
     // Function to call the API
     async function updateWordCounterAPI(word, count) {
       try {
+        const credentials = getSavedCredentials();
+
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            word: word,
-            count: count
-          })
+          body: JSON.stringify({ ...credentials, word, count })
         });
 
         const data = await response.json();

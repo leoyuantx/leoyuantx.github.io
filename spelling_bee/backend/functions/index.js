@@ -28,12 +28,12 @@ const db = admin.firestore();
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// GET endpoint - Fetch all word counters
+// POST endpoint - Fetch word counters for an authenticated user
 exports.getWordCounters = onRequest(async (request, response) => {
   try {
     // Enable CORS
     response.set("Access-Control-Allow-Origin", "*");
-    response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     response.set("Access-Control-Allow-Headers", "Content-Type");
 
     // Handle CORS preflight
@@ -41,16 +41,38 @@ exports.getWordCounters = onRequest(async (request, response) => {
       response.status(204).send("");
       return;
     }
+    if (request.method !== "POST") {
+      response.status(405).json({success: false, error: "Method not allowed"});
+      return;
+    }
 
-    // Fetch all documents from the 'wordCounters' collection
-    const snapshot = await db.collection("wordCounters").get();
-    
+    const {username, password} = request.body || {};
+    if (typeof username !== "string" || !username.trim() ||
+        typeof password !== "string" || !password) {
+      response.status(400).json({success: false, error: "Username and password are required"});
+      return;
+    }
+
+    const userSnapshot = await db.collection("users")
+        .where("name", "==", username.trim())
+        .limit(1)
+        .get();
+    const userDocument = userSnapshot.docs[0];
+    if (!userDocument || userDocument.data().password !== password) {
+      response.status(401).json({success: false, error: "Invalid username or password"});
+      return;
+    }
+
+    const snapshot = await userDocument.ref.collection("words").get();
     const counters = {};
     snapshot.forEach(doc => {
       counters[doc.id] = doc.data().count || 0;
     });
 
-    logger.info("Fetched word counters", {count: Object.keys(counters).length});
+    logger.info("Fetched user word counters", {
+      user: username.trim(),
+      count: Object.keys(counters).length
+    });
     response.status(200).json({success: true, data: counters});
   } catch (error) {
     logger.error("Error fetching word counters:", error);
@@ -72,23 +94,41 @@ exports.updateWordCounter = onRequest(async (request, response) => {
       return;
     }
 
-    const {word, count} = request.body;
+    if (request.method !== "POST") {
+      response.status(405).json({success: false, error: "Method not allowed"});
+      return;
+    }
+
+    const {username, password, word, count} = request.body || {};
 
     // Validate input
-    if (!word || count === undefined) {
+    if (typeof username !== "string" || !username.trim() ||
+        typeof password !== "string" || !password ||
+        typeof word !== "string" || !word.trim() || word.includes("/") ||
+        Buffer.byteLength(word, "utf8") > 1500 ||
+        !Number.isInteger(count) || count < 0) {
       return response.status(400).json({
         success: false,
-        error: "Missing required fields: 'word' and 'count'"
+        error: "Provide valid username, password, word, and non-negative integer count"
       });
     }
 
-    // Update or create the document in Firestore
-    await db.collection("wordCounters").doc(word).set({
-      count: parseInt(count),
+    const userSnapshot = await db.collection("users")
+        .where("name", "==", username.trim())
+        .limit(1)
+        .get();
+    const userDocument = userSnapshot.docs[0];
+    if (!userDocument || userDocument.data().password !== password) {
+      response.status(401).json({success: false, error: "Invalid username or password"});
+      return;
+    }
+
+    await userDocument.ref.collection("words").doc(word).set({
+      count,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, {merge: true});
 
-    logger.info("Updated word counter", {word, count});
+    logger.info("Updated user word counter", {user: username.trim(), word, count});
     response.status(200).json({
       success: true,
       message: `Counter for '${word}' updated to ${count}`

@@ -16,11 +16,12 @@ $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure
 try {
   $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
   $body = ConvertTo-Json -InputObject @{ username = $username.Trim(); password = $password; words = $words } -Depth 3 -Compress
+  $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($body)
   $result = Invoke-RestMethod `
     -Method Post `
     -Uri 'https://seeduserwords-set3zd5v2q-uc.a.run.app' `
-    -ContentType 'application/json' `
-    -Body $body
+    -ContentType 'application/json; charset=utf-8' `
+    -Body $bodyBytes
 }
 finally {
   [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
