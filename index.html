@@ -1,106 +1,535 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>leo's first website</title >
-    <link rel="shortcut icon" href="./favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11142b">
+  <title>Leo's Game Hub</title>
+  <link rel="shortcut icon" href="./favicon.ico">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f7f6ff;
+      --muted: #b9bad0;
+      --panel: #171a35e8;
+      --line: #ffffff20;
+      --purple: #a48aff;
+      --mint: #85efd2;
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+    }
 
-    <style>
-        body {
-          background-size: cover;
-          background-image: url("./background.jpg");
-          
-        }
-        #gameList {
-          font-size: 30px;
-        }
-    </style>
-    <script>
-      var aaa = 3;
-      function playyy() {
-        let audio = new Audio("./Recording.m4a");
-        audio.play();
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
-          console.log(window);
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(115deg, #0c1024e8, #17162bdd 58%, #13182ae8),
+        url("./background.jpg") center / cover fixed;
+    }
 
-    
-      }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #ffe28a; outline-offset: 4px; }
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 16px;
+      z-index: 5;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: white;
+      color: #17162b;
+    }
+    .skip-link:focus { top: 16px; }
 
-      
+    .site-shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 20px 0;
+    }
 
-    </script>
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: white;
+      font-size: 15px;
+      font-weight: 900;
+      text-decoration: none;
+    }
 
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid #ffffff24;
+      border-radius: 14px;
+      background: #ffffff13;
+      font-size: 22px;
+    }
+
+    .nav { display: flex; align-items: center; gap: 23px; }
+    .nav a {
+      color: #d7d6e8;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .nav a:hover { color: white; }
+    .nav .nav-youtube {
+      padding: 10px 14px;
+      border: 1px solid #ffffff30;
+      border-radius: 12px;
+      background: #ffffff12;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(240px, .65fr);
+      gap: 30px;
+      align-items: center;
+      min-height: 380px;
+      margin-top: 20px;
+      padding: clamp(30px, 6vw, 64px);
+      overflow: hidden;
+      border: 1px solid #ffffff25;
+      border-radius: 30px;
+      background:
+        radial-gradient(ellipse at 87% 15%, #c4b5ff38 0, transparent 34%),
+        radial-gradient(ellipse at 10% 110%, #52dec52b 0, transparent 38%),
+        linear-gradient(125deg, #27264bea, #38305be8 60%, #493d71e8);
+      box-shadow: 0 24px 70px #080a1d66;
+    }
+
+    .hero-copy { position: relative; z-index: 1; }
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 15px;
+      color: var(--mint);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 640px;
+      margin: 0;
+      font-size: clamp(40px, 7vw, 70px);
+      letter-spacing: -.055em;
+      line-height: 1.02;
+    }
+    .hero h1 span { color: #c3adff; }
+    .hero-description {
+      max-width: 510px;
+      margin: 18px 0 0;
+      color: #d1d0e4;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 25px; }
+    .button-link {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 17px;
+      border: 1px solid #ffffff30;
+      border-radius: 13px;
+      background: #ffffff12;
+      color: white;
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .button-link:hover { transform: translateY(-2px); background: #ffffff20; }
+    .button-link-primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, #9b7cf4, #7657e8);
+      box-shadow: 0 7px 20px #7657e850;
+    }
+    .button-link-primary:hover { background: linear-gradient(135deg, #aa91ff, #8668f2); }
+
+    .feature-art {
+      position: relative;
+      display: grid;
+      min-height: 235px;
+      place-items: center;
+    }
+    .feature-orbit {
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border: 1px solid #ffffff2b;
+      border-radius: 50%;
+      transform: rotate(-24deg) scaleY(.55);
+    }
+    .feature-orbit::before, .feature-orbit::after {
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 18px #85efd2;
+      content: "";
+    }
+    .feature-orbit::before { top: 20px; left: 37px; }
+    .feature-orbit::after { right: 24px; bottom: 42px; background: #ffe28a; box-shadow: 0 0 18px #ffe28a; }
+    .feature-planet {
+      display: grid;
+      width: 138px;
+      height: 138px;
+      place-items: center;
+      border: 1px solid #ffffff36;
+      border-radius: 38px;
+      background: linear-gradient(145deg, #ffffff27, #ffffff08);
+      box-shadow: 0 20px 50px #090b2073, inset 0 1px #ffffff38;
+      font-size: 72px;
+      transform: rotate(-8deg);
+    }
+    .floating-star { position: absolute; color: #ffe28a; font-size: 23px; }
+    .floating-star-one { top: 16%; right: 7%; }
+    .floating-star-two { bottom: 14%; left: 12%; color: #c5b2ff; font-size: 17px; }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 48px 0 18px;
+    }
+    .section-kicker {
+      margin: 0 0 7px;
+      color: var(--mint);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .section-heading h2 { margin: 0; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.035em; }
+    .section-heading p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .section-side-note { color: #c1bbdf; font-size: 12px; font-weight: 800; }
+
+    .game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .game-card {
+      position: relative;
+      display: flex;
+      min-height: 170px;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 20px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      background: linear-gradient(145deg, #1d203beF, #171a31f2);
+      box-shadow: 0 12px 30px #080a1e2b;
+      text-decoration: none;
+      transition: transform .18s, border-color .18s, box-shadow .18s;
+    }
+    .game-card::after {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: var(--card-glow, #a48aff);
+      content: "";
+      filter: blur(55px);
+      opacity: .16;
+      transition: opacity .18s;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: #ffffff4a;
+      box-shadow: 0 18px 38px #080a1e50;
+    }
+    .game-card:hover::after { opacity: .34; }
+    .game-icon {
+      display: grid;
+      width: 45px;
+      height: 45px;
+      place-items: center;
+      border: 1px solid #ffffff20;
+      border-radius: 14px;
+      background: #ffffff12;
+      font-size: 23px;
+    }
+    .game-card h3 { margin: 16px 0 0; font-size: 16px; }
+    .game-card p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .game-arrow { position: absolute; right: 19px; bottom: 18px; color: #c7baff; font-size: 18px; transition: transform .18s; }
+    .game-card:hover .game-arrow { transform: translateX(4px); }
+    .game-card:nth-child(3n + 2) { --card-glow: #ffca7b; }
+    .game-card:nth-child(3n) { --card-glow: #ff85c8; }
+
+    .content-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin-top: 42px; }
+    .info-panel {
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #171a35e8;
+      box-shadow: 0 12px 30px #080a1e24;
+    }
+    .info-panel h2 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    .info-panel > p { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 17px; }
+    .movie-chip, .info-chip {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid #ffffff20;
+      border-radius: 12px;
+      background: #ffffff0d;
+      color: #eeeaff;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .movie-chip { cursor: pointer; }
+    .movie-chip:hover, .info-chip:hover { background: #ffffff18; }
+    .creator-panel { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+    .creator-panel > p { max-width: 640px; }
+    .creator-panel .chip-list { flex: 0 0 auto; margin: 0; }
+    .youtube-chip { border-color: #ff54546b; background: #ff45451c; }
+    .spelling-panel, .math-panel { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .spelling-panel .button-link, .math-panel .button-link { flex: 0 0 auto; }
+    .math-panel { border-color: #85efd24a; background: linear-gradient(145deg, #1a2e3a, #171a35 78%); }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 36px;
+      padding: 20px 0 30px;
+      border-top: 1px solid #ffffff1a;
+      color: #aaa9c3;
+      font-size: 11px;
+    }
+
+    @media (max-width: 800px) {
+      .hero { grid-template-columns: minmax(0, 1.2fr) minmax(190px, .8fr); gap: 10px; }
+      .feature-planet { width: 115px; height: 115px; border-radius: 32px; font-size: 61px; }
+      .feature-orbit { width: 180px; height: 180px; }
+      .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .creator-panel { align-items: flex-start; flex-direction: column; }
+      .creator-panel .chip-list { margin-top: 0; }
+    }
+
+    @media (max-width: 560px) {
+      .site-shell { width: min(100% - 24px, 1120px); }
+      .topbar { padding: 14px 0; }
+      .brand { font-size: 13px; }
+      .brand-mark { width: 38px; height: 38px; }
+      .nav { gap: 12px; }
+      .nav a { font-size: 11px; }
+      .nav a:first-child { display: none; }
+      .nav .nav-youtube { padding: 8px 10px; }
+      .hero { grid-template-columns: 1fr; min-height: auto; margin-top: 12px; padding: 34px 22px; border-radius: 23px; }
+      .hero h1 { font-size: clamp(43px, 12vw, 60px); }
+      .hero-description { font-size: 14px; }
+      .feature-art { position: absolute; right: 0; bottom: 0; width: 130px; min-height: 125px; opacity: .4; }
+      .feature-planet { width: 75px; height: 75px; border-radius: 24px; font-size: 42px; }
+      .feature-orbit { width: 115px; height: 115px; }
+      .floating-star-one { top: 3%; right: 8%; }
+      .floating-star-two { bottom: 8%; left: 8%; }
+      .hero-copy { max-width: 100%; }
+      .hero-actions { position: relative; z-index: 1; }
+      .section-heading { align-items: flex-start; flex-direction: column; margin-top: 36px; }
+      .section-side-note { margin-top: -6px; }
+      .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .game-card { min-height: 145px; padding: 16px; }
+      .game-card h3 { margin-top: 12px; }
+      .game-arrow { right: 17px; bottom: 16px; }
+      .content-grid { grid-template-columns: 1fr; gap: 11px; margin-top: 32px; }
+      .info-panel { padding: 19px; }
+      .creator-panel { grid-column: auto; }
+      .spelling-panel, .math-panel { align-items: flex-start; flex-direction: column; }
+      .footer { flex-direction: column; margin-top: 27px; padding-bottom: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+  <script>
+    function playyy() {
+      const audio = new Audio("./Recording.m4a");
+      audio.play();
+    }
+  </script>
 </head>
-<body  bgcolor="Aqua">
-   <h1>Hello,and welcome to leo's first website
-    <br>
-    I am a game master
-    <br>
-    I usually play roblox, paper.io, and PKXD
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark" aria-hidden="true">🎮</span>
+        <span>LEO'S GAME HUB</span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#games">Games</a>
+        <a href="#favorites">Favorites</a>
+        <a class="nav-youtube" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/@FireheartYT237">My YouTube ↗</a>
+      </nav>
+    </header>
 
-    </h1>
-    <hr>
-    <div id="gameList">
-      <p>These are the game links</p> 
-      <a target="_blank" href="https://paper-io.com/" >paper io</a>
-      <a target="_blank" href="./paper.io/intro_paperio.html" >intro for paper io</a>
-      <br>
-      <a target="_blank" href="./tictactoe/tictactoe.html">tictactoe</a>
-      <a target="_blank" href="./tictactoe/intro_tictactoe.html">intro for tictactoe</a>
-     <br>
-     <a target="_blank" href="./tictactoe/tictac4.html">tictac4</a>
-     <a target="_blank" href="./tictactoe/intro_tictac4.html">intro for tictac4</a>
-     <br>
-     <a target="_blank" href="https://site.playpkxd.com/">PKXD</a>
-     <a target="_blank" href="./pkxd/intro_PKXD.html">intro for PKXD</a>
-     <br>
-     <a target="_blank" href="./quiz/quiz.html">This is a quiz game.</a>
-      <br>
-     <a target="_blank" href="./rps/RPS.html">This is Rock Paper Scissors.</a>
-      <br>
-     <a target="_blank" href="./wwefl/WWEFL.html">This is Wind Water Earth Fire Lightning.</a>
-     <br>
-     <a target="_blank" href="number_guesser/number_guesser.html">This is number guesser with a little music</a>
-     <br>
-     <a target="_blank" href="ghost_catcher/ghost_catcher.html">This is ghost catcher</a>
-     <br>
-     <a target="_blank" href="ChessButDifferent/Chess.html">This is Ocean Chess</a>
-     <br>
-     <a target="_blank" href="bountyHunter/game.html">This is Bounty Hunter</a>
-    </div>
-    <hr>
+    <main id="main-content">
+      <section class="hero" aria-labelledby="welcome-title">
+        <div class="hero-copy">
+          <p class="hero-label"><span aria-hidden="true">✦</span> PLAYER · CREATOR · GAME FAN</p>
+          <h1 id="welcome-title">Hey, welcome to <span>my world.</span></h1>
+          <p class="hero-description">I'm Leo, a game master who loves Roblox, paper.io, PKXD, and making fun things to play. Pick a game and jump in!</p>
+          <div class="hero-actions">
+            <a class="button-link button-link-primary" href="#games">Explore the games ↓</a>
+            <a class="button-link" href="./math_practice/index.html">Try math practice ✨</a>
+          </div>
+        </div>
+        <div class="feature-art" aria-hidden="true">
+          <span class="feature-orbit"></span>
+          <span class="feature-planet">🕹️</span>
+          <span class="floating-star floating-star-one">✦</span>
+          <span class="floating-star floating-star-two">✧</span>
+        </div>
+      </section>
 
-    <div id="movieList">
-      These are my favorite movies.
-      <ul>
-        <li onclick="playyy()">Princess Mononoke</li>
-        <li>life of pi</li>
-      </ul>
-    </div>
+      <section id="games" aria-labelledby="games-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">PICK YOUR NEXT ADVENTURE</p>
+            <h2 id="games-title">Games &amp; activities</h2>
+            <p>Choose something fun and start playing.</p>
+          </div>
+          <span class="section-side-note">More fun, one click away ↗</span>
+        </div>
+        <div class="game-grid">
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="https://paper-io.com/">
+            <span class="game-icon" aria-hidden="true">🗺️</span>
+            <h3>Paper.io</h3><p>Claim your space and grow your territory.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./paper.io/intro_paperio.html">
+            <span class="game-icon" aria-hidden="true">📘</span>
+            <h3>Paper.io Guide</h3><p>Learn a little more about Paper.io.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./tictactoe/tictactoe.html">
+            <span class="game-icon" aria-hidden="true">⭕</span>
+            <h3>Tic-Tac-Toe</h3><p>A classic game of Xs and Os.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./tictactoe/intro_tictactoe.html">
+            <span class="game-icon" aria-hidden="true">📘</span>
+            <h3>Tic-Tac-Toe Guide</h3><p>Check out the introduction.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./tictactoe/tictac4.html">
+            <span class="game-icon" aria-hidden="true">🔵</span>
+            <h3>Tic-Tac-4</h3><p>Get four in a row to win.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./tictactoe/intro_tictac4.html">
+            <span class="game-icon" aria-hidden="true">📘</span>
+            <h3>Tic-Tac-4 Guide</h3><p>Read the intro before you play.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="https://site.playpkxd.com/">
+            <span class="game-icon" aria-hidden="true">🌈</span>
+            <h3>PKXD</h3><p>Explore a colorful virtual world.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./pkxd/intro_PKXD.html">
+            <span class="game-icon" aria-hidden="true">📘</span>
+            <h3>PKXD Guide</h3><p>Get to know PKXD.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./quiz/quiz.html">
+            <span class="game-icon" aria-hidden="true">🧠</span>
+            <h3>Quiz Game</h3><p>Put your knowledge to the test.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./rps/RPS.html">
+            <span class="game-icon" aria-hidden="true">✊</span>
+            <h3>Rock Paper Scissors</h3><p>Ready, set, choose your move!</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="./wwefl/WWEFL.html">
+            <span class="game-icon" aria-hidden="true">⚡</span>
+            <h3>Wind Water Earth Fire Lightning</h3><p>Pick an element and see who wins.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="number_guesser/number_guesser.html">
+            <span class="game-icon" aria-hidden="true">🔢</span>
+            <h3>Number Guesser</h3><p>Guess the number with a little music.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="ghost_catcher/ghost_catcher.html">
+            <span class="game-icon" aria-hidden="true">👻</span>
+            <h3>Ghost Catcher</h3><p>Can you catch them all?</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="ChessButDifferent/Chess.html">
+            <span class="game-icon" aria-hidden="true">♟️</span>
+            <h3>Ocean Chess</h3><p>A different kind of chess adventure.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="game-card" target="_blank" rel="noopener noreferrer" href="bountyHunter/game.html">
+            <span class="game-icon" aria-hidden="true">🎯</span>
+            <h3>Bounty Hunter</h3><p>Take on a new challenge.</p><span class="game-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
 
-   <h2>
-      I also like music. Such as <a target="_blank" href="https://www.youtube.com/watch?v=Sx4xVyXHl60&ab_channel=RelaxingGhibliPiano"> Ghibli's music</a> and
-      <br>
-      <a target="_blank" href="https://www.youtube.com/watch?v=vJao1u2uBqY&ab_channel=7clouds">radioactive from imagine dragons.</a>
-    </h2>
+      <section class="content-grid" id="favorites" aria-label="A little more about Leo">
+        <article class="info-panel">
+          <p class="section-kicker">WHEN I'M NOT GAMING</p>
+          <h2>Movie favorites</h2>
+          <p>These are a couple of movies I enjoy.</p>
+          <div class="chip-list">
+            <button class="movie-chip" type="button" onclick="playyy()">▶ Princess Mononoke</button>
+            <span class="info-chip">Life of Pi</span>
+          </div>
+        </article>
+        <article class="info-panel">
+          <p class="section-kicker">SOUNDTRACK</p>
+          <h2>Music I like</h2>
+          <p>Some songs and sounds I enjoy listening to.</p>
+          <div class="chip-list">
+            <a class="info-chip" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/watch?v=Sx4xVyXHl60&amp;ab_channel=RelaxingGhibliPiano">Ghibli music ↗</a>
+            <a class="info-chip" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/watch?v=vJao1u2uBqY&amp;ab_channel=7clouds">Radioactive ↗</a>
+          </div>
+        </article>
+        <article class="info-panel creator-panel">
+          <div>
+            <p class="section-kicker">DREAM BIG</p>
+            <h2>Future YouTuber &amp; animator</h2>
+            <p>When I grow up, I want to be a YouTuber, funny animator, and game reviewer.</p>
+          </div>
+          <div class="chip-list">
+            <a class="info-chip youtube-chip" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/@FireheartYT237">Visit my YouTube channel ↗</a>
+          </div>
+        </article>
+        <article class="info-panel math-panel">
+          <div>
+            <p class="section-kicker">PUZZLE YOUR BRAIN</p>
+            <h2>Math Practice</h2>
+            <p>Add, subtract, multiply, or divide. Choose a digit level and earn stars.</p>
+          </div>
+          <a class="button-link button-link-primary" href="./math_practice/index.html">Play math →</a>
+        </article>
+        <article class="info-panel spelling-panel">
+          <div>
+            <p class="section-kicker">READY FOR A WORD CHALLENGE?</p>
+            <h2>2027 Spelling Bee</h2>
+            <p>Practice spelling and see how many words you know.</p>
+          </div>
+          <a class="button-link" href="./spelling_bee/2027/words.html">Visit the spelling bee →</a>
+        </article>
+      </section>
+    </main>
 
-    <h2>
-      When I grow up, I want to be
-      <br>
-       a youtuber and I'll be a funny
-      <br>
-        animator and game reviewer..
-    </h2> 
-    <h2>
-      <a href="https://www.youtube.com/@Leo_RobloxPro">Here is my youtube channel.</a>
-    </h2>
-
-    <h2>
-      <a href="./spelling_bee/2027/words.html">2027 spelling bee</a>
-    </h2>
-
-    
+    <footer class="footer">
+      <span>Made by Leo, one game at a time.</span>
+      <a href="#main-content">Back to top ↑</a>
+    </footer>
+  </div>
 </body>
 </html>
- 

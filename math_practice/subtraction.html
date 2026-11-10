@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11142b">
+  <title>Math Galaxy — Subtraction</title>
+  <link rel="stylesheet" href="practice.css">
+  <script src="practice.js" defer></script>
+</head>
+<body data-operation="subtraction">
+  <main class="page">
+    <header class="topbar">
+      <a class="brand brand-link" href="index.html" aria-label="Back to Math Galaxy">
+        <span class="brand-icon" aria-hidden="true">🚀</span>
+        <span><span class="brand-name">Math Galaxy</span><span class="brand-tag">Practice makes you powerful</span></span>
+      </a>
+      <span class="pilot-pill"><span aria-hidden="true">👩‍🚀</span> Cadet in training</span>
+    </header>
+    <section class="hero" aria-labelledby="page-title">
+      <h1 id="page-title">Subtraction Mission</h1>
+    </section>
+    <section class="game-card" id="game-card" aria-label="Subtraction game">
+      <div class="dashboard" aria-label="Mission scores">
+        <div class="stat"><span class="stat-icon" aria-hidden="true">⭐</span><span><span class="stat-label">Stars</span><span class="stat-value" id="score">0</span></span></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">🔥</span><span><span class="stat-label">Best streak</span><span class="stat-value" id="streak">0</span></span></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">🎯</span><span><span class="stat-label">Correct</span><span class="stat-value" id="correct-count">0 / 10</span></span></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">⏱️</span><span><span class="stat-label">Time</span><span class="stat-value" id="elapsed-time" role="timer" aria-label="Mission elapsed time">0:00.000</span></span></div>
+      </div>
+      <div class="game-content" id="game-content">
+        <div class="mission-row"><p class="mission-label">🚀 Mission progress</p><span class="question-count" id="question-count">Question 1 of 10</span></div>
+        <div class="progress-track" id="progress-track" role="progressbar" aria-label="Mission progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="question-panel">
+          <div class="question-wrap">
+            <p class="question-hint">What is the answer, space cadet?</p>
+            <div class="equation" aria-label="Subtraction question"><span id="factor-a">5</span><span class="operation-sign" id="operation-sign" aria-hidden="true">−</span><span id="factor-b">3</span><span aria-hidden="true">=</span><input class="answer-input" id="answer" type="number" inputmode="numeric" min="0" aria-label="Your answer" autocomplete="off"></div>
+            <div class="actions"><button class="button button-primary" id="check-button" type="button">Submit answer</button><button class="button button-secondary" id="hint-button" type="button">💡 Need a hint?</button></div>
+            <p class="feedback" id="feedback" role="status" aria-live="polite">Type your answer and press Enter.</p>
+            <div class="hint-box" id="hint-box" role="note"></div>
+          </div>
+        </div>
+        <div class="settings"><label for="number-range">Difficulty:</label><select class="table-select" id="number-range"><option value="1-9" selected>Single-digit</option><option value="10-99">Double-digit</option></select><button class="button button-secondary" id="restart-button" type="button">↻ New mission</button></div>
+        <p class="footer-note">One Enter submits and moves on. No timer, no pressure!</p>
+      </div>
+      <div class="completion" id="completion" aria-live="polite">
+        <p id="completion-message" tabindex="-1"></p>
+        <div class="mission-rating" aria-label="Mission rating"><div class="rating-stars" id="rating-stars" aria-hidden="true"></div><p class="rating-summary" id="rating-summary"></p><p class="rating-breakdown" id="rating-breakdown"></p><p class="rating-guide">Accuracy is worth up to 80 points. Speed is worth up to 20 points.</p></div>
+        <h3 class="report-title">Your answer report</h3>
+        <div class="report-wrap"><table class="report-table"><thead><tr><th scope="col">Question</th><th scope="col">Your answer</th><th scope="col">Result</th><th scope="col">Time</th></tr></thead><tbody id="report-body"></tbody></table></div>
+        <button class="button button-primary" id="play-again-button" type="button">Play another mission</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
