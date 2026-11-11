@@ -1,4 +1,6 @@
-(() => {
+import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.js";
+
+(async () => {
   const totalQuestions = 10;
   const config = document.body.dataset;
   const operations = {
@@ -76,6 +78,11 @@
   let missionStartedAt = 0;
   let questionStartedAt = 0;
   let timerInterval = null;
+  let signedInUser = null;
+  let missionSessionId = null;
+  let serverQuestions = [];
+  let isStartingMission = false;
+  let isFinishingMission = false;
 
   function formatDuration(milliseconds) {
     const totalMilliseconds = Math.floor(milliseconds);
@@ -95,57 +102,16 @@
       || levels[config.operation][0];
   }
 
-  function randomInteger(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
   function makeQuestion() {
-    const level = getSelectedLevel();
-    const [firstRange, secondRange] = level.ranges;
-    let a;
-    let b;
-    let answer;
-    let key;
-
-    do {
-      if (config.operation === "division") {
-        b = randomInteger(secondRange[0], secondRange[1]);
-        const minDividend = firstRange[0];
-        const maxDividend = firstRange[1];
-        const minQuotient = Math.ceil(minDividend / b);
-        const maxQuotient = Math.floor(maxDividend / b);
-        answer = randomInteger(minQuotient, maxQuotient);
-        a = b * answer;
-      } else {
-        a = randomInteger(firstRange[0], firstRange[1]);
-        b = randomInteger(secondRange[0], secondRange[1]);
-        if (config.operation === "addition") {
-          answer = a + b;
-        } else if (config.operation === "subtraction") {
-          if (b > a) [a, b] = [b, a];
-          answer = a - b;
-        } else {
-          answer = a * b;
-        }
-      }
-
-      key = `${a}${operation.symbol}${b}`;
-    } while (
-      key === previousQuestion
-      || !Number.isFinite(a)
-      || !Number.isFinite(b)
-      || !Number.isFinite(answer)
-      || (config.operation === "division" && a === b)
-    );
-
-    previousQuestion = key;
-
-    previousQuestion = key;
-    question = {
-      a,
-      b,
-      answer
-    };
+    const serverQuestion = serverQuestions[questionNumber - 1];
+    if (!serverQuestion) throw new Error("The mission question could not be loaded.");
+    const {a, b} = serverQuestion;
+    const answer = config.operation === "addition" ? a + b
+      : config.operation === "subtraction" ? a - b
+        : config.operation === "multiplication" ? a * b
+          : a / b;
+    previousQuestion = `${a}${operation.symbol}${b}`;
+    question = {a, b, answer};
   }
 
   function showQuestion() {
@@ -153,6 +119,7 @@
     elements.factorA.textContent = question.a;
     elements.factorB.textContent = question.b;
     elements.answer.value = "";
+    elements.answer.disabled = false;
     elements.answer.readOnly = false;
     elements.feedback.textContent = "Type your answer and press Enter.";
     elements.feedback.className = "feedback";
@@ -160,7 +127,7 @@
     elements.hintBox.textContent = "";
     elements.hintButton.disabled = false;
     elements.questionCount.textContent = `Question ${questionNumber} of ${totalQuestions}`;
-    elements.answer.focus();
+    elements.answer.focus({preventScroll: true});
   }
 
   function updateScoreboard() {
@@ -229,7 +196,43 @@
     showQuestion();
   }
 
-  function finishMission() {
+  async function finishMission() {
+    if (isFinishingMission) return;
+    isFinishingMission = true;
+    let missionResult;
+    try {
+      const completion = await mathApi("completeMission", {
+        sessionId: missionSessionId,
+        answers: answerReport.map((entry) => entry.submitted),
+      });
+      missionResult = completion.result;
+      correctAnswers = missionResult.correct;
+      answerReport = answerReport.map((entry, index) => ({
+        ...entry,
+        correctAnswer: missionResult.answers[index].correctAnswer,
+        isCorrect: missionResult.answers[index].correct,
+      }));
+      await refreshProfile();
+    } catch (error) {
+      elements.feedback.textContent = `Could not save this mission: ${error.message}`;
+      elements.feedback.className = "feedback try-again";
+      let retryButton = document.querySelector("#retry-save-button");
+      if (!retryButton) {
+        retryButton = document.createElement("button");
+        retryButton.id = "retry-save-button";
+        retryButton.className = "button button-secondary";
+        retryButton.type = "button";
+        retryButton.textContent = "Retry saving mission";
+        elements.feedback.after(retryButton);
+        retryButton.addEventListener("click", finishMission);
+      }
+      retryButton.hidden = false;
+      isFinishingMission = false;
+      return;
+    }
+
+    isFinishingMission = false;
+    document.querySelector("#retry-save-button")?.remove();
     elements.gameContent.style.display = "none";
     elements.completion.style.display = "block";
     if (timerInterval !== null) {
@@ -258,6 +261,15 @@
     elements.ratingSummary.textContent = `${Math.round(missionRating)} / 100`;
     elements.ratingBreakdown.textContent =
       `Accuracy: ${Math.round(accuracyPercent)}% (${Math.round(accuracyPoints)}/80 points) · Speed: ${Math.round(speedPoints)}/20 points`;
+    let rewardSummary = document.querySelector("#reward-summary");
+    if (!rewardSummary) {
+      rewardSummary = document.createElement("p");
+      rewardSummary.id = "reward-summary";
+      rewardSummary.className = "reward-summary";
+      elements.ratingBreakdown.after(rewardSummary);
+    }
+    const earnedNames = missionResult.newAchievements.map((achievement) => achievement.title);
+    rewardSummary.textContent = `Difficulty ×${missionResult.rewardMultiplier} · +${missionResult.xpEarned} XP · +${missionResult.coinsEarned} coins · ${missionResult.variableReward.label}${earnedNames.length ? ` · Achievement: ${earnedNames.join(", ")}` : ""}`;
     elements.progressFill.style.width = "100%";
     elements.progressTrack.setAttribute("aria-valuenow", totalQuestions);
     elements.reportBody.replaceChildren();
@@ -291,7 +303,13 @@
     elements.completionMessage.focus();
   }
 
-  function startMission() {
+  async function startMission() {
+    if (!signedInUser) {
+      openAccountDialog();
+      return;
+    }
+    if (isStartingMission) return;
+    isStartingMission = true;
     questionNumber = 1;
     score = 0;
     streak = 0;
@@ -300,15 +318,37 @@
     answerReport = [];
     answered = false;
     previousQuestion = "";
+    missionSessionId = null;
+    serverQuestions = [];
     missionStartedAt = performance.now();
     if (timerInterval !== null) clearInterval(timerInterval);
-    updateTimer();
-    timerInterval = window.setInterval(updateTimer, 31);
-    elements.gameContent.style.display = "block";
-    elements.completion.style.display = "none";
-    makeQuestion();
-    updateScoreboard();
-    showQuestion();
+    elements.checkButton.disabled = true;
+    elements.answer.disabled = true;
+    elements.hintButton.disabled = true;
+    elements.feedback.textContent = "Preparing your mission…";
+    try {
+      const result = await mathApi("startMission", {
+        operation: config.operation,
+        level: Number(elements.range.value),
+      });
+      missionSessionId = result.sessionId;
+      serverQuestions = result.questions;
+      elements.gameContent.style.display = "block";
+      elements.completion.style.display = "none";
+      elements.checkButton.disabled = false;
+      elements.answer.disabled = false;
+      elements.hintButton.disabled = false;
+      updateTimer();
+      timerInterval = window.setInterval(updateTimer, 31);
+      makeQuestion();
+      updateScoreboard();
+      showQuestion();
+    } catch (error) {
+      elements.feedback.textContent = error.message;
+      elements.feedback.className = "feedback try-again";
+    } finally {
+      isStartingMission = false;
+    }
   }
 
   function showHint() {
@@ -350,5 +390,20 @@
   if (levels[config.operation].some((level) => level.id === selectedLevel)) {
     elements.range.value = selectedLevel;
   }
-  startMission();
+  window.addEventListener("math-auth-changed", (event) => {
+    const wasSignedIn = Boolean(signedInUser);
+    signedInUser = event.detail.user;
+    if (signedInUser && !wasSignedIn && !missionSessionId) startMission();
+    if (!signedInUser) openAccountDialog();
+  });
+  signedInUser = await authReady;
+  if (signedInUser) {
+    startMission();
+  } else {
+    elements.gameContent.style.display = "none";
+    elements.completion.style.display = "block";
+    elements.completionMessage.textContent = "Sign in to begin a mission and save your progress.";
+    elements.playAgainButton.textContent = "Sign in to begin";
+    openAccountDialog();
+  }
 })();

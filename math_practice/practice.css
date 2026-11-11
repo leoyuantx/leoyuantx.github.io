@@ -207,6 +207,8 @@ h1 {
   font-size: 38px;
   font-weight: 900;
   text-align: center;
+  cursor: text;
+  caret-color: #85efd2;
 }
 
 .answer-input:focus { border-color: var(--purple); box-shadow: 0 0 0 4px #7657e826; }
@@ -289,6 +291,163 @@ h1 {
 }
 
 .footer-note { margin: 18px 0 0; color: #aaa9c3; font-size: 12px; text-align: center; }
+
+.account-button {
+  max-width: min(48vw, 260px);
+  min-height: 42px;
+  padding: 0 15px;
+  overflow: hidden;
+  border: 1px solid #ffffff25;
+  border-radius: 12px;
+  background: #ffffff10;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-button:hover { background: #ffffff1a; }
+.account-button.account-signed-in { border-color: #85efd255; color: #a7f4df; }
+.account-dialog {
+  width: min(620px, calc(100vw - 24px));
+  max-width: 620px;
+  max-height: min(88vh, 820px);
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid #ffffff30;
+  border-radius: 22px;
+  background: #191b35;
+  color: var(--ink);
+  box-shadow: 0 24px 80px #050611b8;
+}
+
+.account-dialog::backdrop { background: #080a17bd; backdrop-filter: blur(5px); }
+.account-dialog [hidden] { display: none !important; }
+.account-dialog-head, .account-player-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.account-dialog-head { margin-bottom: 20px; }
+.account-dialog-head h2, .account-player-head h3 { margin: 0; font-size: 23px; }
+.account-dialog-head .eyebrow, .account-player-head .eyebrow { margin-bottom: 5px; }
+.dialog-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #ffffff0d;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.auth-switch, .account-tabs, .leaderboard-controls { display: flex; flex-wrap: wrap; gap: 7px; }
+.auth-switch { padding: 4px; border-radius: 12px; background: #0e1025; }
+.auth-switch button, .account-tab-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.auth-switch button.is-active, .account-tab-button.is-active { background: #a48aff26; color: #d3c8ff; }
+.auth-form { display: grid; gap: 13px; margin-top: 17px; }
+.auth-form label, .friend-form label { display: grid; gap: 7px; color: #d9d7e9; font-size: 12px; font-weight: 800; }
+.auth-form input, .friend-form input {
+  width: 100%;
+  min-height: 45px;
+  padding: 0 12px;
+  border: 1px solid #ffffff30;
+  border-radius: 11px;
+  outline: none;
+  background: #101229;
+  color: var(--ink);
+}
+
+.auth-form input:focus, .friend-form input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px #a48aff20; }
+.auth-form .button { width: 100%; margin-top: 2px; }
+.account-player-head { align-items: center; margin-bottom: 15px; }
+.account-player-head .button { min-height: 38px; }
+.account-avatar {
+  display: grid;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid #ffffff25;
+  border-radius: 16px;
+  background: #a48aff20;
+  font-size: 25px;
+}
+.account-player-identity { flex: 1; min-width: 0; }
+body[data-profile-frame="lunar_frame"] .account-avatar {
+  outline: 3px double #d5ccff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 7px #c3adff18, 0 0 22px #c3adff55;
+}
+.mouse-trail-diamond {
+  position: fixed;
+  z-index: 20;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  background: #c3adff;
+  animation: diamond-trail .62s cubic-bezier(.2, .75, .35, 1) forwards;
+}
+.mouse-trail-diamond[data-tone="1"] { background: #85efd2; }
+.mouse-trail-diamond[data-tone="2"] { background: #ffe28a; }
+body[data-profile-theme="comet_trail"] .mouse-trail-diamond[data-tone="0"] { background: #74dfce; }
+body[data-profile-theme="comet_trail"] .mouse-trail-diamond[data-tone="1"] { background: #a7f4df; }
+body[data-profile-theme="comet_trail"] .mouse-trail-diamond[data-tone="2"] { background: #8ccaff; }
+body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="0"] { background: #ff9acb; }
+body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="1"] { background: #c3adff; }
+body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="2"] { background: #8ccaff; }
+@keyframes diamond-trail {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(.25) rotate(0); }
+  18% { opacity: .95; }
+  100% { opacity: 0; transform: translate(-50%, -115%) scale(.8) rotate(130deg); }
+}
+.account-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 15px 0 17px; }
+.account-metric { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 9px; border: 1px solid #ffffff16; border-radius: 12px; background: #ffffff08; }
+.account-metric-icon { color: #ffe28a; font-size: 17px; }
+.account-metric-copy { display: grid; min-width: 0; }
+.account-metric-label, .account-metric-detail { color: var(--muted); font-size: 10px; }
+.account-metric-value { overflow: hidden; font-size: 15px; text-overflow: ellipsis; }
+.account-tabs { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.account-pane { min-height: 170px; padding-top: 14px; }
+.account-progress h3 { margin: 0; font-size: 22px; }
+.account-progress p { margin: 6px 0 12px; color: var(--muted); font-size: 13px; }
+.account-xp-track { height: 12px; overflow: hidden; border-radius: 999px; background: #ffffff1b; }
+.account-xp-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #85efd2, #c3adff); transition: width .3s ease; }
+.account-progress .account-next-level { margin-top: 8px; font-size: 11px; }
+.achievement-list, .shop-list, .leaderboard-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.achievement-item, .shop-item, .leaderboard-row { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 11px; border: 1px solid #ffffff17; border-radius: 12px; background: #ffffff08; }
+.achievement-item:not(.is-unlocked) { opacity: .58; }
+.achievement-mark { display: grid; flex: 0 0 32px; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #ffe28a1c; color: #ffe28a; font-size: 19px; }
+.achievement-copy, .shop-item-copy { display: grid; flex: 1; min-width: 0; gap: 3px; }
+.achievement-copy strong, .shop-item-copy strong { font-size: 13px; }
+.achievement-copy span, .shop-item-copy span { color: var(--muted); font-size: 11px; }
+.achievement-reward { color: #ffe28a; font-size: 11px; font-weight: 900; white-space: nowrap; }
+.leaderboard-controls { margin-bottom: 10px; }
+.leaderboard-row { display: grid; grid-template-columns: 35px minmax(0, 1fr) auto auto; }
+.leaderboard-rank { color: #ffe28a; font-weight: 900; }
+.leaderboard-name { overflow: hidden; text-overflow: ellipsis; }
+.leaderboard-level { color: var(--muted); font-size: 11px; }
+.leaderboard-xp { font-size: 12px; }
+.account-empty { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.friend-form { display: grid; gap: 8px; }
+.friend-form > div { display: flex; gap: 8px; }
+.friend-form input { flex: 1; min-width: 0; }
+.friend-form .button { white-space: nowrap; }
+.account-message { min-height: 18px; margin: 0; color: #ffb59d; font-size: 12px; line-height: 1.4; }
+.shop-balance { margin: 0 0 10px; color: #ffe28a; font-size: 13px; font-weight: 900; }
+.shop-item-icon { color: #c3adff; font-size: 22px; }
+.shop-item .button { min-height: 36px; padding: 0 10px; font-size: 11px; white-space: nowrap; }
 
 .subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .subject-card {
@@ -377,6 +536,14 @@ h1 {
   .topbar { margin-bottom: 20px; }
   .brand-icon { width: 42px; height: 42px; }
   .pilot-pill { padding: 8px 10px; font-size: 12px; }
+  .account-button { max-width: 45vw; min-height: 38px; padding: 0 9px; font-size: 10px; }
+  .account-dialog { padding: 18px 14px; border-radius: 18px; }
+  .account-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .account-tabs { gap: 4px; }
+  .account-tab-button { padding: 0 8px; font-size: 11px; }
+  .leaderboard-row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 7px; }
+  .leaderboard-level { display: none; }
+  .friend-form > div { align-items: stretch; flex-direction: column; }
   .dashboard { grid-template-columns: repeat(2, 1fr); gap: 7px; padding: 13px 10px; }
   .stat { gap: 5px; padding: 7px 4px; }
   .stat-icon { font-size: 18px; }
@@ -537,11 +704,28 @@ h1 {
 
 .level-detail { color: #e6e2f5; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .level-links a:hover { transform: translateY(-2px); background: #ffffff20; box-shadow: 0 5px 12px #080a1e44; }
+.level-links a.is-locked { border-color: #ffffff18; background: #ffffff07; color: #a7a8bc; cursor: not-allowed; }
+.level-links a.is-locked:hover { transform: none; box-shadow: none; }
+.level-links a.is-locked .level-detail { color: #ffcf8a; font-size: 10px; white-space: normal; }
 .addition-card .subject-icon { color: #85efd2; background: #85efd21c; }
 .subtraction-card .subject-icon { color: #ffc386; background: #ffc3861c; }
 .multiplication-card .subject-icon { color: #c3adff; background: #c3adff1c; }
 .division-card .subject-icon { color: #8ccaff; background: #8ccaff1c; }
 .footer-note { margin-top: 22px; }
+.locked-level-note { margin: 0 0 12px; color: #ffcf8a; font-size: 12px; font-weight: 900; }
+
+body[data-profile-theme="comet_trail"] .home-hero {
+  background:
+    linear-gradient(145deg, transparent 46%, #8cebd533 46.3%, transparent 47%),
+    radial-gradient(ellipse at 82% 18%, #ffffff26 0, transparent 28%),
+    linear-gradient(130deg, #173c48, #206d70 57%, #344d8a);
+}
+
+body[data-profile-theme="comet_trail"] .game-card { border-color: #85efd266; }
+body[data-profile-theme="comet_trail"] .account-button { border-color: #85efd288; box-shadow: 0 0 18px #85efd222; }
+body[data-profile-theme="comet_trail"] .progress-fill,
+body[data-profile-theme="comet_trail"] .account-xp-fill { background: linear-gradient(90deg, #85efd2, #8ccaff); }
+body[data-profile-frame="lunar_frame"] .brand-icon { outline: 2px solid #d5ccff; outline-offset: 2px; }
 
 @media (max-width: 560px) {
   .home-shell { width: min(100% - 24px, 960px); padding-top: 16px; }

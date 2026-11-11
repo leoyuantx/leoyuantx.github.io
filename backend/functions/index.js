@@ -12,3 +12,5 @@ export {
   logIn,
   seedUserWords,
 } from "./spelling/spelling.js";
+
+export {mathPracticeApi} from "./math_practice/index.js";
