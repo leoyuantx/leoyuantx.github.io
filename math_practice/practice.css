@@ -297,30 +297,32 @@ h1 {
   min-height: 42px;
   padding: 0 15px;
   overflow: hidden;
-  border: 1px solid #ffffff25;
-  border-radius: 12px;
-  background: #ffffff10;
+  appearance: none;
+  border: 1px solid #c3adff9c;
+  border-radius: 14px;
+  background: #282443;
   color: var(--ink);
   cursor: pointer;
   font-size: 12px;
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  box-shadow: inset 0 0 0 1px #ffffff12, 0 4px 14px #080a1e55;
 }
 
-.account-button:hover { background: #ffffff1a; }
-.account-button.account-signed-in { border-color: #85efd255; color: #a7f4df; }
+.account-button:hover { border-color: #d3c8ff; background: #332d54; }
+.account-button.account-signed-in { border-color: #85efd2c4; color: #a7f4df; }
 .account-dialog {
   width: min(620px, calc(100vw - 24px));
   max-width: 620px;
   max-height: min(88vh, 820px);
   padding: 24px;
   overflow: auto;
-  border: 1px solid #ffffff30;
+  border: 1px solid #a48aff88;
   border-radius: 22px;
-  background: #191b35;
+  background: linear-gradient(155deg, #232443, #191b35 62%, #17232f);
   color: var(--ink);
-  box-shadow: 0 24px 80px #050611b8;
+  box-shadow: 0 26px 90px #050611d9, inset 0 1px #ffffff12;
 }
 
 .account-dialog::backdrop { background: #080a17bd; backdrop-filter: blur(5px); }
