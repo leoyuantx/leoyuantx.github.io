@@ -1,42 +1,19 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import {onRequest} from "firebase-functions/https";
+import * as logger from "firebase-functions/logger";
+import {getApps, initializeApp} from "firebase-admin/app";
+import {FieldValue, getFirestore} from "firebase-admin/firestore";
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
-const admin = require("firebase-admin");
+if (getApps().length === 0) {
+  initializeApp();
+}
+const db = getFirestore();
 
-// Initialize Firebase Admin SDK
-admin.initializeApp();
-const db = admin.firestore();
-
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
-
-// POST endpoint - Fetch word counters for an authenticated user
-exports.getWordCounters = onRequest(async (request, response) => {
+export const getWordCounters = onRequest(async (request, response) => {
   try {
-    // Enable CORS
     response.set("Access-Control-Allow-Origin", "*");
     response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     response.set("Access-Control-Allow-Headers", "Content-Type");
 
-    // Handle CORS preflight
     if (request.method === "OPTIONS") {
       response.status(204).send("");
       return;
@@ -80,15 +57,12 @@ exports.getWordCounters = onRequest(async (request, response) => {
   }
 });
 
-// POST endpoint - Update counter for a single word
-exports.updateWordCounter = onRequest(async (request, response) => {
+export const updateWordCounter = onRequest(async (request, response) => {
   try {
-    // Enable CORS
     response.set("Access-Control-Allow-Origin", "*");
     response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     response.set("Access-Control-Allow-Headers", "Content-Type");
 
-    // Handle CORS preflight
     if (request.method === "OPTIONS") {
       response.status(204).send("");
       return;
@@ -100,8 +74,6 @@ exports.updateWordCounter = onRequest(async (request, response) => {
     }
 
     const {username, password, word, count} = request.body || {};
-
-    // Validate input
     if (typeof username !== "string" || !username.trim() ||
         typeof password !== "string" || !password ||
         typeof word !== "string" || !word.trim() || word.includes("/") ||
@@ -125,7 +97,7 @@ exports.updateWordCounter = onRequest(async (request, response) => {
 
     await userDocument.ref.collection("words").doc(word).set({
       count,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp()
     }, {merge: true});
 
     logger.info("Updated user word counter", {user: username.trim(), word, count});
@@ -139,8 +111,7 @@ exports.updateWordCounter = onRequest(async (request, response) => {
   }
 });
 
-// POST endpoint - Verify a user's credentials
-exports.logIn = onRequest(async (request, response) => {
+export const logIn = onRequest(async (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   response.set("Access-Control-Allow-Headers", "Content-Type");
@@ -205,8 +176,7 @@ exports.logIn = onRequest(async (request, response) => {
   }
 });
 
-// POST endpoint - Seed word counters for an authenticated user
-exports.seedUserWords = onRequest(async (request, response) => {
+export const seedUserWords = onRequest(async (request, response) => {
   if (request.method !== "POST") {
     response.status(405).json({success: false, error: "Method not allowed"});
     return;

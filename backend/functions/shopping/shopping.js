@@ -10,10 +10,12 @@
 import {setGlobalOptions} from "firebase-functions";
 import {onRequest} from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
-import {initializeApp} from "firebase-admin/app";
+import {getApps, initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
 
-initializeApp();
+if (getApps().length === 0) {
+  initializeApp();
+}
 const db = getFirestore();
 
 // For cost control, you can set the maximum number of containers that can be
