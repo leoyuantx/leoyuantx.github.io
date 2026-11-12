@@ -18,7 +18,7 @@
           <span class="brand-tag">Practice makes you powerful</span>
         </span>
       </a>
-      <span class="pilot-pill"><span aria-hidden="true">👩‍🚀</span> Cadet in training</span>
+      <span class="pilot-pill"><span aria-hidden="true">👩‍🚀</span><span class="pilot-title">Cadet in training</span></span>
     </header>
 
     <section class="hero home-hero" aria-labelledby="page-title">
@@ -35,8 +35,8 @@
     <div class="section-heading subject-heading">
       <span class="step-number" aria-hidden="true">1</span>
       <div>
-        <h2>Choose a subject and level</h2>
-        <p>Choose from warm-up questions to bigger challenges.</p>
+        <h2>Choose a subject</h2>
+        <p>Difficulty adjusts automatically from your latest challenge in each subject.</p>
       </div>
     </div>
     <section class="subject-grid" aria-label="Choose a math practice game">
@@ -45,14 +45,8 @@
         <span class="subject-card-content">
           <span class="subject-title">Addition</span>
           <span class="subject-copy">Put numbers together</span>
-          <span class="level-label">Choose a level</span>
-          <span class="level-links">
-            <a href="addition.html?level=1"><span>Level 1</span><span class="level-detail">1-digit + 1-digit</span></a>
-            <a href="addition.html?level=2"><span>Level 2</span><span class="level-detail">1-digit + 2-digit</span></a>
-            <a href="addition.html?level=3"><span>Level 3</span><span class="level-detail">2-digit + 2-digit</span></a>
-            <a href="addition.html?level=4"><span>Level 4</span><span class="level-detail">3-digit + 2-digit</span></a>
-            <a href="addition.html?level=5"><span>Level 5</span><span class="level-detail">3-digit + 3-digit</span></a>
-          </span>
+          <span class="subject-last-challenge" data-operation="addition">No challenge played yet</span>
+          <a class="play-button" href="addition.html">Play</a>
         </span>
       </article>
       <article class="subject-card subtraction-card">
@@ -60,14 +54,8 @@
         <span class="subject-card-content">
           <span class="subject-title">Subtraction</span>
           <span class="subject-copy">Find what is left</span>
-          <span class="level-label">Choose a level</span>
-          <span class="level-links">
-            <a href="subtraction.html?level=1"><span>Level 1</span><span class="level-detail">1-digit − 1-digit</span></a>
-            <a href="subtraction.html?level=2"><span>Level 2</span><span class="level-detail">2-digit − 1-digit</span></a>
-            <a href="subtraction.html?level=3"><span>Level 3</span><span class="level-detail">2-digit − 2-digit</span></a>
-            <a href="subtraction.html?level=4"><span>Level 4</span><span class="level-detail">3-digit − 2-digit</span></a>
-            <a href="subtraction.html?level=5"><span>Level 5</span><span class="level-detail">3-digit − 3-digit</span></a>
-          </span>
+          <span class="subject-last-challenge" data-operation="subtraction">No challenge played yet</span>
+          <a class="play-button" href="subtraction.html">Play</a>
         </span>
       </article>
       <article class="subject-card multiplication-card">
@@ -75,11 +63,8 @@
         <span class="subject-card-content">
           <span class="subject-title">Multiplication</span>
           <span class="subject-copy">Practice your times tables</span>
-          <span class="level-label">Choose a level</span>
-          <span class="level-links">
-            <a href="multiplication.html?level=1"><span>Level 1</span><span class="level-detail">1-digit × 1-digit</span></a>
-            <a href="multiplication.html?level=2"><span>Level 2</span><span class="level-detail">2-digit × 1-digit</span></a>
-          </span>
+          <span class="subject-last-challenge" data-operation="multiplication">No challenge played yet</span>
+          <a class="play-button" href="multiplication.html">Play</a>
         </span>
       </article>
       <article class="subject-card division-card">
@@ -87,11 +72,8 @@
         <span class="subject-card-content">
           <span class="subject-title">Division</span>
           <span class="subject-copy">Share numbers equally</span>
-          <span class="level-label">Choose a level</span>
-          <span class="level-links">
-            <a href="division.html?level=1"><span>Level 1</span><span class="level-detail">2-digit ÷ 1-digit</span></a>
-            <a href="division.html?level=2"><span>Level 2</span><span class="level-detail">2-digit ÷ 2-digit</span></a>
-          </span>
+          <span class="subject-last-challenge" data-operation="division">No challenge played yet</span>
+          <a class="play-button" href="division.html">Play</a>
         </span>
       </article>
     </section>
@@ -105,8 +87,8 @@
         </div>
       </div>
       <div class="progress-guide-grid">
-        <article><span class="guide-icon">⚡</span><h3>Experience</h3><p>Earn 10 XP per correct answer and 25 bonus XP for a perfect mission. Both scale with the mission level.</p></article>
-        <article><span class="guide-icon">✦</span><h3>Levels</h3><p>Each higher challenge level unlocks at another 150 XP. Higher levels bring harder questions and larger rewards.</p></article>
+        <article><span class="guide-icon">⚡</span><h3>Mission progress</h3><p>Correct answers build progress, and a perfect mission adds a bonus. Higher mission levels increase your rewards.</p></article>
+        <article><span class="guide-icon">✦</span><h3>Adaptive challenges</h3><p>Each subject remembers its latest star rating separately. Earn 4–5 stars to make the next challenge harder, 0–2 stars to make it easier, or 3 stars to repeat the same difficulty with new questions.</p></article>
         <article><span class="guide-icon">◈</span><h3>Coins</h3><p>Earn 5 coins per mission plus 2 per correct answer, multiplied by the mission level. Achievement bonuses are added, and random drops also scale. Spend coins on themes, avatar frames, and mouse trails.</p></article>
         <article><span class="guide-icon">🔥</span><h3>Streaks</h3><p>Complete a mission each day to keep your streak. A missed UTC day resets it; a three-day streak earns an achievement.</p></article>
       </div>

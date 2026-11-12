@@ -14,6 +14,9 @@ const profiles = db.collection("mathProfiles");
 const usernames = db.collection("mathUsernames");
 const sessions = db.collection("mathSessions");
 const totalQuestions = 10;
+const progressionVersion = 2;
+const luckyRollIntervalMs = 60 * 1000;
+const dailyChallengeAttemptLimit = 2;
 
 const levels = {
 	addition: [
@@ -96,7 +99,35 @@ async function getOrCreateProfile(decodedToken) {
 	const profileRef = profiles.doc(decodedToken.uid);
 	const existing = await profileRef.get();
 	if (existing.exists) {
-		return {ref: profileRef, data: existing.data()};
+		let data = existing.data();
+		if (data.progressionVersion !== progressionVersion) {
+			await db.runTransaction(async (transaction) => {
+				const profileSnapshot = await transaction.get(profileRef);
+				if (!profileSnapshot.exists) {
+					throw new Error("Player profile not found.");
+				}
+
+				const current = profileSnapshot.data();
+				if (current.progressionVersion === progressionVersion) {
+					data = current;
+					return;
+				}
+
+				const previousXp = current.xp || 0;
+				const previousLevel = Math.max(current.level || 1, Math.floor(previousXp / 150) + 1);
+				const progressWithinLevel = Math.max(0, Math.min(149, previousXp - (previousLevel - 1) * 150));
+				// Keep existing pilots' level and in-level progress when changing the XP curve.
+				const xp = getXpForLevel(previousLevel) + progressWithinLevel;
+				data = {...current, xp, level: previousLevel, progressionVersion};
+				transaction.update(profileRef, {
+					xp,
+					level: previousLevel,
+					progressionVersion,
+					updatedAt: FieldValue.serverTimestamp(),
+				});
+			});
+		}
+		return {ref: profileRef, data};
 	}
 
 	const baseUsername = usernameFromToken(decodedToken);
@@ -129,6 +160,7 @@ async function getOrCreateProfile(decodedToken) {
 			displayName: decodedToken.name || chosenUsername,
 			xp: 0,
 			level: 1,
+			progressionVersion,
 			coins: 0,
 			totalSessions: 0,
 			totalCorrect: 0,
@@ -141,6 +173,8 @@ async function getOrCreateProfile(decodedToken) {
 			equippedTheme: null,
 			equippedAvatarFrame: null,
 			equippedMouseTrail: null,
+			luckyTitle: false,
+			lastLuckyRollAt: 0,
 			createdAt: FieldValue.serverTimestamp(),
 			updatedAt: FieldValue.serverTimestamp(),
 		};
@@ -184,6 +218,33 @@ function makeQuestion(operation, ranges) {
 	return {a, b, answer};
 }
 
+function getQuestionKey(operation, question) {
+	const operands = operation === "addition" || operation === "multiplication"
+		? [question.a, question.b].sort((a, b) => a - b)
+		: [question.a, question.b];
+	return operands.join(":");
+}
+
+function makeMissionQuestions(operation, ranges, previousKeys = []) {
+	const usedKeys = new Set(previousKeys);
+	const questions = [];
+	while (questions.length < totalQuestions) {
+		const question = makeQuestion(operation, ranges);
+		const key = getQuestionKey(operation, question);
+		if (usedKeys.has(key)) continue;
+		usedKeys.add(key);
+		questions.push(question);
+	}
+	return questions;
+}
+
+function getNextChallengeLevel(challenge, maxLevel) {
+	let level = challenge?.level || 1;
+	if (challenge?.stars >= 4) level += 1;
+	if (challenge?.stars <= 2 && challenge?.stars !== undefined) level -= 1;
+	return Math.max(1, Math.min(maxLevel, level));
+}
+
 function chooseVariableReward() {
 	const roll = randomInt(100);
 	if (roll < 70) return {type: "coins", amount: 0, label: "Steady flight"};
@@ -209,7 +270,11 @@ function getNewAchievements(profile, correct, newStreak) {
 }
 
 function getLevel(xp) {
-	return Math.floor(xp / 150) + 1;
+	return Math.floor((Math.sqrt(1 + (8 * xp) / 150) - 1) / 2) + 1;
+}
+
+function getXpForLevel(level) {
+	return (150 * level * (level - 1)) / 2;
 }
 
 function getPublicProfile(profile) {
@@ -231,6 +296,15 @@ function getPublicProfile(profile) {
 		equippedTheme: profile.equippedTheme || null,
 		equippedAvatarFrame: profile.equippedAvatarFrame || null,
 		equippedMouseTrail: profile.equippedMouseTrail || null,
+		luckyTitle: profile.luckyTitle || false,
+		challengeProgress: Object.fromEntries(
+			Object.entries(profile.challengeProgress || {})
+				.filter(([operation]) => Object.hasOwn(levels, operation))
+				.map(([operation, challenge]) => [operation, {
+					level: challenge.level,
+					stars: challenge.stars,
+				}]),
+		),
 	};
 }
 
@@ -252,33 +326,68 @@ async function requireIdentity(request, response) {
 
 async function startMission(decodedToken, body, response) {
 	const operation = body.operation;
-	const level = Number(body.level);
-	if (!Object.hasOwn(levels, operation) || !Number.isInteger(level) ||
-			level < 1 || level > levels[operation].length) {
-		sendError(response, 400, "Choose a valid operation and level.");
+	if (!Object.hasOwn(levels, operation)) {
+		sendError(response, 400, "Choose a valid subject.");
 		return;
 	}
 
 	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
-	const profileSnapshot = await profileRef.get();
-	const requiredXp = (level - 1) * 150;
-	if (profileSnapshot.data().xp < requiredXp) {
-		sendError(response, 403, "Earn more XP to unlock this level.");
-		return;
-	}
-
-	const questions = Array.from({length: totalQuestions}, () =>
-		makeQuestion(operation, levels[operation][level - 1])
-	);
 	const sessionRef = sessions.doc();
-	await sessionRef.set({
-		uid: decodedToken.uid,
-		operation,
-		level,
-		questions,
-		status: "active",
-		startedAtMs: Date.now(),
-		createdAt: FieldValue.serverTimestamp(),
+	const today = getUtcDate();
+	let attemptsRemaining;
+	let level;
+	let questions;
+
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+		const profile = profileSnapshot.data();
+		const challenge = profile.challengeProgress?.[operation];
+		level = getNextChallengeLevel(challenge, levels[operation].length);
+		const attemptRef = profileRef.collection("challengeAttempts").doc(`${today}_${operation}_${level}`);
+		const attemptSnapshot = await transaction.get(attemptRef);
+
+		const attemptsUsed = attemptSnapshot.exists ? attemptSnapshot.data().count || 0 : 0;
+		if (attemptsUsed >= dailyChallengeAttemptLimit) {
+			throw Object.assign(
+				new Error("You have used both tries for this challenge today. Try again after midnight UTC."),
+				{status: 429},
+			);
+		}
+
+		questions = makeMissionQuestions(
+			operation,
+			levels[operation][level - 1],
+			challenge?.lastQuestionKeys || [],
+		);
+		attemptsRemaining = dailyChallengeAttemptLimit - attemptsUsed - 1;
+		const startedAtMs = Date.now();
+		transaction.set(attemptRef, {
+			date: today,
+			operation,
+			level,
+			count: attemptsUsed + 1,
+			updatedAt: FieldValue.serverTimestamp(),
+		});
+		transaction.update(profileRef, {
+			[`challengeProgress.${operation}`]: {
+				...(challenge || {}),
+				lastStartedAtMs: startedAtMs,
+				lastQuestionKeys: questions.map((question) => getQuestionKey(operation, question)),
+			},
+			updatedAt: FieldValue.serverTimestamp(),
+		});
+		transaction.create(sessionRef, {
+			uid: decodedToken.uid,
+			operation,
+			level,
+			questions,
+			status: "active",
+			startedAtMs,
+			createdAt: FieldValue.serverTimestamp(),
+		});
 	});
 
 	response.status(200).json({
@@ -286,6 +395,7 @@ async function startMission(decodedToken, body, response) {
 		sessionId: sessionRef.id,
 		operation,
 		level,
+		attemptsRemaining,
 		questions: questions.map(({a, b}, index) => ({
 			number: index + 1,
 			a,
@@ -298,12 +408,16 @@ async function startMission(decodedToken, body, response) {
 async function completeMission(decodedToken, body, response) {
 	const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
 	const answers = body.answers;
+	const answerTimes = body.answerTimes;
 	if (!sessionId || sessionId.includes("/") || !Array.isArray(answers) || answers.length !== totalQuestions ||
-			answers.some((answer) => !Number.isSafeInteger(answer) || answer < 0)) {
-		sendError(response, 400, "Provide a session ID and one non-negative integer answer per question.");
+			answers.some((answer) => !Number.isSafeInteger(answer) || answer < 0) ||
+			!Array.isArray(answerTimes) || answerTimes.length !== totalQuestions ||
+			answerTimes.some((time) => !Number.isFinite(time) || time < 0 || time > 6 * 60 * 60 * 1000)) {
+		sendError(response, 400, "Provide a session ID, 10 non-negative integer answers, and 10 valid answer times.");
 		return;
 	}
 
+	await getOrCreateProfile(decodedToken);
 	const sessionRef = sessions.doc(sessionId);
 	const profileRef = profiles.doc(decodedToken.uid);
 	const variableRewardRoll = chooseVariableReward();
@@ -331,6 +445,16 @@ async function completeMission(decodedToken, body, response) {
 		const correct = session.questions.reduce((count, question, index) =>
 			count + (answers[index] === question.answer ? 1 : 0), 0
 		);
+		const averageAnswerTime = answerTimes.reduce((total, time) => total + time, 0) / totalQuestions;
+		const accuracyPoints = (correct / totalQuestions) * 80;
+		const speedPoints = Math.max(0, 1 - averageAnswerTime / 60000) * 20;
+		const missionRating = accuracyPoints + speedPoints;
+		const stars = missionRating >= 90 ? 5
+			: missionRating >= 75 ? 4
+				: missionRating >= 60 ? 3
+					: missionRating >= 45 ? 2
+						: missionRating >= 30 ? 1
+							: 0;
 		const today = getUtcDate();
 		const lastStudyDate = profile.lastStudyDate;
 		const currentStreak = lastStudyDate === today
@@ -350,6 +474,20 @@ async function completeMission(decodedToken, body, response) {
 		const baseCoins = (5 + correct * 2) * rewardMultiplier;
 		const coinsEarned = baseCoins + achievementCoins + variableReward.amount;
 		const xp = (profile.xp || 0) + xpEarned;
+		const previousChallenge = profile.challengeProgress?.[session.operation] || {};
+		const isLatestCompletedChallenge = session.startedAtMs >= (previousChallenge.lastCompletedAtMs || 0);
+		const isLatestStartedChallenge = session.startedAtMs >= (previousChallenge.lastStartedAtMs || 0);
+		const challengeProgress = {
+			...previousChallenge,
+			...(isLatestCompletedChallenge ? {
+				level: session.level,
+				stars,
+				lastCompletedAtMs: session.startedAtMs,
+			} : {}),
+			...(isLatestStartedChallenge ? {
+				lastQuestionKeys: session.questions.map((question) => getQuestionKey(session.operation, question)),
+			} : {}),
+		};
 
 		missionResult = {
 			operation: session.operation,
@@ -357,6 +495,7 @@ async function completeMission(decodedToken, body, response) {
 			rewardMultiplier,
 			correct,
 			totalQuestions,
+			stars,
 			xpEarned,
 			coinsEarned,
 			baseCoins,
@@ -381,6 +520,7 @@ async function completeMission(decodedToken, body, response) {
 		transaction.update(profileRef, {
 			xp,
 			level: getLevel(xp),
+			[`challengeProgress.${session.operation}`]: challengeProgress,
 			coins: (profile.coins || 0) + coinsEarned,
 			totalSessions,
 			totalCorrect: (profile.totalCorrect || 0) + correct,
@@ -398,6 +538,41 @@ async function completeMission(decodedToken, body, response) {
 	});
 
 	response.status(200).json({success: true, result: missionResult});
+}
+
+async function rollLuckyTitle(decodedToken, response) {
+	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
+	const now = Date.now();
+	const luckyRoll = randomInt(100) === 0;
+	let result;
+
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+
+		const profile = profileSnapshot.data();
+		if (profile.luckyTitle) {
+			result = {rolled: false, luckyTitle: true};
+			return;
+		}
+
+		const lastRollAt = profile.lastLuckyRollAt || 0;
+		if (now - lastRollAt < luckyRollIntervalMs) {
+			result = {rolled: false, luckyTitle: false};
+			return;
+		}
+
+		transaction.update(profileRef, {
+			lastLuckyRollAt: now,
+			...(luckyRoll ? {luckyTitle: true} : {}),
+			updatedAt: FieldValue.serverTimestamp(),
+		});
+		result = {rolled: true, luckyTitle: luckyRoll};
+	});
+
+	response.status(200).json({success: true, ...result});
 }
 
 async function updateUsername(decodedToken, body, response) {
@@ -593,8 +768,8 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				progression: {
 					level: data.level,
 					xp: data.xp,
-					xpForNextLevel: data.level * 150,
-					xpToNextLevel: data.level * 150 - data.xp,
+					xpForNextLevel: getXpForLevel(data.level + 1),
+					xpToNextLevel: getXpForLevel(data.level + 1) - data.xp,
 				},
 				achievements: achievementCatalog.map((achievement) => ({
 					...achievement,
@@ -611,8 +786,8 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				progression: action === "progression" ? {
 					level: data.level,
 					xp: data.xp,
-					xpForNextLevel: data.level * 150,
-					xpToNextLevel: data.level * 150 - data.xp,
+					xpForNextLevel: getXpForLevel(data.level + 1),
+					xpToNextLevel: getXpForLevel(data.level + 1) - data.xp,
 					currentStreak: data.currentStreak,
 					longestStreak: data.longestStreak,
 				} : undefined,
@@ -638,6 +813,10 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 		}
 		if (action === "completeMission") {
 			await completeMission(decodedToken, body, response);
+			return;
+		}
+		if (action === "rollLuckyTitle") {
+			await rollLuckyTitle(decodedToken, response);
 			return;
 		}
 		if (action === "leaderboard") {

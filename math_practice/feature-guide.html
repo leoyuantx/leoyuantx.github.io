@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11142b">
+  <title>Math Galaxy — Feature Guide</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+      color: #f7f6ff;
+      background: #11142b;
+      --muted: #b9bad0;
+      --line: #ffffff20;
+      --mint: #85efd2;
+      --purple: #c3adff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 8% 10%, #413b704f 0, transparent 32%),
+        radial-gradient(ellipse at 95% 85%, #225c5140 0, transparent 30%),
+        #11142b;
+    }
+
+    main { width: min(100% - 32px, 900px); margin: 0 auto; padding: 38px 0 60px; }
+    header { margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 8px; color: var(--purple); font-size: 11px; font-weight: 900; letter-spacing: .14em; }
+    h1 { margin: 0; font-size: clamp(32px, 6vw, 48px); letter-spacing: -.04em; }
+    header p:last-child { max-width: 680px; color: var(--muted); line-height: 1.6; }
+    section { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: #171a35d9; }
+    h2 { margin: 0 0 14px; font-size: 21px; }
+    h3 { margin: 16px 0 6px; font-size: 15px; }
+    p, li { color: var(--muted); font-size: 14px; line-height: 1.65; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0 0; padding-left: 22px; }
+    strong { color: #f7f6ff; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .card { padding: 15px; border: 1px solid #ffffff18; border-radius: 14px; background: #ffffff08; }
+    .card h3 { margin-top: 0; color: var(--mint); }
+    .card p:last-child { margin-bottom: 0; }
+    .title-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 18px; }
+    .title-list li::marker { color: var(--purple); }
+    .note { padding: 12px 14px; border-left: 3px solid var(--mint); border-radius: 4px 10px 10px 4px; background: #85efd20d; }
+    footer { margin-top: 22px; color: #8f91ac; font-size: 12px; text-align: center; }
+
+    @media (max-width: 600px) {
+      main { width: min(100% - 22px, 900px); padding-top: 25px; }
+      section { padding: 17px; }
+      .grid, .title-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">PRIVATE REFERENCE · NOT LINKED FROM THE SITE</p>
+      <h1>Math Galaxy feature guide</h1>
+      <p>A guide to the practice games, pilot progression, titles, rewards, and account features currently in Math Galaxy.</p>
+    </header>
+
+    <section>
+      <h2>Math missions</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Addition · 5 levels</h3>
+          <p>Level 1: one-digit + one-digit; Level 2: one-digit + two-digit; Level 3: two-digit + two-digit; Level 4: three-digit + two-digit; Level 5: three-digit + three-digit.</p>
+        </article>
+        <article class="card">
+          <h3>Subtraction · 5 levels</h3>
+          <p>Level 1: one-digit − one-digit; Level 2: two-digit − one-digit; Level 3: two-digit − two-digit; Level 4: three-digit − two-digit; Level 5: three-digit − three-digit. Problems avoid negative answers.</p>
+        </article>
+        <article class="card">
+          <h3>Multiplication · 2 levels</h3>
+          <p>Level 1: one-digit × one-digit; Level 2: two-digit × one-digit.</p>
+        </article>
+        <article class="card">
+          <h3>Division · 2 levels</h3>
+          <p>Level 1: two-digit ÷ one-digit; Level 2: two-digit ÷ two-digit. Questions use whole-number quotients.</p>
+        </article>
+      </div>
+      <p>Each mission has <strong>10 questions</strong>. You can start up to <strong>two tries per subject and level each UTC day</strong>. Starting a mission uses a try, even if you leave before finishing; the limit is shared across devices and resets at midnight UTC. The game shows your remaining tries.</p>
+      <p>Choose a subject and press <strong>Play</strong>; the game selects the difficulty automatically. Each subject tracks its own most recent star rating: 4–5 stars raises the next challenge by one level, 0–2 stars lowers it by one, and 3 stars keeps the level while giving you a different set of questions. Difficulty stays within that subject's available levels.</p>
+      <p>Enter a non-negative whole-number answer, submit it to move to the next question, or use the hint and new-mission controls. At the end, see your answers, correctness, answer times, accuracy, speed, and a 0–5 star rating.</p>
+    </section>
+
+    <section>
+      <h2>Pilot levels and titles</h2>
+      <p>Correct answers earn progress points, with an extra bonus for getting all 10 correct. Rewards scale with the mission level. The level requirement rises by 150 points each time: Level 2 takes 150 total points, Level 3 takes 450 total, Level 4 takes 900 total, and Level 5 takes 1,500 total. In general, moving from Level <em>N</em> to <em>N + 1</em> costs <strong>150 × N additional points</strong>.</p>
+      <p>The profile progress bar shows how far you are through the current pilot level and how many points remain. Pilot levels continue to determine title milestones; challenge difficulty adapts independently for each subject.</p>
+      <h3>Milestone titles</h3>
+      <ul class="title-list">
+        <li>Level 1: Cadet in training</li>
+        <li>Level 10: New Pilot</li>
+        <li>Level 20: Amateur Pilot</li>
+        <li>Level 30: Good Pilot</li>
+        <li>Level 40: Great Pilot</li>
+        <li>Level 50: Pro Pilot</li>
+        <li>Level 60: Elite Pilot</li>
+        <li>Level 70: Legend</li>
+        <li>Level 80: Mythical</li>
+        <li>Level 90: Cosmic Pilot</li>
+        <li>Level 100: Galactic Legend</li>
+      </ul>
+      <p>Every 10 levels after 100 earns the next numbered Galactic Legend title. A newly unlocked title appears in an animated notification on the right, with white sparks.</p>
+      <h3>Lucky title</h3>
+      <p>Lucky is a separate, permanent title. While signed in and active in a visible Math Galaxy page, the game checks once per minute for a 1% chance to earn it—including during a mission. Activity means keyboard, pointer, touch, or scrolling input; checks stop after three minutes without activity. Winning displays the same right-side title notification and sparks.</p>
+      <p class="note">The Lucky check is performed by the Math Galaxy service and is limited to one roll per minute per pilot.</p>
+    </section>
+
+    <section>
+      <h2>Coins, achievements, and daily streaks</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Coins</h3>
+          <p>A mission awards 5 coins plus 2 per correct answer, multiplied by its level. Achievement coins and a random coin drop are added; the random drop also scales with mission level.</p>
+        </article>
+        <article class="card">
+          <h3>Achievements</h3>
+          <ul>
+            <li>First Mission — complete one mission; 10 coins.</li>
+            <li>Perfect Mission — get all 10 right; 20 coins.</li>
+            <li>Three-Day Streak — practice three consecutive days; 30 coins.</li>
+            <li>Mission Regular — complete 10 missions; 40 coins.</li>
+            <li>Century Club — answer 100 questions correctly; 50 coins.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Daily streak</h3>
+          <p>Completing at least one mission keeps the streak going for that UTC day. Missing a UTC day resets it. Your current and longest streaks are shown in your profile.</p>
+        </article>
+        <article class="card">
+          <h3>Random coin drops</h3>
+          <p>Each completed mission has a 70% chance of no extra coins, 25% chance of 5 extra, 4% chance of 15 extra, or 1% chance of 50 extra, before the mission-level multiplier.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Pilot account and cosmetics</h2>
+      <ul>
+        <li>Create an account or sign in to save progress across sessions.</li>
+        <li>The profile shows your title, level progress, level, coins, and day streak.</li>
+        <li>Profile tabs include Progress, Awards, Leaderboard, Friends, and Shop.</li>
+        <li>The global leaderboard lists up to 25 pilots. The Friends leaderboard compares you with your friends (up to 50 friends).</li>
+        <li>Add friends by pilot username.</li>
+        <li>Spend coins on profile themes, avatar frames, and mouse trails. Purchased cosmetics can be equipped from the Shop tab.</li>
+      </ul>
+      <div class="grid">
+        <article class="card">
+          <h3>Shop items</h3>
+          <ul>
+            <li>Comet Trail theme — 50 coins.</li>
+            <li>Lunar Frame — 100 coins.</li>
+            <li>Diamond Trail — 150 coins.</li>
+            <li>Nebula Theme — 200 coins.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Rating details</h3>
+          <p>Accuracy contributes up to 80 rating points and average answer speed contributes up to 20. The final score is converted into zero to five stars.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer>Standalone reference page · Not linked from the Math Galaxy home page</footer>
+  </main>
+</body>
+</html>

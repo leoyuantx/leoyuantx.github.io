@@ -15,7 +15,7 @@
         <span class="brand-icon" aria-hidden="true">🚀</span>
         <span><span class="brand-name">Math Galaxy</span><span class="brand-tag">Practice makes you powerful</span></span>
       </a>
-      <span class="pilot-pill"><span aria-hidden="true">👩‍🚀</span> Cadet in training</span>
+      <span class="pilot-pill"><span aria-hidden="true">👩‍🚀</span><span class="pilot-title">Cadet in training</span></span>
     </header>
     <section class="hero" aria-labelledby="page-title">
       <h1 id="page-title">Subtraction Mission</h1>
@@ -28,7 +28,8 @@
         <div class="stat"><span class="stat-icon" aria-hidden="true">⏱️</span><span><span class="stat-label">Time</span><span class="stat-value" id="elapsed-time" role="timer" aria-label="Mission elapsed time">0:00.000</span></span></div>
       </div>
       <div class="game-content" id="game-content">
-        <div class="mission-row"><p class="mission-label">🚀 Mission progress</p><span class="question-count" id="question-count">Question 1 of 10</span></div>
+        <div class="mission-row"><p class="mission-label">🚀 Mission progress <span class="challenge-level" id="challenge-level"></span></p><span class="question-count" id="question-count">Question 1 of 10</span></div>
+        <p class="attempts-remaining" id="attempts-remaining" aria-live="polite">Two tries per challenge each UTC day.</p>
         <div class="progress-track" id="progress-track" role="progressbar" aria-label="Mission progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
         <div class="question-panel">
           <div class="question-wrap">
@@ -39,7 +40,7 @@
             <div class="hint-box" id="hint-box" role="note"></div>
           </div>
         </div>
-        <div class="settings"><label for="number-range">Difficulty:</label><select class="table-select" id="number-range"><option value="1-9" selected>Single-digit</option><option value="10-99">Double-digit</option></select><button class="button button-secondary" id="restart-button" type="button">↻ New mission</button></div>
+        <div class="settings"><span class="adaptive-difficulty">Difficulty adjusts based on your stars.</span><button class="button button-secondary" id="restart-button" type="button">↻ New mission</button></div>
         <p class="footer-note">One Enter submits and moves on. No timer, no pressure!</p>
       </div>
       <div class="completion" id="completion" aria-live="polite">

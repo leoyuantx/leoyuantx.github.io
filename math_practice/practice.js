@@ -11,31 +11,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   };
   const operation = operations[config.operation];
   if (!operation) throw new Error("Unknown math practice operation.");
-  const levels = {
-    addition: [
-      { id: "1", label: "Level 1 — 1-digit + 1-digit", ranges: [[1, 9], [1, 9]] },
-      { id: "2", label: "Level 2 — 1-digit + 2-digit", ranges: [[1, 9], [10, 99]] },
-      { id: "3", label: "Level 3 — 2-digit + 2-digit", ranges: [[10, 99], [10, 99]] },
-      { id: "4", label: "Level 4 — 3-digit + 2-digit", ranges: [[100, 999], [10, 99]] },
-      { id: "5", label: "Level 5 — 3-digit + 3-digit", ranges: [[100, 999], [100, 999]] }
-    ],
-    subtraction: [
-      { id: "1", label: "Level 1 — 1-digit − 1-digit", ranges: [[1, 9], [1, 9]] },
-      { id: "2", label: "Level 2 — 2-digit − 1-digit", ranges: [[10, 99], [1, 9]] },
-      { id: "3", label: "Level 3 — 2-digit − 2-digit", ranges: [[10, 99], [10, 99]] },
-      { id: "4", label: "Level 4 — 3-digit − 2-digit", ranges: [[100, 999], [10, 99]] },
-      { id: "5", label: "Level 5 — 3-digit − 3-digit", ranges: [[100, 999], [100, 999]] }
-    ],
-    multiplication: [
-      { id: "1", label: "Level 1 — 1-digit × 1-digit", ranges: [[2, 9], [2, 9]] },
-      { id: "2", label: "Level 2 — 2-digit × 1-digit", ranges: [[10, 99], [2, 9]] }
-    ],
-    division: [
-      { id: "1", label: "Level 1 — 2-digit ÷ 1-digit", ranges: [[10, 99], [2, 9]] },
-      { id: "2", label: "Level 2 — 2-digit ÷ 2-digit", ranges: [[10, 99], [10, 99]] }
-    ]
-  };
-
   const elements = {
     title: document.querySelector("#page-title"),
     card: document.querySelector("#game-card"),
@@ -47,6 +22,8 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     hintButton: document.querySelector("#hint-button"),
     hintBox: document.querySelector("#hint-box"),
     feedback: document.querySelector("#feedback"),
+    attemptsRemaining: document.querySelector("#attempts-remaining"),
+    challengeLevel: document.querySelector("#challenge-level"),
     score: document.querySelector("#score"),
     streak: document.querySelector("#streak"),
     correctCount: document.querySelector("#correct-count"),
@@ -54,7 +31,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     questionCount: document.querySelector("#question-count"),
     progressTrack: document.querySelector("#progress-track"),
     progressFill: document.querySelector("#progress-fill"),
-    range: document.querySelector("#number-range"),
     restartButton: document.querySelector("#restart-button"),
     gameContent: document.querySelector("#game-content"),
     completion: document.querySelector("#completion"),
@@ -95,11 +71,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
 
   function updateTimer() {
     elements.elapsedTime.textContent = formatDuration(performance.now() - missionStartedAt);
-  }
-
-  function getSelectedLevel() {
-    return levels[config.operation].find((level) => level.id === elements.range.value)
-      || levels[config.operation][0];
   }
 
   function makeQuestion() {
@@ -204,6 +175,7 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
       const completion = await mathApi("completeMission", {
         sessionId: missionSessionId,
         answers: answerReport.map((entry) => entry.submitted),
+        answerTimes: answerReport.map((entry) => entry.time),
       });
       missionResult = completion.result;
       correctAnswers = missionResult.correct;
@@ -245,12 +217,7 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     const accuracyPoints = (accuracyPercent / 100) * 80;
     const speedPoints = Math.max(0, 1 - averageAnswerTime / 60000) * 20;
     const missionRating = accuracyPoints + speedPoints;
-    const stars = missionRating >= 90 ? 5
-      : missionRating >= 75 ? 4
-        : missionRating >= 60 ? 3
-          : missionRating >= 45 ? 2
-            : missionRating >= 30 ? 1
-              : 0;
+    const stars = missionResult.stars;
     elements.ratingStars.replaceChildren();
     for (let index = 0; index < 5; index += 1) {
       const star = document.createElement("span");
@@ -269,7 +236,7 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
       elements.ratingBreakdown.after(rewardSummary);
     }
     const earnedNames = missionResult.newAchievements.map((achievement) => achievement.title);
-    rewardSummary.textContent = `Difficulty ×${missionResult.rewardMultiplier} · +${missionResult.xpEarned} XP · +${missionResult.coinsEarned} coins · ${missionResult.variableReward.label}${earnedNames.length ? ` · Achievement: ${earnedNames.join(", ")}` : ""}`;
+    rewardSummary.textContent = `Difficulty ×${missionResult.rewardMultiplier} · +${missionResult.coinsEarned} coins · ${missionResult.variableReward.label}${earnedNames.length ? ` · Achievement: ${earnedNames.join(", ")}` : ""}`;
     elements.progressFill.style.width = "100%";
     elements.progressTrack.setAttribute("aria-valuenow", totalQuestions);
     elements.reportBody.replaceChildren();
@@ -329,12 +296,15 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     try {
       const result = await mathApi("startMission", {
         operation: config.operation,
-        level: Number(elements.range.value),
       });
       missionSessionId = result.sessionId;
       serverQuestions = result.questions;
+      elements.challengeLevel.textContent = `Level ${result.level}`;
+      elements.attemptsRemaining.textContent =
+        `${result.attemptsRemaining} ${result.attemptsRemaining === 1 ? "try" : "tries"} left for this challenge today.`;
       elements.gameContent.style.display = "block";
       elements.completion.style.display = "none";
+      elements.playAgainButton.disabled = false;
       elements.checkButton.disabled = false;
       elements.answer.disabled = false;
       elements.hintButton.disabled = false;
@@ -344,6 +314,15 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
       updateScoreboard();
       showQuestion();
     } catch (error) {
+      if (error.status === 429) {
+        elements.attemptsRemaining.textContent = "No tries left for this challenge today.";
+        elements.completionMessage.textContent = error.message;
+        elements.gameContent.style.display = "none";
+        elements.completion.style.display = "block";
+        elements.playAgainButton.disabled = true;
+        elements.completionMessage.focus();
+        return;
+      }
       elements.feedback.textContent = error.message;
       elements.feedback.className = "feedback try-again";
     } finally {
@@ -368,13 +347,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   elements.title.textContent = operation.title;
   elements.sign.textContent = operation.symbol;
   elements.card.setAttribute("aria-label", `${operation.title} game`);
-  elements.range.replaceChildren();
-  levels[config.operation].forEach((level) => {
-    const option = document.createElement("option");
-    option.value = level.id;
-    option.textContent = level.label;
-    elements.range.append(option);
-  });
   elements.checkButton.addEventListener("click", checkAnswer);
   elements.answer.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
@@ -385,11 +357,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   elements.hintButton.addEventListener("click", showHint);
   elements.restartButton.addEventListener("click", startMission);
   elements.playAgainButton.addEventListener("click", startMission);
-  elements.range.addEventListener("change", startMission);
-  const selectedLevel = new URLSearchParams(window.location.search).get("level");
-  if (levels[config.operation].some((level) => level.id === selectedLevel)) {
-    elements.range.value = selectedLevel;
-  }
   window.addEventListener("math-auth-changed", (event) => {
     const wasSignedIn = Boolean(signedInUser);
     signedInUser = event.detail.user;

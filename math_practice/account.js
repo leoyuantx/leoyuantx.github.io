@@ -24,6 +24,115 @@ let authMode = "signin";
 let resolveAuthReady;
 let lastTrailAt = 0;
 let trailTone = 0;
+let lastActivityAt = Date.now();
+let luckyRollInProgress = false;
+let titleToastQueue = [];
+let titleToastShowing = false;
+
+const pilotTitles = [
+  {level: 1, title: "Cadet in training"},
+  {level: 10, title: "New Pilot"},
+  {level: 20, title: "Amateur Pilot"},
+  {level: 30, title: "Good Pilot"},
+  {level: 40, title: "Great Pilot"},
+  {level: 50, title: "Pro Pilot"},
+  {level: 60, title: "Elite Pilot"},
+  {level: 70, title: "Legend"},
+  {level: 80, title: "Mythical"},
+  {level: 90, title: "Cosmic Pilot"},
+  {level: 100, title: "Galactic Legend"},
+];
+
+function getPilotTitle(level) {
+  const unlockedTitles = pilotTitles.filter((entry) => entry.level <= level);
+  const milestone = unlockedTitles[unlockedTitles.length - 1];
+  if (milestone.level === 100 && Math.floor(level / 10) > 10) {
+    return `${milestone.title} ${Math.floor(level / 10) - 9}`;
+  }
+  return milestone.title;
+}
+
+function showTitleToast(title, isLucky = false) {
+  titleToastQueue.push({title, isLucky});
+  showNextTitleToast();
+}
+
+function showNextTitleToast() {
+  if (titleToastShowing) return;
+  const nextToast = titleToastQueue.shift();
+  if (!nextToast) return;
+  titleToastShowing = true;
+  const toast = makeElement("div", `title-unlock-toast${nextToast.isLucky ? " is-lucky" : ""}`);
+  toast.id = "title-unlock-toast";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  toast.append(
+    makeElement("span", "title-toast-kicker", nextToast.isLucky ? "LUCKY TITLE UNLOCKED" : "NEW PILOT TITLE"),
+    makeElement("strong", "title-toast-name", nextToast.title),
+  );
+  for (let index = 0; index < 12; index += 1) {
+    const spark = makeElement("span", "title-toast-spark");
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 25 + Math.random() * 65;
+    spark.style.setProperty("--spark-x", `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty("--spark-y", `${Math.sin(angle) * distance}px`);
+    toast.append(spark);
+  }
+  document.body.append(toast);
+  window.setTimeout(() => {
+    toast.remove();
+    titleToastShowing = false;
+    showNextTitleToast();
+  }, 6000);
+}
+
+function updatePilotTitle(profile) {
+  const title = getPilotTitle(profile.level || 1);
+  const titleElement = document.querySelector(".pilot-title");
+  if (titleElement) titleElement.textContent = title;
+  const titleList = document.querySelector("#account-pilot-titles");
+  if (titleList) {
+    titleList.replaceChildren(makeElement("span", "account-title-badge", title));
+    if (profile.luckyTitle) titleList.append(makeElement("span", "account-title-badge is-lucky", "Lucky"));
+  }
+}
+
+function updateSubjectChallengeHistory(profile) {
+  document.querySelectorAll(".subject-last-challenge[data-operation]").forEach((label) => {
+    const challenge = profile.challengeProgress?.[label.dataset.operation];
+    if (!challenge || !Number.isInteger(challenge.stars)) {
+      label.textContent = "No challenge played yet";
+      return;
+    }
+
+    label.textContent = `Last challenge: ${"★".repeat(challenge.stars)}${"☆".repeat(5 - challenge.stars)} · Level ${challenge.level}`;
+    label.setAttribute("aria-label", `Last challenge: ${challenge.stars} stars at Level ${challenge.level}`);
+  });
+}
+
+function markActive() {
+  lastActivityAt = Date.now();
+}
+
+async function checkLuckyTitle() {
+  if (!auth.currentUser || !profileData || profileData.profile.luckyTitle ||
+      document.visibilityState !== "visible" || Date.now() - lastActivityAt > 3 * 60 * 1000 ||
+      luckyRollInProgress) return;
+
+  luckyRollInProgress = true;
+  try {
+    const result = await mathApi("rollLuckyTitle");
+    if (result.luckyTitle && !profileData.profile.luckyTitle) {
+      profileData.profile.luckyTitle = true;
+      updatePilotTitle(profileData.profile);
+      showTitleToast("Lucky", true);
+    }
+  } catch (error) {
+    console.error("Could not check for the Lucky title:", error);
+  } finally {
+    luckyRollInProgress = false;
+  }
+}
 
 export const authReady = new Promise((resolve) => {
   resolveAuthReady = resolve;
@@ -44,7 +153,9 @@ export async function mathApi(action, payload = {}) {
   });
   const data = await response.json();
   if (!response.ok || !data.success) {
-    throw new Error(data.error || "The Math Galaxy service could not complete that request.");
+    const error = new Error(data.error || "The Math Galaxy service could not complete that request.");
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
@@ -67,31 +178,6 @@ function renderAccountButton(button) {
   const username = profile?.username || auth.currentUser.displayName || "Pilot";
   button.textContent = `${username} · Lv ${profile?.level || 1} · ${profile?.coins || 0} ◈`;
   button.classList.add("account-signed-in");
-}
-
-function updateLevelLinks(isAuthenticated, xp = 0) {
-  document.querySelectorAll(".level-links a").forEach((link) => {
-    const level = Number(new URL(link.href).searchParams.get("level"));
-    const requiredXp = (level - 1) * 150;
-    const locked = level > 1 && (!isAuthenticated || xp < requiredXp);
-    const title = link.querySelector("span:first-child");
-    const detail = link.querySelector(".level-detail");
-
-    if (!link.dataset.originalTitle) link.dataset.originalTitle = title.textContent;
-    if (!link.dataset.originalDetail) link.dataset.originalDetail = detail.textContent;
-    link.classList.toggle("is-locked", locked);
-    link.dataset.locked = String(locked);
-    link.setAttribute("aria-disabled", String(locked));
-    if (locked) {
-      link.title = isAuthenticated ? `Earn ${requiredXp} XP to unlock this level.` : "Sign in to unlock higher levels.";
-    } else {
-      link.removeAttribute("title");
-    }
-    title.textContent = locked ? `${link.dataset.originalTitle} · Locked` : link.dataset.originalTitle;
-    detail.textContent = locked
-      ? isAuthenticated ? `Need ${requiredXp} XP` : "Sign in to unlock"
-      : link.dataset.originalDetail;
-  });
 }
 
 function applyProfileTheme(profile) {
@@ -119,27 +205,6 @@ function addMouseTrailDiamond(event) {
   window.setTimeout(() => diamond.remove(), 700);
 }
 
-function handleLevelLinkClick(event) {
-  const link = event.target.closest(".level-links a[data-locked='true']");
-  if (!link) return;
-  event.preventDefault();
-  const level = Number(new URL(link.href).searchParams.get("level"));
-  const requiredXp = (level - 1) * 150;
-
-  if (!auth.currentUser) {
-    setAuthMode("signin");
-    document.querySelector("#account-status").textContent = "Sign in to track progress and unlock higher levels.";
-    openAccountDialog();
-    return;
-  }
-
-  activeTab = "progression";
-  openAccountDialog();
-  document.querySelector("#account-pane").prepend(
-    makeElement("p", "locked-level-note", `Level ${level} unlocks at ${requiredXp} XP.`),
-  );
-}
-
 function addMetric(container, icon, label, value, detail = "") {
   const metric = makeElement("article", "account-metric");
   metric.append(
@@ -155,22 +220,46 @@ function addMetric(container, icon, label, value, detail = "") {
   container.append(metric);
 }
 
-function renderProgression(container, profile) {
+function getLevelProgress(profile) {
   const progression = profileData?.progression || {};
+  const level = progression.level ?? profile.level ?? 1;
+  const totalProgress = progression.xp ?? profile.xp ?? 0;
+  const progressAtLevelStart = 150 * (level - 1) * level / 2;
+  const progressNeededForLevel = 150 * level;
+  const progressInLevel = Math.max(0, Math.min(progressNeededForLevel, totalProgress - progressAtLevelStart));
+  const pointsToNextLevel = Math.max(0, progression.xpToNextLevel ?? (progressAtLevelStart + progressNeededForLevel - totalProgress));
+  return {level, progressInLevel, progressNeededForLevel, pointsToNextLevel};
+}
+
+function updateProfileProgress(profile) {
+  const {progressInLevel, progressNeededForLevel, pointsToNextLevel} = getLevelProgress(profile);
+  const track = document.querySelector("#account-profile-progress-track");
+  const fill = document.querySelector("#account-profile-progress-fill");
+  const label = document.querySelector("#account-profile-progress-label");
+  if (!track || !fill || !label) return;
+  const progressPercent = progressInLevel / progressNeededForLevel * 100;
+  track.setAttribute("aria-valuemax", String(progressNeededForLevel));
+  track.setAttribute("aria-valuenow", String(progressInLevel));
+  track.setAttribute("aria-valuetext", `${pointsToNextLevel} points to next level`);
+  fill.style.width = `${progressPercent}%`;
+  label.textContent = `${pointsToNextLevel} points to next level`;
+}
+
+function renderProgression(container, profile) {
+  const {level, progressInLevel, progressNeededForLevel, pointsToNextLevel} = getLevelProgress(profile);
   const section = makeElement("section", "account-progress");
-  section.append(
-    makeElement("h3", "", `Level ${progression.level || profile.level || 1}`),
-    makeElement("p", "", `${progression.xp || profile.xp || 0} XP earned`),
-  );
-  const track = makeElement("div", "account-xp-track");
+  section.append(makeElement("h3", "", `Level ${level}`));
+  const track = makeElement("div", "account-level-track");
   track.setAttribute("role", "progressbar");
   track.setAttribute("aria-label", "Progress to next level");
-  const fill = makeElement("div", "account-xp-fill");
-  const levelStart = ((progression.level || profile.level || 1) - 1) * 150;
-  const levelXp = (progression.xp || profile.xp || 0) - levelStart;
-  fill.style.width = `${Math.max(0, Math.min(100, levelXp / 150 * 100))}%`;
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", String(progressNeededForLevel));
+  track.setAttribute("aria-valuenow", String(progressInLevel));
+  track.setAttribute("aria-valuetext", `${pointsToNextLevel} points to next level`);
+  const fill = makeElement("div", "account-level-fill");
+  fill.style.width = `${progressInLevel / progressNeededForLevel * 100}%`;
   track.append(fill);
-  section.append(track, makeElement("p", "account-next-level", `${progression.xpToNextLevel ?? 150} XP to the next level`));
+  section.append(track, makeElement("p", "account-next-level", `${pointsToNextLevel} progress points to the next level`));
   container.append(section);
 }
 
@@ -220,7 +309,6 @@ async function renderLeaderboard(container, scope = "global") {
         makeElement("span", "leaderboard-rank", String(entry.rank).padStart(2, "0")),
         makeElement("span", "leaderboard-name", entry.username),
         makeElement("span", "leaderboard-level", `Lv ${entry.level}`),
-        makeElement("strong", "leaderboard-xp", `${entry.xp} XP`),
       );
       list.append(row);
     });
@@ -319,14 +407,22 @@ export async function refreshProfile() {
   if (!auth.currentUser) return;
   renderAccountButton(document.querySelector("#account-button"));
   try {
+    const previousProfile = profileData?.profile;
     profileData = await mathApi("profile");
     applyProfileTheme(profileData.profile);
-    updateLevelLinks(true, profileData.profile.xp || 0);
+    updateProfileProgress(profileData.profile);
+    updatePilotTitle(profileData.profile);
+    updateSubjectChallengeHistory(profileData.profile);
+    if (previousProfile) {
+      const previousTitle = getPilotTitle(previousProfile.level || 1);
+      const currentTitle = getPilotTitle(profileData.profile.level || 1);
+      if (previousTitle !== currentTitle) showTitleToast(currentTitle);
+      if (!previousProfile.luckyTitle && profileData.profile.luckyTitle) showTitleToast("Lucky", true);
+    }
     const metrics = document.querySelector("#account-metrics");
     if (metrics) {
       metrics.replaceChildren();
       addMetric(metrics, "✦", "Level", profileData.profile.level);
-      addMetric(metrics, "⚡", "Experience", profileData.profile.xp);
       addMetric(metrics, "◈", "Coins", profileData.profile.coins);
       addMetric(metrics, "🔥", "Day streak", profileData.profile.currentStreak);
     }
@@ -390,7 +486,7 @@ function installAccountUI() {
       </form>
     </section>
     <section id="player-view" hidden>
-      <div class="account-player-head"><span id="account-avatar" class="account-avatar" aria-label="Pilot avatar">🚀</span><div class="account-player-identity"><p class="eyebrow">PILOT PROFILE</p><h3 id="account-display-name"></h3></div><button id="sign-out" class="button button-secondary" type="button">Sign out</button></div>
+      <div class="account-player-head"><span id="account-avatar" class="account-avatar" aria-label="Pilot avatar">🚀</span><div class="account-player-identity"><div class="account-profile-heading"><p class="eyebrow">PILOT PROFILE</p><div class="account-profile-progress"><div id="account-profile-progress-track" class="account-profile-progress-track" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0"><div id="account-profile-progress-fill" class="account-profile-progress-fill"></div></div><span id="account-profile-progress-label">150 points to next level</span></div></div><h3 id="account-display-name"></h3><div id="account-pilot-titles" class="account-pilot-titles"></div></div><button id="sign-out" class="button button-secondary" type="button">Sign out</button></div>
       <div id="account-metrics" class="account-metrics"></div>
       <nav class="account-tabs" aria-label="Pilot account sections">
         <button type="button" data-account-tab="progression">Progress</button>
@@ -402,9 +498,11 @@ function installAccountUI() {
       <div id="account-pane" class="account-pane"></div>
     </section>`;
   document.body.append(dialog);
+  ["pointerdown", "pointermove", "keydown", "touchstart", "scroll"].forEach((eventName) => {
+    document.addEventListener(eventName, markActive, {passive: true});
+  });
+  window.setInterval(checkLuckyTitle, 60 * 1000);
   document.addEventListener("pointermove", addMouseTrailDiamond, {passive: true});
-  updateLevelLinks(false);
-  document.addEventListener("click", handleLevelLinkClick);
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
@@ -452,17 +550,17 @@ function installAccountUI() {
   window.mathPracticeOpenAccount = openAccountDialog;
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      markActive();
       renderAccountButton(button);
-      updateLevelLinks(true, profileData?.profile?.xp || 0);
       document.querySelector("#account-display-name").textContent =
         profileData?.profile?.username || user.displayName || user.email?.split("@")[0] || "Pilot";
       document.querySelector("#auth-view").hidden = true;
       document.querySelector("#player-view").hidden = false;
     } else {
       profileData = null;
+      updatePilotTitle({level: 1, luckyTitle: false});
       renderAccountButton(button);
       applyProfileTheme(null);
-      updateLevelLinks(false);
       document.querySelector("#auth-view").hidden = false;
       document.querySelector("#player-view").hidden = true;
     }
