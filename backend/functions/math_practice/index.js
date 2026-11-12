@@ -245,6 +245,30 @@ function getNextChallengeLevel(challenge, maxLevel) {
 	return Math.max(1, Math.min(maxLevel, level));
 }
 
+async function getChallengeAvailability(decodedToken, body, response) {
+	const operation = body.operation;
+	if (!Object.hasOwn(levels, operation)) {
+		sendError(response, 400, "Choose a valid subject.");
+		return;
+	}
+
+	const {ref: profileRef, data: profile} = await getOrCreateProfile(decodedToken);
+	const level = getNextChallengeLevel(profile.challengeProgress?.[operation], levels[operation].length);
+	const today = getUtcDate();
+	const attemptRef = profileRef.collection("challengeAttempts").doc(`${today}_${operation}_${level}`);
+	const attemptSnapshot = await attemptRef.get();
+	const attemptsUsed = attemptSnapshot.exists ? attemptSnapshot.data().count || 0 : 0;
+	const attemptsRemaining = Math.max(0, dailyChallengeAttemptLimit - attemptsUsed);
+
+	response.status(200).json({
+		success: true,
+		operation,
+		level,
+		attemptsRemaining,
+		available: attemptsRemaining > 0,
+	});
+}
+
 function chooseVariableReward() {
 	const roll = randomInt(100);
 	if (roll < 70) return {type: "coins", amount: 0, label: "Steady flight"};
@@ -809,6 +833,10 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 		}
 		if (action === "startMission") {
 			await startMission(decodedToken, body, response);
+			return;
+		}
+		if (action === "challengeAvailability") {
+			await getChallengeAvailability(decodedToken, body, response);
 			return;
 		}
 		if (action === "completeMission") {

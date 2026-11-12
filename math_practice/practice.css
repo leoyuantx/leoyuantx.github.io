@@ -720,6 +720,7 @@ body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="2"] { ba
   transition: transform .15s, box-shadow .15s, background .15s;
 }
 .play-button:hover { transform: translateY(-2px); background: #a48aff38; box-shadow: 0 6px 16px #080a1e55; }
+.play-button.is-disabled, .play-button.is-disabled:hover { transform: none; border-color: #ffffff20; background: #ffffff08; box-shadow: none; color: #a7a8bc; cursor: not-allowed; }
 .addition-card .subject-icon { color: #85efd2; background: #85efd21c; }
 .subtraction-card .subject-icon { color: #ffc386; background: #ffc3861c; }
 .multiplication-card .subject-icon { color: #c3adff; background: #c3adff1c; }

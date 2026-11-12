@@ -110,6 +110,55 @@ function updateSubjectChallengeHistory(profile) {
   });
 }
 
+async function updateChallengeEntryButtons() {
+  const buttons = [...document.querySelectorAll(".play-button[data-operation]")];
+  if (!buttons.length) return;
+
+  await Promise.all(buttons.map(async (button) => {
+    const operation = button.dataset.operation;
+    try {
+      const availability = await mathApi("challengeAvailability", {operation});
+      button.href = `${operation}.html`;
+      button.removeAttribute("aria-disabled");
+      button.removeAttribute("aria-label");
+      button.removeAttribute("tabindex");
+      button.classList.remove("is-disabled");
+      if (availability.available) {
+        button.textContent = availability.attemptsRemaining === 1 ? "Play · 1 try left" : "Play";
+        button.title = `Next challenge: Level ${availability.level}`;
+      } else {
+        button.textContent = "No tries left today";
+        button.setAttribute("aria-disabled", "true");
+        button.setAttribute("aria-label", `${operation}: no tries left today`);
+        button.tabIndex = -1;
+        button.classList.add("is-disabled");
+        button.removeAttribute("href");
+        button.title = "Both tries for this challenge have been used. Tries reset at midnight UTC.";
+      }
+    } catch (error) {
+      button.textContent = "Unable to check tries";
+      button.setAttribute("aria-disabled", "true");
+      button.tabIndex = -1;
+      button.classList.add("is-disabled");
+      button.removeAttribute("href");
+      button.title = error.message;
+      console.error(`Could not check today's ${operation} challenge availability:`, error);
+    }
+  }));
+}
+
+function resetChallengeEntryButtons() {
+  document.querySelectorAll(".play-button[data-operation]").forEach((button) => {
+    button.textContent = "Play";
+    button.href = `${button.dataset.operation}.html`;
+    button.removeAttribute("aria-disabled");
+    button.removeAttribute("aria-label");
+    button.removeAttribute("tabindex");
+    button.removeAttribute("title");
+    button.classList.remove("is-disabled");
+  });
+}
+
 function markActive() {
   lastActivityAt = Date.now();
 }
@@ -413,6 +462,7 @@ export async function refreshProfile() {
     updateProfileProgress(profileData.profile);
     updatePilotTitle(profileData.profile);
     updateSubjectChallengeHistory(profileData.profile);
+    await updateChallengeEntryButtons();
     if (previousProfile) {
       const previousTitle = getPilotTitle(previousProfile.level || 1);
       const currentTitle = getPilotTitle(profileData.profile.level || 1);
@@ -561,6 +611,7 @@ function installAccountUI() {
       updatePilotTitle({level: 1, luckyTitle: false});
       renderAccountButton(button);
       applyProfileTheme(null);
+      resetChallengeEntryButtons();
       document.querySelector("#auth-view").hidden = false;
       document.querySelector("#player-view").hidden = true;
     }
