@@ -14,6 +14,8 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   const elements = {
     title: document.querySelector("#page-title"),
     card: document.querySelector("#game-card"),
+    questionLoading: document.querySelector("#question-loading"),
+    questionWrap: document.querySelector(".question-wrap"),
     factorA: document.querySelector("#factor-a"),
     factorB: document.querySelector("#factor-b"),
     sign: document.querySelector("#operation-sign"),
@@ -42,7 +44,7 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     playAgainButton: document.querySelector("#play-again-button")
   };
 
-  let question = { a: 2, b: 3, answer: 5 };
+  let question;
   let previousQuestion = "";
   let questionNumber = 1;
   let score = 0;
@@ -277,6 +279,13 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     }
     if (isStartingMission) return;
     isStartingMission = true;
+    elements.gameContent.style.display = "block";
+    elements.completion.style.display = "none";
+    elements.questionWrap.hidden = true;
+    elements.questionLoading.hidden = false;
+    elements.questionLoading.textContent = "Preparing your mission…";
+    elements.questionLoading.className = "question-hint";
+    elements.restartButton.disabled = true;
     questionNumber = 1;
     score = 0;
     streak = 0;
@@ -287,7 +296,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     previousQuestion = "";
     missionSessionId = null;
     serverQuestions = [];
-    missionStartedAt = performance.now();
     if (timerInterval !== null) clearInterval(timerInterval);
     elements.checkButton.disabled = true;
     elements.answer.disabled = true;
@@ -308,10 +316,13 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
       elements.checkButton.disabled = false;
       elements.answer.disabled = false;
       elements.hintButton.disabled = false;
+      missionStartedAt = performance.now();
       updateTimer();
       timerInterval = window.setInterval(updateTimer, 31);
       makeQuestion();
       updateScoreboard();
+      elements.questionLoading.hidden = true;
+      elements.questionWrap.hidden = false;
       showQuestion();
     } catch (error) {
       if (error.status === 429) {
@@ -323,10 +334,11 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
         elements.completionMessage.focus();
         return;
       }
-      elements.feedback.textContent = error.message;
-      elements.feedback.className = "feedback try-again";
+      elements.questionLoading.textContent = `Could not start the mission: ${error.message} Use New mission to try again.`;
+      elements.questionLoading.className = "feedback try-again";
     } finally {
       isStartingMission = false;
+      elements.restartButton.disabled = false;
     }
   }
 

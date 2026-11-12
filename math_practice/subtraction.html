@@ -32,9 +32,10 @@
         <p class="attempts-remaining" id="attempts-remaining" aria-live="polite">Two tries per challenge each UTC day.</p>
         <div class="progress-track" id="progress-track" role="progressbar" aria-label="Mission progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
         <div class="question-panel">
-          <div class="question-wrap">
+          <p class="question-hint" id="question-loading" role="status">Preparing your mission…</p>
+          <div class="question-wrap" hidden>
             <p class="question-hint">What is the answer, space cadet?</p>
-            <div class="equation" aria-label="Subtraction question"><span id="factor-a">5</span><span class="operation-sign" id="operation-sign" aria-hidden="true">−</span><span id="factor-b">3</span><span aria-hidden="true">=</span><input class="answer-input" id="answer" type="number" inputmode="numeric" min="0" aria-label="Your answer" autocomplete="off"></div>
+            <div class="equation" aria-label="Subtraction question"><span id="factor-a"></span><span class="operation-sign" id="operation-sign" aria-hidden="true">−</span><span id="factor-b"></span><span aria-hidden="true">=</span><input class="answer-input" id="answer" type="number" inputmode="numeric" min="0" aria-label="Your answer" autocomplete="off"></div>
             <div class="actions"><button class="button button-primary" id="check-button" type="button">Submit answer</button><button class="button button-secondary" id="hint-button" type="button">💡 Need a hint?</button></div>
             <p class="feedback" id="feedback" role="status" aria-live="polite">Type your answer and press Enter.</p>
             <div class="hint-box" id="hint-box" role="note"></div>
