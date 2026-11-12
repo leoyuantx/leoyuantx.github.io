@@ -11,49 +11,138 @@
       font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
       color: #f7f6ff;
       background: #11142b;
+      --ink: #f7f6ff;
       --muted: #b9bad0;
       --line: #ffffff20;
       --mint: #85efd2;
       --purple: #c3adff;
+      --panel: #171a35e8;
+      --panel-soft: #ffffff08;
     }
 
     * { box-sizing: border-box; }
 
     body {
-      min-width: 320px;
       min-height: 100vh;
       margin: 0;
+      color: var(--ink);
       background:
-        radial-gradient(ellipse at 8% 10%, #413b704f 0, transparent 32%),
-        radial-gradient(ellipse at 95% 85%, #225c5140 0, transparent 30%),
+        radial-gradient(ellipse at 8% 8%, #51457c5c 0, transparent 34%),
+        radial-gradient(ellipse at 95% 75%, #225c5145 0, transparent 32%),
         #11142b;
     }
 
-    main { width: min(100% - 32px, 900px); margin: 0 auto; padding: 38px 0 60px; }
-    header { margin-bottom: 28px; }
-    .eyebrow { margin: 0 0 8px; color: var(--purple); font-size: 11px; font-weight: 900; letter-spacing: .14em; }
-    h1 { margin: 0; font-size: clamp(32px, 6vw, 48px); letter-spacing: -.04em; }
-    header p:last-child { max-width: 680px; color: var(--muted); line-height: 1.6; }
-    section { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: #171a35d9; }
-    h2 { margin: 0 0 14px; font-size: 21px; }
-    h3 { margin: 16px 0 6px; font-size: 15px; }
-    p, li { color: var(--muted); font-size: 14px; line-height: 1.65; }
-    p { margin: 8px 0; }
-    ul, ol { margin: 8px 0 0; padding-left: 22px; }
-    strong { color: #f7f6ff; }
+    main { width: min(100% - 36px, 920px); margin: 0 auto; padding: 34px 0 54px; }
+    header {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      margin-bottom: 20px;
+      padding: clamp(25px, 5vw, 42px);
+      border: 1px solid #c3adff30;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 88% 18%, #c3adff24 0 2px, transparent 3px),
+        radial-gradient(circle at 78% 72%, #85efd229 0 3px, transparent 4px),
+        linear-gradient(135deg, #252443, #191b38 65%, #172b39);
+      box-shadow: 0 22px 65px #080a1e55;
+    }
+    header::after {
+      position: absolute;
+      z-index: -1;
+      top: -76px;
+      right: -44px;
+      width: 250px;
+      height: 250px;
+      border: 1px solid #c3adff20;
+      border-radius: 50%;
+      box-shadow: 0 0 0 24px #c3adff08, 0 0 0 52px #c3adff06;
+      content: "";
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 13px;
+      color: var(--mint);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .15em;
+    }
+    .eyebrow::before { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px #85efd2a8; content: ""; }
+    h1 { max-width: 650px; margin: 0; font-size: clamp(34px, 6vw, 54px); letter-spacing: -.05em; line-height: 1.05; }
+    header p:last-child { max-width: 620px; margin: 14px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+    .feature-nav {
+      position: sticky;
+      z-index: 5;
+      top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0 0 24px;
+      padding: 10px;
+      border: 1px solid #ffffff16;
+      border-radius: 18px;
+      background: #11142bd9;
+      box-shadow: 0 12px 32px #080a1e35;
+      backdrop-filter: blur(16px);
+    }
+    .feature-nav a {
+      padding: 8px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: #ffffff08;
+      color: #d3c8ff;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+    }
+    .feature-nav a:hover, .feature-nav a:focus-visible {
+      transform: translateY(-1px);
+      border-color: #c3adff75;
+      outline: none;
+      background: #a48aff20;
+      color: var(--ink);
+    }
+    section {
+      scroll-margin-top: 104px;
+      margin-top: 14px;
+      padding: clamp(20px, 3.5vw, 28px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(145deg, var(--panel), #15182fd9);
+      box-shadow: 0 12px 32px #080a1e20;
+    }
+    h2 { margin: 0 0 17px; padding-bottom: 13px; border-bottom: 1px solid #ffffff12; font-size: clamp(19px, 3vw, 22px); letter-spacing: -.02em; }
+    h3 { margin: 18px 0 7px; color: var(--ink); font-size: 15px; }
+    p, li { color: var(--muted); font-size: 14px; line-height: 1.7; }
+    p { margin: 9px 0; }
+    ul, ol { margin: 9px 0 0; padding-left: 22px; }
+    li { padding-left: 3px; }
+    li + li { margin-top: 4px; }
+    li::marker { color: var(--purple); }
+    strong { color: var(--ink); }
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .card { padding: 15px; border: 1px solid #ffffff18; border-radius: 14px; background: #ffffff08; }
+    .card { padding: 17px; border: 1px solid #ffffff16; border-radius: 16px; background: var(--panel-soft); transition: transform .18s ease, border-color .18s ease, background .18s ease; }
+    .card:hover { transform: translateY(-2px); border-color: #c3adff40; background: #ffffff0c; }
     .card h3 { margin-top: 0; color: var(--mint); }
     .card p:last-child { margin-bottom: 0; }
-    .title-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 18px; }
-    .title-list li::marker { color: var(--purple); }
-    .note { padding: 12px 14px; border-left: 3px solid var(--mint); border-radius: 4px 10px 10px 4px; background: #85efd20d; }
-    footer { margin-top: 22px; color: #8f91ac; font-size: 12px; text-align: center; }
+    .title-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 22px; }
+    .note { padding: 13px 15px; border: 1px solid #85efd226; border-left: 3px solid var(--mint); border-radius: 5px 12px 12px 5px; background: #85efd20c; }
+    footer { margin-top: 25px; color: #8f91ac; font-size: 12px; text-align: center; }
 
     @media (max-width: 600px) {
-      main { width: min(100% - 22px, 900px); padding-top: 25px; }
-      section { padding: 17px; }
+      main { width: min(100% - 22px, 920px); padding-top: 18px; }
+      header { border-radius: 22px; }
+      .feature-nav { top: 8px; gap: 6px; padding: 8px; border-radius: 15px; }
+      .feature-nav a { padding: 7px 9px; font-size: 11px; }
+      section { scroll-margin-top: 118px; border-radius: 18px; }
       .grid, .title-list { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
@@ -62,39 +151,87 @@
     <header>
       <p class="eyebrow">PRIVATE REFERENCE · NOT LINKED FROM THE SITE</p>
       <h1>Math Galaxy feature guide</h1>
-      <p>A guide to the practice games, pilot progression, titles, rewards, and account features currently in Math Galaxy.</p>
+      <p>A private, organized reference to Math Galaxy’s practice games, adaptive difficulty, limits, progression, rewards, and account features.</p>
     </header>
 
-    <section>
-      <h2>Math missions</h2>
+    <nav class="feature-nav" aria-label="Feature guide sections">
+      <a href="#subjects">Subjects</a>
+      <a href="#adaptive-challenges">Adaptive difficulty</a>
+      <a href="#daily-limits">Daily tries</a>
+      <a href="#mission-results">Mission results</a>
+      <a href="#pilot-progression">Pilot progress</a>
+      <a href="#pilot-titles">Titles and Lucky</a>
+      <a href="#coins">Coins</a>
+      <a href="#achievements">Achievements</a>
+      <a href="#streaks">Streaks</a>
+      <a href="#accounts">Accounts and social</a>
+      <a href="#cosmetics">Cosmetics</a>
+    </nav>
+
+    <section id="subjects">
+      <h2>1. Subjects and missions</h2>
       <div class="grid">
         <article class="card">
-          <h3>Addition · 5 levels</h3>
+          <h3>Addition · 5 difficulties</h3>
           <p>Level 1: one-digit + one-digit; Level 2: one-digit + two-digit; Level 3: two-digit + two-digit; Level 4: three-digit + two-digit; Level 5: three-digit + three-digit.</p>
         </article>
         <article class="card">
-          <h3>Subtraction · 5 levels</h3>
+          <h3>Subtraction · 5 difficulties</h3>
           <p>Level 1: one-digit − one-digit; Level 2: two-digit − one-digit; Level 3: two-digit − two-digit; Level 4: three-digit − two-digit; Level 5: three-digit − three-digit. Problems avoid negative answers.</p>
         </article>
         <article class="card">
-          <h3>Multiplication · 2 levels</h3>
+          <h3>Multiplication · 2 difficulties</h3>
           <p>Level 1: one-digit × one-digit; Level 2: two-digit × one-digit.</p>
         </article>
         <article class="card">
-          <h3>Division · 2 levels</h3>
+          <h3>Division · 2 difficulties</h3>
           <p>Level 1: two-digit ÷ one-digit; Level 2: two-digit ÷ two-digit. Questions use whole-number quotients.</p>
         </article>
       </div>
-      <p>Each mission has <strong>10 questions</strong>. You can start up to <strong>two tries per subject and level each UTC day</strong>. Starting a mission uses a try, even if you leave before finishing; the limit is shared across devices and resets at midnight UTC. The game shows your remaining tries, and the home page disables Play when both tries for the next challenge have been used.</p>
-      <p>Choose a subject and press <strong>Play</strong>; the game selects the difficulty automatically. Each subject tracks its own most recent star rating: 4–5 stars raises the next challenge by one level, 0–2 stars lowers it by one, and 3 stars keeps the level while giving you a different set of questions. Difficulty stays within that subject's available levels.</p>
-      <p>Enter a non-negative whole-number answer, submit it to move to the next question, or use the hint and new-mission controls. At the end, see your answers, correctness, answer times, accuracy, speed, and a 0–5 star rating.</p>
+      <p>Press <strong>Play</strong> on a subject card to start. Difficulty is chosen automatically; there are no level buttons to select.</p>
     </section>
 
-    <section>
-      <h2>Pilot levels and titles</h2>
-      <p>Correct answers earn progress points, with an extra bonus for getting all 10 correct. Rewards scale with the mission level. The level requirement rises by 150 points each time: Level 2 takes 150 total points, Level 3 takes 450 total, Level 4 takes 900 total, and Level 5 takes 1,500 total. In general, moving from Level <em>N</em> to <em>N + 1</em> costs <strong>150 × N additional points</strong>.</p>
-      <p>The profile progress bar shows how far you are through the current pilot level and how many points remain. Pilot levels continue to determine title milestones; challenge difficulty adapts independently for each subject.</p>
-      <h3>Milestone titles</h3>
+    <section id="adaptive-challenges">
+      <h2>2. Adaptive challenge difficulty</h2>
+      <p>Each subject saves its own most recently completed challenge level and star rating. An addition result does not change the next subtraction challenge.</p>
+      <ul>
+        <li><strong>4 or 5 stars:</strong> the next challenge in that subject moves up one difficulty.</li>
+        <li><strong>0, 1, or 2 stars:</strong> the next challenge moves down one difficulty.</li>
+        <li><strong>3 stars:</strong> stay at the same difficulty and get a different set of questions.</li>
+      </ul>
+      <p>Difficulty stays within that subject's available range. The subject card shows your last challenge's stars and level. The server stores this history with your account.</p>
+      <p class="note">A new subject starts at its first difficulty. Difficulty never goes below Level 1 or above the subject's maximum. Pilot level and subject difficulty are separate.</p>
+    </section>
+
+    <section id="daily-limits">
+      <h2>3. Daily challenge tries</h2>
+      <ul>
+        <li>You may start up to <strong>two tries per subject and difficulty per UTC day</strong>.</li>
+        <li>A try is used when a mission starts, even if it is abandoned before completion.</li>
+        <li>The limit is enforced by the server, shared across devices, and resets at midnight UTC.</li>
+        <li>The mission shows remaining tries. The home page checks the next adaptive challenge and disables Play if both tries for it have been used.</li>
+      </ul>
+      <p>If a completed mission changes the next difficulty, the try counter follows that new subject-and-difficulty combination.</p>
+    </section>
+
+    <section id="mission-results">
+      <h2>4. Playing and mission results</h2>
+      <p>Every mission contains <strong>10 questions</strong>. Enter a non-negative whole-number answer and submit it to continue. Hints are available, and a new-mission button starts another challenge at the automatically selected difficulty.</p>
+      <p>At the end, review each question, your submitted and correct answers, and how long each answer took. The result also shows accuracy, speed, a 0–100 rating, and zero to five stars.</p>
+      <h3>How stars are calculated</h3>
+      <p>Accuracy contributes up to 80 rating points; average answer time contributes up to 20. The total maps to stars: 0–29 points = 0 stars, 30–44 = 1, 45–59 = 2, 60–74 = 3, 75–89 = 4, and 90–100 = 5.</p>
+    </section>
+
+    <section id="pilot-progression">
+      <h2>5. Pilot progress and levels</h2>
+      <p>Correct answers earn progress points, with an extra bonus for answering all 10 correctly. Both rewards scale with challenge difficulty. Pilot levels track overall progress and unlock title milestones; they do not set subject difficulty.</p>
+      <p>The next pilot level requires 150 more progress points per level number: Level 2 takes 150 total points, Level 3 takes 450 total, Level 4 takes 900 total, and Level 5 takes 1,500 total. In general, going from pilot Level <em>N</em> to <em>N + 1</em> costs <strong>150 × N additional points</strong>.</p>
+      <p>Your profile progress bar shows progress through the current pilot level and how many points remain.</p>
+    </section>
+
+    <section id="pilot-titles">
+      <h2>6. Pilot titles</h2>
+      <h3>Level milestone titles</h3>
       <ul class="title-list">
         <li>Level 1: Cadet in training</li>
         <li>Level 10: New Pilot</li>
@@ -109,52 +246,56 @@
         <li>Level 100: Galactic Legend</li>
       </ul>
       <p>Every 10 levels after 100 earns the next numbered Galactic Legend title. A newly unlocked title appears in an animated notification on the right, with white sparks.</p>
-      <h3>Lucky title</h3>
-      <p>Lucky is a separate, permanent title. While signed in and active in a visible Math Galaxy page, the game checks once per minute for a 1% chance to earn it—including during a mission. Activity means keyboard, pointer, touch, or scrolling input; checks stop after three minutes without activity. Winning displays the same right-side title notification and sparks.</p>
+      <h3>Lucky — a separate title</h3>
+      <p>While signed in and active on a visible Math Galaxy page, the game checks once per minute for a <strong>1% chance</strong> to earn Lucky, including during a mission. Keyboard, pointer, touch, or scrolling input counts as activity. Checks stop after three minutes without activity. Lucky is permanent and appears in the same animated notification with white sparks.</p>
       <p class="note">The Lucky check is performed by the Math Galaxy service and is limited to one roll per minute per pilot.</p>
     </section>
 
-    <section>
-      <h2>Coins, achievements, and daily streaks</h2>
-      <div class="grid">
-        <article class="card">
-          <h3>Coins</h3>
-          <p>A mission awards 5 coins plus 2 per correct answer, multiplied by its level. Achievement coins and a random coin drop are added; the random drop also scales with mission level.</p>
-        </article>
-        <article class="card">
-          <h3>Achievements</h3>
-          <ul>
-            <li>First Mission — complete one mission; 10 coins.</li>
-            <li>Perfect Mission — get all 10 right; 20 coins.</li>
-            <li>Three-Day Streak — practice three consecutive days; 30 coins.</li>
-            <li>Mission Regular — complete 10 missions; 40 coins.</li>
-            <li>Century Club — answer 100 questions correctly; 50 coins.</li>
-          </ul>
-        </article>
-        <article class="card">
-          <h3>Daily streak</h3>
-          <p>Completing at least one mission keeps the streak going for that UTC day. Missing a UTC day resets it. Your current and longest streaks are shown in your profile.</p>
-        </article>
-        <article class="card">
-          <h3>Random coin drops</h3>
-          <p>Each completed mission has a 70% chance of no extra coins, 25% chance of 5 extra, 4% chance of 15 extra, or 1% chance of 50 extra, before the mission-level multiplier.</p>
-        </article>
-      </div>
+    <section id="coins">
+      <h2>7. Coins and random drops</h2>
+      <p>A mission awards <strong>5 coins plus 2 per correct answer</strong>, multiplied by challenge difficulty. Achievement rewards and a random drop are added; random drops also scale with mission difficulty.</p>
+      <ul>
+        <li>70% chance of no extra coins.</li>
+        <li>25% chance of 5 extra coins.</li>
+        <li>4% chance of 15 extra coins.</li>
+        <li>1% chance of 50 extra coins.</li>
+      </ul>
     </section>
 
-    <section>
-      <h2>Pilot account and cosmetics</h2>
+    <section id="achievements">
+      <h2>8. Achievements</h2>
+      <ul>
+        <li><strong>First Mission:</strong> complete your first mission; 10 coins.</li>
+        <li><strong>Perfect Mission:</strong> answer all 10 correctly; 20 coins.</li>
+        <li><strong>Three-Day Streak:</strong> practice on three consecutive days; 30 coins.</li>
+        <li><strong>Mission Regular:</strong> complete 10 missions; 40 coins.</li>
+        <li><strong>Century Club:</strong> answer 100 questions correctly; 50 coins.</li>
+      </ul>
+      <p>Unlocked awards and their coin rewards appear in the profile's Awards tab.</p>
+    </section>
+
+    <section id="streaks">
+      <h2>9. Daily practice streak</h2>
+      <p>Completing at least one mission each UTC day keeps your streak. Missing a UTC day resets it. Your current and longest streaks appear in your profile. The Three-Day Streak achievement rewards three consecutive practice days.</p>
+    </section>
+
+    <section id="accounts">
+      <h2>10. Pilot account and social features</h2>
       <ul>
         <li>Create an account or sign in to save progress across sessions.</li>
         <li>The profile shows your title, level progress, level, coins, and day streak.</li>
         <li>Profile tabs include Progress, Awards, Leaderboard, Friends, and Shop.</li>
         <li>The global leaderboard lists up to 25 pilots. The Friends leaderboard compares you with your friends (up to 50 friends).</li>
         <li>Add friends by pilot username.</li>
-        <li>Spend coins on profile themes, avatar frames, and mouse trails. Purchased cosmetics can be equipped from the Shop tab.</li>
       </ul>
+    </section>
+
+    <section id="cosmetics">
+      <h2>11. Cosmetic shop</h2>
+      <p>Spend coins on cosmetics. Once purchased, items can be equipped from the Shop tab.</p>
       <div class="grid">
         <article class="card">
-          <h3>Shop items</h3>
+          <h3>Available items</h3>
           <ul>
             <li>Comet Trail theme — 50 coins.</li>
             <li>Lunar Frame — 100 coins.</li>
@@ -163,8 +304,8 @@
           </ul>
         </article>
         <article class="card">
-          <h3>Rating details</h3>
-          <p>Accuracy contributes up to 80 rating points and average answer speed contributes up to 20. The final score is converted into zero to five stars.</p>
+          <h3>Cosmetic types</h3>
+          <p>The Comet Trail and Nebula Theme change the profile theme. Lunar Frame decorates the avatar. Diamond Trail adds a cursor trail.</p>
         </article>
       </div>
     </section>
