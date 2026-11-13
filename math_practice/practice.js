@@ -20,6 +20,8 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     factorB: document.querySelector("#factor-b"),
     sign: document.querySelector("#operation-sign"),
     answer: document.querySelector("#answer"),
+    remainder: document.querySelector("#remainder"),
+    remainderWrap: document.querySelector("#remainder-wrap"),
     checkButton: document.querySelector("#check-button"),
     hintButton: document.querySelector("#hint-button"),
     hintBox: document.querySelector("#hint-box"),
@@ -59,6 +61,7 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
   let signedInUser = null;
   let missionSessionId = null;
   let serverQuestions = [];
+  let answerFormat = "integer";
   let isStartingMission = false;
   let isFinishingMission = false;
 
@@ -73,9 +76,11 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     const answer = config.operation === "addition" ? a + b
       : config.operation === "subtraction" ? a - b
         : config.operation === "multiplication" ? a * b
-          : a / b;
+          : answerFormat === "remainder" ? Math.floor(a / b)
+            : answerFormat === "decimal" ? Math.round((a / b) * 100) / 100
+              : a / b;
     previousQuestion = `${a}${operation.symbol}${b}`;
-    question = {a, b, answer};
+    question = {a, b, answer, remainder: answerFormat === "remainder" ? a % b : null};
   }
 
   function showQuestion() {
@@ -85,7 +90,19 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     elements.answer.value = "";
     elements.answer.disabled = false;
     elements.answer.readOnly = false;
-    elements.feedback.textContent = "Type your answer and press Enter.";
+    elements.answer.step = answerFormat === "decimal" ? "any" : "1";
+    elements.answer.inputMode = answerFormat === "decimal" ? "decimal" : "numeric";
+    elements.answer.setAttribute("aria-label", answerFormat === "remainder" ? "Quotient" : "Your answer");
+    if (elements.remainderWrap) {
+      elements.remainderWrap.hidden = answerFormat !== "remainder";
+      elements.remainder.value = "";
+      elements.remainder.disabled = false;
+      elements.remainder.readOnly = false;
+    }
+    elements.feedback.textContent = answerFormat === "remainder"
+      ? "Enter the quotient and remainder, then press Enter."
+      : answerFormat === "decimal" ? "Enter the decimal answer, then press Enter."
+        : "Type your answer and press Enter.";
     elements.feedback.className = "feedback";
     elements.hintBox.style.display = "none";
     elements.hintBox.textContent = "";
@@ -114,24 +131,45 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     }
 
     const submitted = Number(rawAnswer);
-    if (!Number.isSafeInteger(submitted) || submitted < 0) {
-      elements.feedback.textContent = "Enter a whole number for your answer.";
+    const validAnswer = answerFormat === "decimal"
+      ? Number.isFinite(submitted) && submitted >= 0 && submitted <= Number.MAX_SAFE_INTEGER / 100 &&
+        Math.round(submitted * 100) / 100 === submitted
+      : Number.isSafeInteger(submitted) && submitted >= 0;
+    if (!validAnswer) {
+      elements.feedback.textContent = answerFormat === "decimal"
+        ? "Enter a non-negative number with up to two decimal places."
+        : "Enter a whole number for your answer.";
       elements.feedback.className = "feedback try-again";
       elements.answer.focus();
       return;
     }
 
-    const isCorrect = submitted === question.answer;
+    let submittedRemainder = null;
+    if (answerFormat === "remainder") {
+      const rawRemainder = elements.remainder.value.trim();
+      submittedRemainder = Number(rawRemainder);
+      if (!rawRemainder || !Number.isSafeInteger(submittedRemainder) || submittedRemainder < 0) {
+        elements.feedback.textContent = "Enter a non-negative whole-number remainder.";
+        elements.feedback.className = "feedback try-again";
+        elements.remainder.focus();
+        return;
+      }
+    }
+    const isCorrect = submitted === question.answer &&
+      (answerFormat !== "remainder" || submittedRemainder === question.remainder);
     answerReport.push({
       number: questionNumber,
       question: `${question.a} ${operation.symbol} ${question.b}`,
       submitted,
+      submittedRemainder,
       correctAnswer: question.answer,
+      correctRemainder: question.remainder,
       isCorrect,
       time: performance.now() - questionStartedAt
     });
     answered = true;
     elements.answer.readOnly = true;
+    if (elements.remainder) elements.remainder.readOnly = true;
     elements.hintButton.disabled = true;
 
     if (isCorrect) {
@@ -173,6 +211,7 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
       const completion = await mathApi("completeMission", {
         sessionId: missionSessionId,
         answers: answerReport.map((entry) => entry.submitted),
+        ...(answerFormat === "remainder" ? {remainders: answerReport.map((entry) => entry.submittedRemainder)} : {}),
         answerTimes: answerReport.map((entry) => entry.time),
       });
       missionResult = completion.result;
@@ -180,6 +219,7 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
       answerReport = answerReport.map((entry, index) => ({
         ...entry,
         correctAnswer: missionResult.answers[index].correctAnswer,
+        correctRemainder: missionResult.answers[index].correctRemainder,
         isCorrect: missionResult.answers[index].correct,
       }));
       await refreshProfile();
@@ -244,10 +284,11 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
       const resultCell = document.createElement("td");
       const timeCell = document.createElement("td");
       questionCell.textContent = `${entry.number}. ${entry.question}`;
-      answerCell.textContent = entry.submitted;
+      answerCell.textContent = answerFormat === "remainder"
+        ? `${entry.submitted} remainder ${entry.submittedRemainder}` : entry.submitted;
       resultCell.textContent = entry.isCorrect
         ? "Correct"
-        : `Incorrect — answer: ${entry.correctAnswer}`;
+        : `Incorrect — answer: ${entry.correctAnswer}${answerFormat === "remainder" ? ` remainder ${entry.correctRemainder}` : ""}`;
       resultCell.className = entry.isCorrect
         ? "report-result-correct"
         : "report-result-incorrect";
@@ -298,9 +339,14 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     try {
       const result = await mathApi("startMission", {
         operation: config.operation,
+        ...(config.operation === "division" ? {answerFormats: ["remainder", "decimal"]} : {}),
       });
       missionSessionId = result.sessionId;
       serverQuestions = result.questions;
+      answerFormat = result.answerFormat || "integer";
+      if (answerFormat === "remainder" && !elements.remainder) {
+        throw new Error("Reload this page to answer remainder questions.");
+      }
       elements.challengeLevel.textContent = `Level ${result.level}`;
       elements.attemptsRemaining.textContent =
         `${result.attemptsRemaining} ${result.attemptsRemaining === 1 ? "try" : "tries"} left for this challenge today.`;
@@ -340,7 +386,9 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     if (config.operation === "multiplication") {
       elements.hintBox.textContent = `Hint: ${question.a} groups of ${question.b}. Add the groups together!`;
     } else if (config.operation === "division") {
-      elements.hintBox.textContent = `Hint: Think of the multiplication fact ${question.b} × ? = ${question.a}.`;
+      elements.hintBox.textContent = answerFormat === "remainder"
+        ? `Hint: Find the largest multiple of ${question.b} that is no greater than ${question.a}. What is left over?`
+        : `Hint: Think of the multiplication fact ${question.b} × ? = ${question.a}.`;
     } else if (config.operation === "addition") {
       elements.hintBox.textContent = "Hint: Start with the bigger number and count up.";
     } else {
@@ -355,6 +403,12 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
   elements.card.setAttribute("aria-label", `${operation.title} game`);
   elements.checkButton.addEventListener("click", checkAnswer);
   elements.answer.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      checkAnswer();
+    }
+  });
+  elements.remainder?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       checkAnswer();

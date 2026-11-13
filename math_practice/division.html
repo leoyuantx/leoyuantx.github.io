@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11142b">
   <title>Math Galaxy — Division</title>
-  <link rel="stylesheet" href="practice.css">
-  <script type="module" src="practice.js"></script>
+  <link rel="stylesheet" href="practice.css?v=3">
+  <script type="module" src="practice.js?v=2"></script>
 </head>
 <body data-operation="division">
   <main class="page">
@@ -36,6 +36,7 @@
           <div class="question-wrap" hidden>
             <p class="question-hint">What is the answer, space cadet?</p>
             <div class="equation" aria-label="Division question"><span id="factor-a"></span><span class="operation-sign" id="operation-sign" aria-hidden="true">÷</span><span id="factor-b"></span><span aria-hidden="true">=</span><input class="answer-input" id="answer" type="number" inputmode="numeric" min="0" aria-label="Your answer" autocomplete="off"></div>
+            <div id="remainder-wrap" class="remainder-wrap" hidden><label for="remainder">Remainder</label><input class="answer-input" id="remainder" type="number" inputmode="numeric" min="0" step="1" autocomplete="off"></div>
             <div class="actions"><button class="button button-primary" id="check-button" type="button">Submit answer</button><button class="button button-secondary" id="hint-button" type="button">💡 Need a hint?</button></div>
             <p class="feedback" id="feedback" role="status" aria-live="polite">Type your answer and press Enter.</p>
             <div class="hint-box" id="hint-box" role="note"></div>

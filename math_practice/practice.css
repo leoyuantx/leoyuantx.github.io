@@ -198,6 +198,8 @@ h1 {
 }
 
 .operation-sign { color: #c3adff; font-size: .72em; }
+body[data-operation="division"] .equation { gap: clamp(5px, 2vw, 14px); font-size: clamp(28px, 7vw, 50px); }
+body[data-operation="division"] .answer-input { font-size: 32px; }
 .answer-input {
   width: 108px;
   height: 70px;
@@ -217,6 +219,7 @@ h1 {
 .answer-input:focus { border-color: var(--purple); box-shadow: 0 0 0 4px #7657e826; }
 .answer-input::-webkit-inner-spin-button, .answer-input::-webkit-outer-spin-button { margin: 0; appearance: none; }
 .answer-input[type=number] { appearance: textfield; }
+.remainder-wrap:not([hidden]) { display: flex; align-items: center; justify-content: center; gap: 12px; margin: -8px 0 20px; color: var(--muted); font-size: 15px; font-weight: 800; }
 
 .actions {
   display: flex;

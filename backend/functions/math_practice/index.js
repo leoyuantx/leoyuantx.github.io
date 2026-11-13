@@ -37,10 +37,12 @@ const levels = {
 	multiplication: [
 		[[2, 9], [2, 9]],
 		[[10, 99], [2, 9]],
+		[[10, 99], [10, 99]],
 	],
 	division: [
 		[[10, 99], [2, 9]],
-		[[10, 99], [10, 99]],
+		[[10, 99], [2, 9]],
+		[[101, 9999], [2, 9]],
 	],
 };
 
@@ -190,12 +192,29 @@ function randomBetween(min, max) {
 	return randomInt(min, max + 1);
 }
 
-function makeQuestion(operation, ranges) {
+function makeQuestion(operation, ranges, level) {
 	let a;
 	let b;
 	let answer;
 
 	if (operation === "division") {
+		if (level === 2) {
+			do {
+				a = randomBetween(ranges[0][0], ranges[0][1]);
+				b = randomBetween(ranges[1][0], ranges[1][1]);
+			} while (a % b === 0);
+			return {a, b, answer: Math.floor(a / b), remainder: a % b};
+		}
+		if (level === 3) {
+			// Generate both the dividend and quotient in hundredths to avoid repeating decimals.
+			do {
+				b = randomBetween(ranges[1][0], ranges[1][1]);
+				const quotient = randomBetween(Math.ceil(ranges[0][0] / b), Math.floor(ranges[0][1] / b));
+				a = quotient * b;
+				answer = quotient / 100;
+			} while (a % 100 === 0);
+			return {a: a / 100, b, answer};
+		}
 		while (true) {
 			b = randomBetween(ranges[1][0], ranges[1][1]);
 			const minQuotient = Math.max(1, Math.ceil(ranges[0][0] / b));
@@ -226,11 +245,11 @@ function getQuestionKey(operation, question) {
 	return operands.join(":");
 }
 
-function makeMissionQuestions(operation, ranges, previousKeys = []) {
+function makeMissionQuestions(operation, ranges, level, previousKeys = []) {
 	const usedKeys = new Set(previousKeys);
 	const questions = [];
 	while (questions.length < totalQuestions) {
-		const question = makeQuestion(operation, ranges);
+		const question = makeQuestion(operation, ranges, level);
 		const key = getQuestionKey(operation, question);
 		if (usedKeys.has(key)) continue;
 		usedKeys.add(key);
@@ -382,6 +401,7 @@ async function startMission(decodedToken, body, response) {
 	let attemptsRemaining;
 	let level;
 	let questions;
+	let answerFormat;
 
 	await db.runTransaction(async (transaction) => {
 		const profileSnapshot = await transaction.get(profileRef);
@@ -402,9 +422,17 @@ async function startMission(decodedToken, body, response) {
 			);
 		}
 
+		answerFormat = operation === "division" && level === 2 ? "remainder"
+			: operation === "division" && level === 3 ? "decimal"
+				: "integer";
+		if (answerFormat !== "integer" &&
+				(!Array.isArray(body.answerFormats) || !body.answerFormats.includes(answerFormat))) {
+			throw Object.assign(new Error("Reload the division page to play this challenge."), {status: 409});
+		}
 		questions = makeMissionQuestions(
 			operation,
 			levels[operation][level - 1],
+			level,
 			challenge?.lastQuestionKeys || [],
 		);
 		attemptsRemaining = dailyChallengeAttemptLimit - attemptsUsed - 1;
@@ -428,6 +456,7 @@ async function startMission(decodedToken, body, response) {
 			uid: decodedToken.uid,
 			operation,
 			level,
+			answerFormat,
 			questions,
 			status: "active",
 			startedAtMs,
@@ -440,6 +469,7 @@ async function startMission(decodedToken, body, response) {
 		sessionId: sessionRef.id,
 		operation,
 		level,
+		answerFormat,
 		attemptsRemaining,
 		questions: questions.map(({a, b}, index) => ({
 			number: index + 1,
@@ -453,12 +483,13 @@ async function startMission(decodedToken, body, response) {
 async function completeMission(decodedToken, body, response) {
 	const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
 	const answers = body.answers;
+	const remainders = body.remainders;
 	const answerTimes = body.answerTimes;
 	if (!sessionId || sessionId.includes("/") || !Array.isArray(answers) || answers.length !== totalQuestions ||
-			answers.some((answer) => !Number.isSafeInteger(answer) || answer < 0) ||
+			answers.some((answer) => !Number.isFinite(answer) || answer < 0 || answer > Number.MAX_SAFE_INTEGER) ||
 			!Array.isArray(answerTimes) || answerTimes.length !== totalQuestions ||
 			answerTimes.some((time) => !Number.isFinite(time) || time < 0 || time > 6 * 60 * 60 * 1000)) {
-		sendError(response, 400, "Provide a session ID, 10 non-negative integer answers, and 10 valid answer times.");
+		sendError(response, 400, "Provide a session ID, 10 non-negative numeric answers, and 10 valid answer times.");
 		return;
 	}
 
@@ -479,6 +510,14 @@ async function completeMission(decodedToken, body, response) {
 			missionResult = session.result;
 			return;
 		}
+		const answerFormat = session.answerFormat || "integer";
+		if (answers.some((answer) => answerFormat === "decimal"
+			? answer > Number.MAX_SAFE_INTEGER / 100 || Math.round(answer * 100) / 100 !== answer
+			: !Number.isSafeInteger(answer)) ||
+			(answerFormat === "remainder" && (!Array.isArray(remainders) || remainders.length !== totalQuestions ||
+				remainders.some((remainder) => !Number.isSafeInteger(remainder) || remainder < 0)))) {
+			throw Object.assign(new Error("Provide valid answers for this mission."), {status: 400});
+		}
 		const elapsedMs = completedAtMs - session.startedAtMs;
 		if (!Number.isSafeInteger(elapsedMs) || elapsedMs < 0) {
 			throw new Error("Mission start time is invalid or in the future.");
@@ -492,9 +531,10 @@ async function completeMission(decodedToken, body, response) {
 			throw Object.assign(new Error("Player profile not found."), {status: 404});
 		}
 		const profile = profileSnapshot.data();
+		const isCorrect = (question, index) => answers[index] === question.answer &&
+			(answerFormat !== "remainder" || remainders[index] === question.remainder);
 		const correct = session.questions.reduce((count, question, index) =>
-			count + (answers[index] === question.answer ? 1 : 0), 0
-		);
+			count + (isCorrect(question, index) ? 1 : 0), 0);
 		const recordRef = challengeRecords.doc(`${session.operation}_${session.level}`)
 			.collection("times").doc(decodedToken.uid);
 		const recordSnapshot = correct === totalQuestions ? await transaction.get(recordRef) : null;
@@ -565,7 +605,11 @@ async function completeMission(decodedToken, body, response) {
 				b: question.b,
 				correctAnswer: question.answer,
 				submittedAnswer: answers[index],
-				correct: answers[index] === question.answer,
+				...(answerFormat === "remainder" ? {
+					correctRemainder: question.remainder,
+					submittedRemainder: remainders[index],
+				} : {}),
+				correct: isCorrect(question, index),
 			})),
 		};
 
