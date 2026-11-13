@@ -183,6 +183,82 @@ test("multiplication advances to level 3 with two-digit operands", async () => {
 	assert.equal((await request(uid, {action: "challengeLeaderboard", operation: "multiplication", level: 3})).status, 200);
 });
 
+test("mission rewards match the accuracy and difficulty matrix", async () => {
+	const matrix = {
+		0: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
+		1: [[4, 1], [5, 1], [6, 2], [7, 2], [8, 2]],
+		6: [[8, 2], [10, 3], [12, 3], [14, 4], [16, 4]],
+		8: [[12, 3], [15, 4], [18, 5], [21, 5], [24, 6]],
+		10: [[16, 4], [20, 5], [24, 6], [28, 7], [32, 8]],
+	};
+	for (const correct of [0, 1, 5, 6, 7, 8, 9, 10]) {
+		const band = correct === 0 ? 0 : correct <= 5 ? 1 : correct <= 7 ? 6 : correct <= 9 ? 8 : 10;
+		for (let level = 1; level <= 5; level += 1) {
+			const uid = `reward-${correct}-${level}`;
+			addSession(uid, uid, "addition", level, Date.now());
+			documents.get(`mathProfiles/${uid}`).achievementIds =
+				["first_mission", "perfect_mission", "three_day_streak", "ten_missions", "hundred_correct"];
+			const response = await request(uid, {
+				action: "completeMission", sessionId: uid,
+				answers: Array.from({length: 10}, (_, index) => index < correct ? index + 1 : 0),
+				answerTimes: Array(10).fill(16000),
+			});
+			assert.equal(response.status, 200);
+			const result = response.body.result;
+			const [xp, coins] = matrix[band][level - 1];
+			assert.equal(result.xpEarned, xp, `${correct} correct, level ${level} XP`);
+			assert.equal(result.coinsEarned, coins, `${correct} correct, level ${level} coins`);
+			assert.deepEqual(result.speedBonus, {xp: 0, coins: 0});
+			assert.equal(result.variableReward.amount, 0);
+		}
+	}
+});
+
+test("speed bonuses require perfection and honor both time boundaries", async () => {
+	for (const [time, xp, coins] of [[5000, 2, 1], [5001, 1, 0], [15000, 1, 0], [15001, 0, 0]]) {
+		const uid = `speed-${time}`;
+		addSession(uid, uid, "addition", 1, Date.now());
+		documents.get(`mathProfiles/${uid}`).achievementIds = ["first_mission", "perfect_mission"];
+		const result = await request(uid, {
+			action: "completeMission", sessionId: uid,
+			answers: Array.from({length: 10}, (_, index) => index + 1),
+			answerTimes: Array(10).fill(time),
+		});
+		assert.deepEqual(result.body.result.speedBonus, {xp, coins});
+		assert.equal(result.body.result.xpEarned, 16 + xp);
+		assert.equal(result.body.result.coinsEarned, 4 + coins);
+	}
+	const uid = "speed-imperfect";
+	addSession(uid, uid, "addition", 1, Date.now());
+	documents.get(`mathProfiles/${uid}`).achievementIds = ["first_mission"];
+	const result = await request(uid, {
+		action: "completeMission", sessionId: uid,
+		answers: Array.from({length: 10}, (_, index) => index === 0 ? 0 : index + 1),
+		answerTimes: Array(10).fill(100),
+	});
+	assert.deepEqual(result.body.result.speedBonus, {xp: 0, coins: 0});
+});
+
+test("new achievements award the reduced coin bonuses once", async () => {
+	const uid = "achievement-rewards";
+	addSession(uid, uid, "addition", 1, Date.now());
+	Object.assign(documents.get(`mathProfiles/${uid}`), {
+		totalSessions: 9, totalCorrect: 90, currentStreak: 2,
+		lastStudyDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+	});
+	const body = {
+		action: "completeMission", sessionId: uid,
+		answers: Array.from({length: 10}, (_, index) => index + 1),
+		answerTimes: Array(10).fill(16000),
+	};
+	const result = (await request(uid, body)).body.result;
+	assert.deepEqual(result.newAchievements.map(({coins}) => coins), [3, 5, 8, 10, 15]);
+	assert.equal(result.achievementCoins, 41);
+	assert.equal(result.coinsEarned, 45);
+	assert.equal((await request(uid, body)).body.result.coinsEarned, 45);
+	assert.equal(documents.get(`mathProfiles/${uid}`).coins, 45);
+});
+
 test("division levels generate remainder and terminating decimal questions", async () => {
 	for (const level of [2, 3]) {
 		for (let run = 0; run < 20; run += 1) {

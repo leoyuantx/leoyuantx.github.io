@@ -130,6 +130,11 @@
     .card p:last-child { margin-bottom: 0; }
     .title-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 22px; }
     .note { padding: 13px 15px; border: 1px solid #85efd226; border-left: 3px solid var(--mint); border-radius: 5px 12px 12px 5px; background: #85efd20c; }
+    .table-wrap { overflow-x: auto; }
+    .rewards-table { width: 100%; min-width: 550px; border-collapse: collapse; font-size: 13px; }
+    .rewards-table th, .rewards-table td { padding: 9px; border-bottom: 1px solid var(--line); text-align: left; }
+    .rewards-table th { color: var(--ink); }
+    .rewards-table td { color: var(--muted); }
     footer { margin-top: 25px; color: #8f91ac; font-size: 12px; text-align: center; }
 
     @media (max-width: 600px) {
@@ -252,7 +257,7 @@
 
     <section id="pilot-progression">
       <h2>5. Pilot progress and levels</h2>
-      <p>Correct answers earn progress points, with an extra bonus for answering all 10 correctly. Both rewards scale with challenge difficulty. Pilot levels track overall progress and unlock title milestones; they do not set subject difficulty.</p>
+      <p>Mission XP depends on accuracy and challenge difficulty, with a possible speed bonus for perfect missions. Pilot levels track overall progress and unlock title milestones; they do not set subject difficulty.</p>
       <p>The next pilot level requires 150 more progress points per level number: Level 2 takes 150 total points, Level 3 takes 450 total, Level 4 takes 900 total, and Level 5 takes 1,500 total. In general, going from pilot Level <em>N</em> to <em>N + 1</em> costs <strong>150 × N additional points</strong>.</p>
       <p>Your profile progress bar shows progress through the current pilot level and how many points remain.</p>
     </section>
@@ -280,24 +285,37 @@
     </section>
 
     <section id="coins">
-      <h2>7. Coins and random drops</h2>
-      <p>A mission awards <strong>5 coins plus 2 per correct answer</strong>, multiplied by challenge difficulty. Achievement rewards and a random drop are added; random drops also scale with mission difficulty.</p>
+      <h2>7. Mission rewards</h2>
+      <p>Each cell shows <strong>XP / coins</strong> before speed and achievement bonuses. Challenge levels available depend on the subject.</p>
+      <div class="table-wrap">
+        <table class="rewards-table">
+          <thead><tr><th scope="col">Correct</th><th scope="col">Level 1</th><th scope="col">Level 2</th><th scope="col">Level 3</th><th scope="col">Level 4</th><th scope="col">Level 5</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">0/10</th><td>0 / 0</td><td>0 / 0</td><td>0 / 0</td><td>0 / 0</td><td>0 / 0</td></tr>
+            <tr><th scope="row">1–5/10</th><td>4 / 1</td><td>5 / 1</td><td>6 / 2</td><td>7 / 2</td><td>8 / 2</td></tr>
+            <tr><th scope="row">6–7/10</th><td>8 / 2</td><td>10 / 3</td><td>12 / 3</td><td>14 / 4</td><td>16 / 4</td></tr>
+            <tr><th scope="row">8–9/10</th><td>12 / 3</td><td>15 / 4</td><td>18 / 5</td><td>21 / 5</td><td>24 / 6</td></tr>
+            <tr><th scope="row">10/10</th><td>16 / 4</td><td>20 / 5</td><td>24 / 6</td><td>28 / 7</td><td>32 / 8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>For a perfect mission, the average answer time can add a speed bonus:</p>
       <ul>
-        <li>70% chance of no extra coins.</li>
-        <li>25% chance of 5 extra coins.</li>
-        <li>4% chance of 15 extra coins.</li>
-        <li>1% chance of 50 extra coins.</li>
+        <li>Up to 5 seconds: +2 XP and +1 coin.</li>
+        <li>Over 5 and up to 15 seconds: +1 XP.</li>
+        <li>Over 15 seconds: no speed bonus.</li>
       </ul>
+      <p>Achievement coins are added separately. Missions no longer award random coin drops; previously earned XP, coins, and achievements are unchanged.</p>
     </section>
 
     <section id="achievements">
       <h2>8. Achievements</h2>
       <ul>
-        <li><strong>First Mission:</strong> complete your first mission; 10 coins.</li>
-        <li><strong>Perfect Mission:</strong> answer all 10 correctly; 20 coins.</li>
-        <li><strong>Three-Day Streak:</strong> practice on three consecutive days; 30 coins.</li>
-        <li><strong>Mission Regular:</strong> complete 10 missions; 40 coins.</li>
-        <li><strong>Century Club:</strong> answer 100 questions correctly; 50 coins.</li>
+        <li><strong>First Mission:</strong> complete your first mission; 3 coins.</li>
+        <li><strong>Perfect Mission:</strong> answer all 10 correctly; 5 coins.</li>
+        <li><strong>Three-Day Streak:</strong> practice on three consecutive days; 8 coins.</li>
+        <li><strong>Mission Regular:</strong> complete 10 missions; 10 coins.</li>
+        <li><strong>Century Club:</strong> answer 100 questions correctly; 15 coins.</li>
       </ul>
       <p>Unlocked awards and their coin rewards appear in the profile's Awards tab.</p>
     </section>

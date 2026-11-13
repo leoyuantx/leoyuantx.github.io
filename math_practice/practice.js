@@ -272,7 +272,19 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
       elements.ratingBreakdown.after(rewardSummary);
     }
     const earnedNames = missionResult.newAchievements.map((achievement) => achievement.title);
-    rewardSummary.textContent = `Difficulty ×${missionResult.rewardMultiplier} · +${missionResult.coinsEarned} coins · ${missionResult.variableReward.label}${earnedNames.length ? ` · Achievement: ${earnedNames.join(", ")}` : ""}`;
+    const rewardDetails = [
+      `Difficulty level ${missionResult.missionLevel}`,
+      `+${missionResult.xpEarned} XP`,
+      `+${missionResult.coinsEarned} coins`,
+    ];
+    if (missionResult.speedBonus?.xp || missionResult.speedBonus?.coins) {
+      const speedCoins = missionResult.speedBonus.coins ? `, +${missionResult.speedBonus.coins} coin` : "";
+      rewardDetails.push(`Speed bonus: +${missionResult.speedBonus.xp} XP${speedCoins}`);
+    } else if (!missionResult.speedBonus && missionResult.variableReward?.amount) {
+      rewardDetails.push(missionResult.variableReward.label);
+    }
+    if (earnedNames.length) rewardDetails.push(`Achievement: ${earnedNames.join(", ")}`);
+    rewardSummary.textContent = rewardDetails.join(" · ");
     elements.progressFill.style.width = "100%";
     elements.progressTrack.setAttribute("aria-valuenow", totalQuestions);
     elements.reportBody.replaceChildren();

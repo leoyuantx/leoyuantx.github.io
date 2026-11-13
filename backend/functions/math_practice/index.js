@@ -47,11 +47,11 @@ const levels = {
 };
 
 const achievementCatalog = [
-	{id: "first_mission", title: "First Mission", description: "Complete your first mission.", coins: 10},
-	{id: "perfect_mission", title: "Perfect Mission", description: "Answer all 10 questions correctly.", coins: 20},
-	{id: "three_day_streak", title: "Three-Day Streak", description: "Practice on three consecutive days.", coins: 30},
-	{id: "ten_missions", title: "Mission Regular", description: "Complete 10 missions.", coins: 40},
-	{id: "hundred_correct", title: "Century Club", description: "Answer 100 questions correctly.", coins: 50},
+	{id: "first_mission", title: "First Mission", description: "Complete your first mission.", coins: 3},
+	{id: "perfect_mission", title: "Perfect Mission", description: "Answer all 10 questions correctly.", coins: 5},
+	{id: "three_day_streak", title: "Three-Day Streak", description: "Practice on three consecutive days.", coins: 8},
+	{id: "ten_missions", title: "Mission Regular", description: "Complete 10 missions.", coins: 10},
+	{id: "hundred_correct", title: "Century Club", description: "Answer 100 questions correctly.", coins: 15},
 ];
 
 const shopCatalog = [
@@ -309,12 +309,21 @@ async function getChallengeLeaderboard(body, response) {
 	response.status(200).json({success: true, operation, level, entries});
 }
 
-function chooseVariableReward() {
-	const roll = randomInt(100);
-	if (roll < 70) return {type: "coins", amount: 0, label: "Steady flight"};
-	if (roll < 95) return {type: "coins", amount: 5, label: "Bonus cache"};
-	if (roll < 99) return {type: "coins", amount: 15, label: "Supernova cache"};
-	return {type: "coins", amount: 50, label: "Cosmic jackpot"};
+function getMissionRewards(correct, level, averageAnswerTime) {
+	const band = correct === 0 ? 0 : correct <= 5 ? 1 : correct <= 7 ? 2 : correct <= 9 ? 3 : 4;
+	const baseRewards = [[0, 0], [4, 1], [8, 2], [12, 3], [16, 4]][band];
+	const multiplier = 1 + (level - 1) * 0.25;
+	const speedBonus = correct === totalQuestions && averageAnswerTime <= 5000
+		? {xp: 2, coins: 1}
+		: correct === totalQuestions && averageAnswerTime <= 15000
+			? {xp: 1, coins: 0}
+			: {xp: 0, coins: 0};
+	return {
+		multiplier,
+		baseXp: Math.round(baseRewards[0] * multiplier),
+		baseCoins: Math.round(baseRewards[1] * multiplier),
+		speedBonus,
+	};
 }
 
 function getNewAchievements(profile, correct, newStreak) {
@@ -496,7 +505,6 @@ async function completeMission(decodedToken, body, response) {
 	await getOrCreateProfile(decodedToken);
 	const sessionRef = sessions.doc(sessionId);
 	const profileRef = profiles.doc(decodedToken.uid);
-	const variableRewardRoll = chooseVariableReward();
 	const completedAtMs = Date.now();
 	let missionResult;
 
@@ -557,15 +565,10 @@ async function completeMission(decodedToken, body, response) {
 				: 1;
 		const totalSessions = (profile.totalSessions || 0) + 1;
 		const newAchievements = getNewAchievements(profile, correct, currentStreak);
-		const rewardMultiplier = session.level;
-		const variableReward = {
-			...variableRewardRoll,
-			amount: variableRewardRoll.amount * rewardMultiplier,
-		};
-		const xpEarned = (correct * 10 + (correct === totalQuestions ? 25 : 0)) * rewardMultiplier;
+		const rewards = getMissionRewards(correct, session.level, averageAnswerTime);
+		const xpEarned = rewards.baseXp + rewards.speedBonus.xp;
 		const achievementCoins = newAchievements.reduce((total, achievement) => total + achievement.coins, 0);
-		const baseCoins = (5 + correct * 2) * rewardMultiplier;
-		const coinsEarned = baseCoins + achievementCoins + variableReward.amount;
+		const coinsEarned = rewards.baseCoins + rewards.speedBonus.coins + achievementCoins;
 		const xp = (profile.xp || 0) + xpEarned;
 		const previousChallenge = profile.challengeProgress?.[session.operation] || {};
 		const isLatestCompletedChallenge = session.startedAtMs >= (previousChallenge.lastCompletedAtMs || 0);
@@ -585,16 +588,19 @@ async function completeMission(decodedToken, body, response) {
 		missionResult = {
 			operation: session.operation,
 			missionLevel: session.level,
-			rewardMultiplier,
+			rewardMultiplier: rewards.multiplier,
 			correct,
 			totalQuestions,
 			elapsedMs,
 			stars,
 			xpEarned,
 			coinsEarned,
-			baseCoins,
+			baseXp: rewards.baseXp,
+			baseCoins: rewards.baseCoins,
 			achievementCoins,
-			variableReward,
+			speedBonus: rewards.speedBonus,
+			// Older pages still display this field when a mission completes.
+			variableReward: {type: "coins", amount: 0, label: "No random drop"},
 			newAchievements,
 			currentStreak,
 			playerLevel: getLevel(xp),
