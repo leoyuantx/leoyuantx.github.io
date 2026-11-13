@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11142b">
   <title>Math Galaxy — Math Practice</title>
-  <link rel="stylesheet" href="practice.css">
-  <script type="module" src="account.js"></script>
+  <link rel="stylesheet" href="practice.css?v=2">
+  <script type="module" src="account.js?v=3"></script>
 </head>
 <body class="home-page">
   <main class="page home-shell">
@@ -46,7 +46,6 @@
           <span class="subject-title">Addition</span>
           <span class="subject-copy">Put numbers together</span>
           <span class="subject-last-challenge" data-operation="addition">No challenge played yet</span>
-          <div class="challenge-leaderboard" data-operation="addition" aria-live="polite">Sign in to see challenge records.</div>
           <a class="play-button" data-operation="addition" href="addition.html">Play</a>
         </div>
       </article>
@@ -56,7 +55,6 @@
           <span class="subject-title">Subtraction</span>
           <span class="subject-copy">Find what is left</span>
           <span class="subject-last-challenge" data-operation="subtraction">No challenge played yet</span>
-          <div class="challenge-leaderboard" data-operation="subtraction" aria-live="polite">Sign in to see challenge records.</div>
           <a class="play-button" data-operation="subtraction" href="subtraction.html">Play</a>
         </div>
       </article>
@@ -66,7 +64,6 @@
           <span class="subject-title">Multiplication</span>
           <span class="subject-copy">Practice your times tables</span>
           <span class="subject-last-challenge" data-operation="multiplication">No challenge played yet</span>
-          <div class="challenge-leaderboard" data-operation="multiplication" aria-live="polite">Sign in to see challenge records.</div>
           <a class="play-button" data-operation="multiplication" href="multiplication.html">Play</a>
         </div>
       </article>
@@ -76,11 +73,25 @@
           <span class="subject-title">Division</span>
           <span class="subject-copy">Share numbers equally</span>
           <span class="subject-last-challenge" data-operation="division">No challenge played yet</span>
-          <div class="challenge-leaderboard" data-operation="division" aria-live="polite">Sign in to see challenge records.</div>
           <a class="play-button" data-operation="division" href="division.html">Play</a>
         </div>
       </article>
     </section>
+
+    <dialog id="challenge-dialog" class="account-dialog challenge-dialog" aria-labelledby="challenge-dialog-title">
+      <p class="eyebrow">CHALLENGE RECORDS</p>
+      <h2 id="challenge-dialog-title"></h2>
+      <div class="challenge-leaderboard" data-operation="addition" aria-live="polite" hidden>Sign in to see challenge records.</div>
+      <div class="challenge-leaderboard" data-operation="subtraction" aria-live="polite" hidden>Sign in to see challenge records.</div>
+      <div class="challenge-leaderboard" data-operation="multiplication" aria-live="polite" hidden>Sign in to see challenge records.</div>
+      <div class="challenge-leaderboard" data-operation="division" aria-live="polite" hidden>Sign in to see challenge records.</div>
+      <p id="challenge-prompt" class="challenge-prompt"></p>
+      <p id="challenge-availability" class="challenge-availability" role="status"></p>
+      <div class="challenge-actions">
+        <button id="challenge-yes" class="button button-primary" type="button">Yes!</button>
+        <button id="challenge-no" class="button button-secondary" type="button">No</button>
+      </div>
+    </dialog>
 
     <section class="progress-guide" aria-labelledby="progress-guide-title">
       <div class="section-heading">

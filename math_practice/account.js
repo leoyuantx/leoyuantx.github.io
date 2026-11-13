@@ -120,6 +120,71 @@ export function formatDuration(milliseconds) {
   return `${minutes}:${seconds}.${fraction}`;
 }
 
+const challengePrompts = [
+  "Ready to give those speedy space brains a run for their money?",
+  "Think you can outrun a calculator wearing rocket boots?",
+  "Ready to make these numbers sweat?",
+  "Shall we launch your brain into the fast lane?",
+  "Can your math skills zoom past this cosmic crew?",
+  "Ready to challenge them, or is your pencil still stretching?",
+  "Think you can beat a spaceship powered by multiplication?",
+  "Ready to turn these records into ancient space history?",
+  "Shall we see if your brain has a turbo button?",
+  "Can you solve faster than a dancing alien counts its toes?",
+  "Ready to send those numbers on a wild rocket ride?",
+  "Think your math muscles can lift this leaderboard?",
+  "Shall we put the pedal to the mathematical metal?",
+  "Ready to race the clock without tripping over a decimal?",
+  "Can you make the leaderboard do a double take?",
+  "Ready to show these pilots who packed the smartest lunch?",
+  "Shall we blast off before the numbers escape?",
+  "Think you can catch these records with your brainpower net?",
+  "Ready to make your calculator ask for an autograph?",
+  "Can your answers fly faster than a comet on roller skates?",
+];
+
+function syncChallengeConfirmation(button) {
+  const dialog = document.querySelector("#challenge-dialog");
+  if (!dialog?.open || dialog.dataset.operation !== button.dataset.operation) return;
+  const checking = button.dataset.checking === "true";
+  const available = button.hasAttribute("href");
+  document.querySelector("#challenge-yes").disabled = checking || !available;
+  document.querySelector("#challenge-availability").textContent = checking
+    ? "Checking challenge availability…"
+    : available ? "" : button.title;
+}
+
+function installChallengeDialog() {
+  const dialog = document.querySelector("#challenge-dialog");
+  if (!dialog) return;
+  document.querySelectorAll(".play-button[data-operation]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (!button.hasAttribute("href")) return;
+      dialog.dataset.operation = button.dataset.operation;
+      document.querySelector("#challenge-dialog-title").textContent =
+        `${button.closest(".subject-card").querySelector(".subject-title").textContent} challenge`;
+      document.querySelector("#challenge-prompt").textContent =
+        challengePrompts[Math.floor(Math.random() * challengePrompts.length)];
+      dialog.querySelectorAll(".challenge-leaderboard").forEach((leaderboard) => {
+        leaderboard.hidden = leaderboard.dataset.operation !== button.dataset.operation;
+      });
+      dialog.showModal();
+      syncChallengeConfirmation(button);
+    });
+  });
+  document.querySelector("#challenge-no").addEventListener("click", () => dialog.close());
+  document.querySelector("#challenge-yes").addEventListener("click", () => {
+    const button = document.querySelector(`.play-button[data-operation="${dialog.dataset.operation}"]`);
+    if (button && button.hasAttribute("href") && button.dataset.checking !== "true") {
+      window.location.assign(button.href);
+    }
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+}
+
 async function updateChallengeEntryButtons() {
   const buttons = [...document.querySelectorAll(".play-button[data-operation]")];
   if (!buttons.length) return;
@@ -131,6 +196,8 @@ async function updateChallengeEntryButtons() {
     const operation = button.dataset.operation;
     const leaderboard = document.querySelector(`.challenge-leaderboard[data-operation="${operation}"]`);
     if (leaderboard) leaderboard.textContent = "Loading challenge records…";
+    button.dataset.checking = "true";
+    syncChallengeConfirmation(button);
     try {
       const availability = await mathApi("challengeAvailability", {operation});
       if (!isCurrentUpdate()) return;
@@ -151,6 +218,8 @@ async function updateChallengeEntryButtons() {
         button.removeAttribute("href");
         button.title = "Both tries for this challenge have been used. Tries reset at midnight UTC.";
       }
+      delete button.dataset.checking;
+      syncChallengeConfirmation(button);
       if (leaderboard) {
         try {
           const result = await mathApi("challengeLeaderboard", {operation, level: availability.level});
@@ -180,6 +249,8 @@ async function updateChallengeEntryButtons() {
       button.classList.add("is-disabled");
       button.removeAttribute("href");
       button.title = error.message;
+      delete button.dataset.checking;
+      syncChallengeConfirmation(button);
       console.error(`Could not check today's ${operation} challenge availability:`, error);
     }
   }));
@@ -191,6 +262,7 @@ function resetChallengeEntryButtons() {
     leaderboard.textContent = "Sign in to see challenge records.";
   });
   document.querySelectorAll(".play-button[data-operation]").forEach((button) => {
+    delete button.dataset.checking;
     button.textContent = "Play";
     button.href = `${button.dataset.operation}.html`;
     button.removeAttribute("aria-disabled");
@@ -198,6 +270,7 @@ function resetChallengeEntryButtons() {
     button.removeAttribute("tabindex");
     button.removeAttribute("title");
     button.classList.remove("is-disabled");
+    syncChallengeConfirmation(button);
   });
 }
 
@@ -497,6 +570,7 @@ async function renderTab(tab, scope = "global") {
 export async function refreshProfile() {
   if (!auth.currentUser) return;
   renderAccountButton(document.querySelector("#account-button"));
+  const challengeEntries = updateChallengeEntryButtons();
   try {
     const previousProfile = profileData?.profile;
     profileData = await mathApi("profile");
@@ -504,7 +578,6 @@ export async function refreshProfile() {
     updateProfileProgress(profileData.profile);
     updatePilotTitle(profileData.profile);
     updateSubjectChallengeHistory(profileData.profile);
-    await updateChallengeEntryButtons();
     if (previousProfile) {
       const previousTitle = getPilotTitle(previousProfile.level || 1);
       const currentTitle = getPilotTitle(profileData.profile.level || 1);
@@ -525,7 +598,9 @@ export async function refreshProfile() {
   } catch (error) {
     const message = document.querySelector("#account-status");
     if (message) message.textContent = error.message;
+    console.error("Could not refresh the Math Galaxy profile:", error);
   }
+  await challengeEntries;
 }
 
 function setAuthMode(mode) {
@@ -663,4 +738,5 @@ function installAccountUI() {
   });
 }
 
+installChallengeDialog();
 installAccountUI();
