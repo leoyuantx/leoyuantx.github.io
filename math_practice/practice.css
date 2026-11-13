@@ -702,6 +702,10 @@ body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="2"] { ba
 .subject-title { margin: 0; font-size: 20px; letter-spacing: -.025em; }
 .subject-copy { margin: 2px 0 5px; font-size: 13px; }
 .subject-last-challenge { min-height: 16px; color: var(--muted); font-size: 11px; }
+.challenge-leaderboard { width: 100%; color: var(--muted); font-size: 11px; }
+.challenge-leaderboard strong { color: #e5dcff; }
+.challenge-leaderboard ol { margin: 4px 0 0; padding-left: 20px; }
+.challenge-leaderboard li { padding: 2px 0; overflow-wrap: anywhere; }
 .play-button {
   display: inline-flex;
   min-width: 92px;

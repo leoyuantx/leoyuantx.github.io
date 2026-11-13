@@ -13,6 +13,7 @@ const db = getFirestore();
 const profiles = db.collection("mathProfiles");
 const usernames = db.collection("mathUsernames");
 const sessions = db.collection("mathSessions");
+const challengeRecords = db.collection("mathChallengeRecords");
 const totalQuestions = 10;
 const progressionVersion = 2;
 const luckyRollIntervalMs = 60 * 1000;
@@ -269,6 +270,26 @@ async function getChallengeAvailability(decodedToken, body, response) {
 	});
 }
 
+async function getChallengeLeaderboard(body, response) {
+	const {operation, level} = body;
+	if (!Object.hasOwn(levels, operation) || !Number.isInteger(level) ||
+			level < 1 || level > levels[operation].length) {
+		sendError(response, 400, "Choose a valid subject and challenge level.");
+		return;
+	}
+
+	const records = await challengeRecords.doc(`${operation}_${level}`).collection("times")
+		.orderBy("elapsedMs").limit(5).get();
+	const profileSnapshots = records.empty ? [] : await db.getAll(
+		...records.docs.map((record) => profiles.doc(record.id)),
+	);
+	const entries = records.docs.map((record, index) => ({
+		username: profileSnapshots[index].exists ? profileSnapshots[index].data().username : record.data().username,
+		elapsedMs: record.data().elapsedMs,
+	}));
+	response.status(200).json({success: true, operation, level, entries});
+}
+
 function chooseVariableReward() {
 	const roll = randomInt(100);
 	if (roll < 70) return {type: "coins", amount: 0, label: "Steady flight"};
@@ -445,6 +466,7 @@ async function completeMission(decodedToken, body, response) {
 	const sessionRef = sessions.doc(sessionId);
 	const profileRef = profiles.doc(decodedToken.uid);
 	const variableRewardRoll = chooseVariableReward();
+	const completedAtMs = Date.now();
 	let missionResult;
 
 	await db.runTransaction(async (transaction) => {
@@ -457,7 +479,11 @@ async function completeMission(decodedToken, body, response) {
 			missionResult = session.result;
 			return;
 		}
-		if (Date.now() - session.startedAtMs > 6 * 60 * 60 * 1000) {
+		const elapsedMs = completedAtMs - session.startedAtMs;
+		if (!Number.isSafeInteger(elapsedMs) || elapsedMs < 0) {
+			throw new Error("Mission start time is invalid or in the future.");
+		}
+		if (elapsedMs > 6 * 60 * 60 * 1000) {
 			throw Object.assign(new Error("This mission has expired. Start a new mission."), {status: 410});
 		}
 
@@ -469,6 +495,9 @@ async function completeMission(decodedToken, body, response) {
 		const correct = session.questions.reduce((count, question, index) =>
 			count + (answers[index] === question.answer ? 1 : 0), 0
 		);
+		const recordRef = challengeRecords.doc(`${session.operation}_${session.level}`)
+			.collection("times").doc(decodedToken.uid);
+		const recordSnapshot = correct === totalQuestions ? await transaction.get(recordRef) : null;
 		const averageAnswerTime = answerTimes.reduce((total, time) => total + time, 0) / totalQuestions;
 		const accuracyPoints = (correct / totalQuestions) * 80;
 		const speedPoints = Math.max(0, 1 - averageAnswerTime / 60000) * 20;
@@ -519,6 +548,7 @@ async function completeMission(decodedToken, body, response) {
 			rewardMultiplier,
 			correct,
 			totalQuestions,
+			elapsedMs,
 			stars,
 			xpEarned,
 			coinsEarned,
@@ -541,6 +571,13 @@ async function completeMission(decodedToken, body, response) {
 
 		const earnedIds = new Set(profile.achievementIds || []);
 		newAchievements.forEach((achievement) => earnedIds.add(achievement.id));
+		if (recordSnapshot && (!recordSnapshot.exists || elapsedMs < recordSnapshot.data().elapsedMs)) {
+			transaction.set(recordRef, {
+				username: profile.username,
+				elapsedMs,
+				updatedAt: FieldValue.serverTimestamp(),
+			});
+		}
 		transaction.update(profileRef, {
 			xp,
 			level: getLevel(xp),
@@ -837,6 +874,10 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 		}
 		if (action === "challengeAvailability") {
 			await getChallengeAvailability(decodedToken, body, response);
+			return;
+		}
+		if (action === "challengeLeaderboard") {
+			await getChallengeLeaderboard(body, response);
 			return;
 		}
 		if (action === "completeMission") {

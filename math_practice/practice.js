@@ -1,4 +1,4 @@
-import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.js";
+import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} from "./account.js";
 
 (async () => {
   const totalQuestions = 10;
@@ -61,15 +61,6 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   let serverQuestions = [];
   let isStartingMission = false;
   let isFinishingMission = false;
-
-  function formatDuration(milliseconds) {
-    const totalMilliseconds = Math.floor(milliseconds);
-    const totalSeconds = Math.floor(totalMilliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = String(totalSeconds % 60).padStart(2, "0");
-    const fraction = String(totalMilliseconds % 1000).padStart(3, "0");
-    return `${minutes}:${seconds}.${fraction}`;
-  }
 
   function updateTimer() {
     elements.elapsedTime.textContent = formatDuration(performance.now() - missionStartedAt);
@@ -159,6 +150,11 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
   function nextQuestion() {
     if (!answered) return;
     if (questionNumber === totalQuestions) {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      updateTimer();
       finishMission();
       return;
     }
@@ -209,11 +205,9 @@ import {authReady, mathApi, openAccountDialog, refreshProfile} from "./account.j
     document.querySelector("#retry-save-button")?.remove();
     elements.gameContent.style.display = "none";
     elements.completion.style.display = "block";
-    if (timerInterval !== null) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+    if (Number.isFinite(missionResult.elapsedMs)) {
+      elements.elapsedTime.textContent = formatDuration(missionResult.elapsedMs);
     }
-    updateTimer();
     const averageAnswerTime = answerReport.reduce((total, entry) => total + entry.time, 0) / totalQuestions;
     const accuracyPercent = (correctAnswers / totalQuestions) * 100;
     const accuracyPoints = (accuracyPercent / 100) * 80;

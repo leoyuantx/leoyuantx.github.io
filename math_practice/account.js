@@ -28,6 +28,7 @@ let lastActivityAt = Date.now();
 let luckyRollInProgress = false;
 let titleToastQueue = [];
 let titleToastShowing = false;
+let challengeEntryUpdate = 0;
 
 const pilotTitles = [
   {level: 1, title: "Cadet in training"},
@@ -110,14 +111,29 @@ function updateSubjectChallengeHistory(profile) {
   });
 }
 
+export function formatDuration(milliseconds) {
+  const totalMilliseconds = Math.floor(milliseconds);
+  const totalSeconds = Math.floor(totalMilliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  const fraction = String(totalMilliseconds % 1000).padStart(3, "0");
+  return `${minutes}:${seconds}.${fraction}`;
+}
+
 async function updateChallengeEntryButtons() {
   const buttons = [...document.querySelectorAll(".play-button[data-operation]")];
   if (!buttons.length) return;
+  const user = auth.currentUser;
+  const updateId = ++challengeEntryUpdate;
+  const isCurrentUpdate = () => auth.currentUser === user && challengeEntryUpdate === updateId;
 
   await Promise.all(buttons.map(async (button) => {
     const operation = button.dataset.operation;
+    const leaderboard = document.querySelector(`.challenge-leaderboard[data-operation="${operation}"]`);
+    if (leaderboard) leaderboard.textContent = "Loading challenge records…";
     try {
       const availability = await mathApi("challengeAvailability", {operation});
+      if (!isCurrentUpdate()) return;
       button.href = `${operation}.html`;
       button.removeAttribute("aria-disabled");
       button.removeAttribute("aria-label");
@@ -135,7 +151,29 @@ async function updateChallengeEntryButtons() {
         button.removeAttribute("href");
         button.title = "Both tries for this challenge have been used. Tries reset at midnight UTC.";
       }
+      if (leaderboard) {
+        try {
+          const result = await mathApi("challengeLeaderboard", {operation, level: availability.level});
+          if (!isCurrentUpdate()) return;
+          leaderboard.replaceChildren(makeElement("strong", "", `Level ${result.level} · Fastest perfect missions`));
+          if (!result.entries.length) {
+            leaderboard.append(makeElement("div", "", "No perfect missions yet."));
+          } else {
+            const list = makeElement("ol");
+            result.entries.forEach((entry) => {
+              list.append(makeElement("li", "", `${entry.username} · ${formatDuration(entry.elapsedMs)}`));
+            });
+            leaderboard.append(list);
+          }
+        } catch (error) {
+          if (!isCurrentUpdate()) return;
+          leaderboard.textContent = "Unable to load challenge records.";
+          console.error(`Could not load ${operation} challenge records:`, error);
+        }
+      }
     } catch (error) {
+      if (!isCurrentUpdate()) return;
+      if (leaderboard) leaderboard.textContent = "Unable to load challenge records.";
       button.textContent = "Unable to check tries";
       button.setAttribute("aria-disabled", "true");
       button.tabIndex = -1;
@@ -148,6 +186,10 @@ async function updateChallengeEntryButtons() {
 }
 
 function resetChallengeEntryButtons() {
+  challengeEntryUpdate += 1;
+  document.querySelectorAll(".challenge-leaderboard[data-operation]").forEach((leaderboard) => {
+    leaderboard.textContent = "Sign in to see challenge records.";
+  });
   document.querySelectorAll(".play-button[data-operation]").forEach((button) => {
     button.textContent = "Play";
     button.href = `${button.dataset.operation}.html`;
