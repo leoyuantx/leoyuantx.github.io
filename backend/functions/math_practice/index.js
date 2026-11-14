@@ -939,6 +939,40 @@ async function equipItem(decodedToken, body, response) {
 	response.status(200).json({success: true, equipped: item.id, type: item.type});
 }
 
+async function unequipItem(decodedToken, body, response) {
+	const item = shopCatalog.find((entry) => entry.id === body.itemId);
+	if (!item) {
+		sendError(response, 404, "Shop item not found.");
+		return;
+	}
+
+	const equippedField = {
+		profile_theme: "equippedTheme",
+		avatar_frame: "equippedAvatarFrame",
+		mouse_trail: "equippedMouseTrail",
+	}[item.type];
+	const profileRef = profiles.doc(decodedToken.uid);
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+		const profile = profileSnapshot.data();
+		if (!profile.inventory?.[item.id]) {
+			throw Object.assign(new Error("Purchase this item before unequipping it."), {status: 403});
+		}
+		if (profile[equippedField] !== item.id) {
+			throw Object.assign(new Error("This item is no longer equipped."), {status: 409});
+		}
+		transaction.update(profileRef, {
+			[equippedField]: null,
+			updatedAt: FieldValue.serverTimestamp(),
+		});
+	});
+
+	response.status(200).json({success: true, equipped: null, type: item.type});
+}
+
 export const mathPracticeApi = onRequest(async (request, response) => {
 	setCorsHeaders(response);
 	if (request.method === "OPTIONS") {
@@ -1047,6 +1081,10 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 		}
 		if (action === "equipItem") {
 			await equipItem(decodedToken, body, response);
+			return;
+		}
+		if (action === "unequipItem") {
+			await unequipItem(decodedToken, body, response);
 			return;
 		}
 		sendError(response, 400, "Unknown Math Practice API action.");

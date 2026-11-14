@@ -433,7 +433,7 @@ function renderAchievements(container, achievements = []) {
     list.append(makeElement("p", "account-empty", "Achievements will appear here as you complete missions."));
   }
   const pendingXp = profileData?.profile?.unclaimedMissionXp || 0;
-  const missionReward = makeElement("article", "achievement-item mission-xp-reward");
+  const missionReward = makeElement("article", `achievement-item mission-xp-reward${pendingXp ? " is-unlocked" : ""}`);
   missionReward.append(
     makeElement("span", "achievement-mark", "✦"),
     makeElement("span", "achievement-copy"),
@@ -577,13 +577,13 @@ async function renderShop(container) {
       mouse_trail: "equippedMouseTrail",
     }[item.type];
     const equipped = profileData.profile[equippedField] === item.id;
-    const button = makeElement("button", "button button-secondary", !owned ? `Buy · ${item.price} ◈` : equipped ? "Equipped" : "Equip");
+    const button = makeElement("button", "button button-secondary", !owned ? `Buy · ${item.price} ◈` : equipped ? "Unequip" : "Equip");
     button.type = "button";
-    button.disabled = owned && equipped;
     button.addEventListener("click", async () => {
       button.disabled = true;
       try {
-        await mathApi(owned ? "equipItem" : "purchaseItem", {itemId: item.id});
+        const action = !owned ? "purchaseItem" : equipped ? "unequipItem" : "equipItem";
+        await mathApi(action, {itemId: item.id});
         await refreshProfile();
       } catch (error) {
         button.textContent = error.message;

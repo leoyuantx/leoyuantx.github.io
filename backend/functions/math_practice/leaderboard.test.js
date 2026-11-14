@@ -312,6 +312,27 @@ test("previously awarded achievement coins are not claimable again", async () =>
 	assert.equal(documents.get(`mathProfiles/${uid}`).xp, 450);
 });
 
+test("owned shop items can be unequipped without losing ownership", async () => {
+	const uid = "shop-unequip";
+	documents.set(`mathProfiles/${uid}`, {
+		uid, username: uid, coins: 25,
+		inventory: {comet_trail: true, nebula_theme: true},
+		equippedTheme: "comet_trail",
+	});
+
+	const result = await request(uid, {action: "unequipItem", itemId: "comet_trail"});
+	assert.equal(result.status, 200);
+	assert.equal(result.body.equipped, null);
+	assert.equal(documents.get(`mathProfiles/${uid}`).equippedTheme, null);
+	assert.equal(documents.get(`mathProfiles/${uid}`).inventory.comet_trail, true);
+	assert.equal(documents.get(`mathProfiles/${uid}`).coins, 25);
+
+	documents.get(`mathProfiles/${uid}`).equippedTheme = "nebula_theme";
+	const staleUnequip = await request(uid, {action: "unequipItem", itemId: "comet_trail"});
+	assert.equal(staleUnequip.status, 409);
+	assert.equal(documents.get(`mathProfiles/${uid}`).equippedTheme, "nebula_theme");
+});
+
 test("division levels generate remainder and terminating decimal questions", async () => {
 	for (const level of [2, 3]) {
 		for (let run = 0; run < 20; run += 1) {
