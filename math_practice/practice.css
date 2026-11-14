@@ -318,6 +318,15 @@ body[data-operation="division"] .answer-input { font-size: 32px; }
 
 .account-button:hover { border-color: #d3c8ff; background: #332d54; }
 .account-button.account-signed-in { border-color: #85efd2c4; color: #a7f4df; }
+.account-dashboard {
+  margin: 0 0 22px;
+  padding: 18px;
+  border: 1px solid #a48aff55;
+  border-radius: 20px;
+  background: linear-gradient(155deg, #232443e8, #191b35e8 62%, #17232fe8);
+  box-shadow: 0 14px 36px #080a1e35;
+}
+.account-dashboard[hidden] { display: none !important; }
 .account-dialog {
   width: min(620px, calc(100vw - 24px));
   max-width: 620px;
@@ -451,11 +460,13 @@ body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="2"] { ba
 .achievement-list, .shop-list, .leaderboard-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .achievement-item, .shop-item, .leaderboard-row { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 11px; border: 1px solid #ffffff17; border-radius: 12px; background: #ffffff08; }
 .achievement-item:not(.is-unlocked) { opacity: .58; }
+.mission-xp-reward { border-color: #85efd244; }
 .achievement-mark { display: grid; flex: 0 0 32px; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #ffe28a1c; color: #ffe28a; font-size: 19px; }
 .achievement-copy, .shop-item-copy { display: grid; flex: 1; min-width: 0; gap: 3px; }
 .achievement-copy strong, .shop-item-copy strong { font-size: 13px; }
 .achievement-copy span, .shop-item-copy span { color: var(--muted); font-size: 11px; }
 .achievement-reward { color: #ffe28a; font-size: 11px; font-weight: 900; white-space: nowrap; }
+.achievement-claim { flex: 0 0 auto; min-width: 0; min-height: 34px; padding: 0 10px; font-size: 11px; }
 .leaderboard-controls { margin-bottom: 10px; }
 .leaderboard-row { display: grid; grid-template-columns: 35px minmax(0, 1fr) auto; }
 .leaderboard-rank { color: #ffe28a; font-weight: 900; }

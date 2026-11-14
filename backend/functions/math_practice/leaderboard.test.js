@@ -227,6 +227,8 @@ test("speed bonuses require perfection and honor both time boundaries", async ()
 		assert.deepEqual(result.body.result.speedBonus, {xp, coins});
 		assert.equal(result.body.result.xpEarned, 16 + xp);
 		assert.equal(result.body.result.coinsEarned, 4 + coins);
+		assert.equal(documents.get(`mathProfiles/${uid}`).xp, 0);
+		assert.equal(documents.get(`mathProfiles/${uid}`).unclaimedMissionXp, 16 + xp);
 	}
 	const uid = "speed-imperfect";
 	addSession(uid, uid, "addition", 1, Date.now());
@@ -239,7 +241,7 @@ test("speed bonuses require perfection and honor both time boundaries", async ()
 	assert.deepEqual(result.body.result.speedBonus, {xp: 0, coins: 0});
 });
 
-test("new achievements award the reduced coin bonuses once", async () => {
+test("mission XP and achievement coins can be claimed once", async () => {
 	const uid = "achievement-rewards";
 	addSession(uid, uid, "addition", 1, Date.now());
 	Object.assign(documents.get(`mathProfiles/${uid}`), {
@@ -254,9 +256,60 @@ test("new achievements award the reduced coin bonuses once", async () => {
 	const result = (await request(uid, body)).body.result;
 	assert.deepEqual(result.newAchievements.map(({coins}) => coins), [3, 5, 8, 10, 15]);
 	assert.equal(result.achievementCoins, 41);
-	assert.equal(result.coinsEarned, 45);
-	assert.equal((await request(uid, body)).body.result.coinsEarned, 45);
-	assert.equal(documents.get(`mathProfiles/${uid}`).coins, 45);
+	assert.equal(result.coinsEarned, 4);
+	assert.equal(result.unclaimedMissionXp, 16);
+	const profile = documents.get(`mathProfiles/${uid}`);
+	assert.equal(profile.coins, 4);
+	assert.equal(profile.xp, 0);
+	assert.equal(profile.unclaimedMissionXp, 16);
+
+	assert.equal((await request(uid, body)).body.result.unclaimedMissionXp, 16);
+	assert.equal(profile.unclaimedMissionXp, 16);
+	assert.equal(profile.coins, 4);
+
+	const xpClaim = await request(uid, {action: "claimMissionXp"});
+	assert.equal(xpClaim.status, 200);
+	assert.equal(xpClaim.body.claimedXp, 16);
+	assert.equal(profile.xp, 16);
+	assert.equal(profile.unclaimedMissionXp, 0);
+	assert.equal((await request(uid, {action: "claimMissionXp"})).body.claimedXp, 0);
+	profile.unclaimedMissionXp = 134;
+	const levelClaim = await request(uid, {action: "claimMissionXp"});
+	assert.equal(levelClaim.body.xp, 150);
+	assert.equal(levelClaim.body.level, 2);
+	assert.equal(profile.level, 2);
+
+	const achievementClaim = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
+	assert.equal(achievementClaim.status, 200);
+	assert.equal(achievementClaim.body.claimedCoins, 3);
+	assert.equal(profile.coins, 7);
+	const repeatedClaim = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
+	assert.equal(repeatedClaim.body.claimedCoins, 0);
+	assert.equal(repeatedClaim.body.alreadyClaimed, true);
+	assert.equal(profile.coins, 7);
+	assert.equal((await request(uid, {action: "profile"})).body.achievements
+		.find(({id}) => id === "first_mission").claimed, true);
+	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "unknown"})).status, 400);
+});
+
+test("previously awarded achievement coins are not claimable again", async () => {
+	const uid = "legacy-reward-claims";
+	documents.set(`mathProfiles/${uid}`, {
+		uid, username: uid, progressionVersion: 2, xp: 450, level: 3, coins: 100,
+		achievementIds: ["first_mission"],
+	});
+
+	const profileResult = await request(uid, {action: "profile"});
+	assert.equal(profileResult.body.profile.unclaimedMissionXp, 0);
+	assert.deepEqual(profileResult.body.profile.claimedAchievementIds, ["first_mission"]);
+	assert.equal(profileResult.body.achievements.find(({id}) => id === "first_mission").claimed, true);
+	const achievementClaim = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
+	assert.equal(achievementClaim.body.claimedCoins, 0);
+	assert.equal(documents.get(`mathProfiles/${uid}`).coins, 100);
+	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "perfect_mission"})).status, 400);
+	const xpClaim = await request(uid, {action: "claimMissionXp"});
+	assert.equal(xpClaim.body.claimedXp, 0);
+	assert.equal(documents.get(`mathProfiles/${uid}`).xp, 450);
 });
 
 test("division levels generate remainder and terminating decimal questions", async () => {

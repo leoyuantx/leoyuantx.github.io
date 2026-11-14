@@ -1,4 +1,4 @@
-import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} from "./account.js";
+import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} from "./account.js?v=4";
 
 (async () => {
   const totalQuestions = 10;
@@ -274,9 +274,14 @@ import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} f
     const earnedNames = missionResult.newAchievements.map((achievement) => achievement.title);
     const rewardDetails = [
       `Difficulty level ${missionResult.missionLevel}`,
-      `+${missionResult.xpEarned} XP`,
+      missionResult.rewardClaimsVersion
+        ? `+${missionResult.xpEarned} XP to claim in Awards`
+        : `+${missionResult.xpEarned} XP`,
       `+${missionResult.coinsEarned} coins`,
     ];
+    if (missionResult.rewardClaimsVersion && missionResult.achievementCoins) {
+      rewardDetails.push(`+${missionResult.achievementCoins} achievement coins to claim`);
+    }
     if (missionResult.speedBonus?.xp || missionResult.speedBonus?.coins) {
       const speedCoins = missionResult.speedBonus.coins ? `, +${missionResult.speedBonus.coins} coin` : "";
       rewardDetails.push(`Speed bonus: +${missionResult.speedBonus.xp} XP${speedCoins}`);

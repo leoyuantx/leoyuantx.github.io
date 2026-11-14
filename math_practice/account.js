@@ -432,6 +432,37 @@ function renderAchievements(container, achievements = []) {
   if (!achievements.length) {
     list.append(makeElement("p", "account-empty", "Achievements will appear here as you complete missions."));
   }
+  const pendingXp = profileData?.profile?.unclaimedMissionXp || 0;
+  const missionReward = makeElement("article", "achievement-item mission-xp-reward");
+  missionReward.append(
+    makeElement("span", "achievement-mark", "✦"),
+    makeElement("span", "achievement-copy"),
+  );
+  missionReward.lastElementChild.append(
+    makeElement("strong", "", "Mission XP"),
+    makeElement("span", "", pendingXp
+      ? `${pendingXp} XP earned from completed missions is ready to claim.`
+      : "Complete missions to earn XP, then claim it here."),
+  );
+  missionReward.append(makeElement("span", "achievement-reward", `+${pendingXp} XP`));
+  const missionClaimButton = makeElement("button", "button button-primary achievement-claim", pendingXp ? "Claim XP" : "No XP to claim");
+  missionClaimButton.type = "button";
+  missionClaimButton.disabled = pendingXp === 0;
+  missionClaimButton.addEventListener("click", async () => {
+    missionClaimButton.disabled = true;
+    missionClaimButton.textContent = "Claiming…";
+    try {
+      await mathApi("claimMissionXp");
+      missionClaimButton.textContent = "Claimed";
+      await refreshProfile();
+    } catch (error) {
+      missionClaimButton.textContent = error.message;
+      missionClaimButton.disabled = false;
+    }
+  });
+  missionReward.append(missionClaimButton);
+  list.append(missionReward);
+
   achievements.forEach((achievement) => {
     const item = makeElement("article", `achievement-item${achievement.unlocked ? " is-unlocked" : ""}`);
     item.append(
@@ -443,6 +474,26 @@ function renderAchievements(container, achievements = []) {
       makeElement("span", "", achievement.description),
     );
     item.append(makeElement("span", "achievement-reward", `+${achievement.coins} ◈`));
+    if (achievement.unlocked) {
+      const claimButton = makeElement("button", "button button-primary achievement-claim", achievement.claimed ? "Claimed" : "Claim");
+      claimButton.type = "button";
+      claimButton.disabled = Boolean(achievement.claimed);
+      if (!achievement.claimed) {
+        claimButton.addEventListener("click", async () => {
+          claimButton.disabled = true;
+          claimButton.textContent = "Claiming…";
+          try {
+            await mathApi("claimAchievement", {achievementId: achievement.id});
+            claimButton.textContent = "Claimed";
+            await refreshProfile();
+          } catch (error) {
+            claimButton.textContent = error.message;
+            claimButton.disabled = false;
+          }
+        });
+      }
+      item.append(claimButton);
+    }
     list.append(item);
   });
   container.append(list);
@@ -616,15 +667,12 @@ function setAuthMode(mode) {
 }
 
 export function openAccountDialog() {
-  const dialog = document.querySelector("#account-dialog");
-  if (auth.currentUser && profileData) {
-    document.querySelector("#auth-view").hidden = true;
-    document.querySelector("#player-view").hidden = false;
-    renderTab(activeTab);
-  } else {
-    document.querySelector("#auth-view").hidden = false;
-    document.querySelector("#player-view").hidden = true;
+  if (auth.currentUser) {
+    document.querySelector("#account-dashboard")?.scrollIntoView({behavior: "smooth", block: "start"});
+    return;
   }
+
+  const dialog = document.querySelector("#account-dialog");
   if (!dialog.open) dialog.showModal();
 }
 
@@ -634,8 +682,27 @@ function installAccountUI() {
   const button = makeElement("button", "account-button", "Sign in");
   button.id = "account-button";
   button.type = "button";
+  button.setAttribute("aria-controls", "account-dashboard");
   button.addEventListener("click", openAccountDialog);
   header.append(button);
+
+  const dashboard = document.createElement("section");
+  dashboard.id = "account-dashboard";
+  dashboard.className = "account-dashboard";
+  dashboard.setAttribute("aria-label", "Pilot account dashboard");
+  dashboard.hidden = true;
+  dashboard.innerHTML = `
+    <div class="account-player-head"><span id="account-avatar" class="account-avatar" aria-label="Pilot avatar">🚀</span><div class="account-player-identity"><div class="account-profile-heading"><p class="eyebrow">PILOT PROFILE</p><div class="account-profile-progress"><div id="account-profile-progress-track" class="account-profile-progress-track" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0"><div id="account-profile-progress-fill" class="account-profile-progress-fill"></div></div><span id="account-profile-progress-label">150 points to next level</span></div></div><h3 id="account-display-name"></h3><div id="account-pilot-titles" class="account-pilot-titles"></div></div><button id="sign-out" class="button button-secondary" type="button">Sign out</button></div>
+    <div id="account-metrics" class="account-metrics"></div>
+    <nav class="account-tabs" aria-label="Pilot account sections">
+      <button class="account-tab-button" type="button" data-account-tab="progression">Progress</button>
+      <button class="account-tab-button" type="button" data-account-tab="achievements">Awards</button>
+      <button class="account-tab-button" type="button" data-account-tab="leaderboard">Leaderboard</button>
+      <button class="account-tab-button" type="button" data-account-tab="friends">Friends</button>
+      <button class="account-tab-button" type="button" data-account-tab="shop">Shop</button>
+    </nav>
+    <div id="account-pane" class="account-pane"></div>`;
+  header.after(dashboard);
 
   const dialog = document.createElement("dialog");
   dialog.id = "account-dialog";
@@ -651,18 +718,6 @@ function installAccountUI() {
         <p id="account-status" class="account-message" role="status" aria-live="polite"></p>
         <button id="auth-submit" class="button button-primary" type="submit">Sign in</button>
       </form>
-    </section>
-    <section id="player-view" hidden>
-      <div class="account-player-head"><span id="account-avatar" class="account-avatar" aria-label="Pilot avatar">🚀</span><div class="account-player-identity"><div class="account-profile-heading"><p class="eyebrow">PILOT PROFILE</p><div class="account-profile-progress"><div id="account-profile-progress-track" class="account-profile-progress-track" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0"><div id="account-profile-progress-fill" class="account-profile-progress-fill"></div></div><span id="account-profile-progress-label">150 points to next level</span></div></div><h3 id="account-display-name"></h3><div id="account-pilot-titles" class="account-pilot-titles"></div></div><button id="sign-out" class="button button-secondary" type="button">Sign out</button></div>
-      <div id="account-metrics" class="account-metrics"></div>
-      <nav class="account-tabs" aria-label="Pilot account sections">
-        <button type="button" data-account-tab="progression">Progress</button>
-        <button type="button" data-account-tab="achievements">Awards</button>
-        <button type="button" data-account-tab="leaderboard">Leaderboard</button>
-        <button type="button" data-account-tab="friends">Friends</button>
-        <button type="button" data-account-tab="shop">Shop</button>
-      </nav>
-      <div id="account-pane" class="account-pane"></div>
     </section>`;
   document.body.append(dialog);
   ["pointerdown", "pointermove", "keydown", "touchstart", "scroll"].forEach((eventName) => {
@@ -674,13 +729,13 @@ function installAccountUI() {
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });
+  dashboard.querySelectorAll("[data-account-tab]").forEach((tabButton) => {
+    tabButton.addEventListener("click", () => renderTab(tabButton.dataset.accountTab));
+  });
+  dashboard.querySelector("#sign-out").addEventListener("click", () => signOut(auth));
   dialog.querySelectorAll("[data-auth-mode]").forEach((modeButton) => {
     modeButton.addEventListener("click", () => setAuthMode(modeButton.dataset.authMode));
   });
-  dialog.querySelectorAll("[data-account-tab]").forEach((tabButton) => {
-    tabButton.addEventListener("click", () => renderTab(tabButton.dataset.accountTab));
-  });
-  dialog.querySelector("#sign-out").addEventListener("click", () => signOut(auth));
   dialog.querySelector("#auth-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -721,16 +776,14 @@ function installAccountUI() {
       renderAccountButton(button);
       document.querySelector("#account-display-name").textContent =
         profileData?.profile?.username || user.displayName || user.email?.split("@")[0] || "Pilot";
-      document.querySelector("#auth-view").hidden = true;
-      document.querySelector("#player-view").hidden = false;
+      dashboard.hidden = false;
     } else {
       profileData = null;
       updatePilotTitle({level: 1, luckyTitle: false});
       renderAccountButton(button);
       applyProfileTheme(null);
       resetChallengeEntryButtons();
-      document.querySelector("#auth-view").hidden = false;
-      document.querySelector("#player-view").hidden = true;
+      dashboard.hidden = true;
     }
     resolveAuthReady(user);
     window.dispatchEvent(new CustomEvent("math-auth-changed", {detail: {user}}));

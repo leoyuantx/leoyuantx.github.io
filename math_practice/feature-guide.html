@@ -129,6 +129,9 @@
     .card h3 { margin-top: 0; color: var(--mint); }
     .card p:last-child { margin-bottom: 0; }
     .title-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 22px; }
+    .level-xp-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 10px; margin: 9px 0 0; padding: 0; list-style: none; }
+    .level-xp-list li { padding: 5px 7px; border: 1px solid #ffffff12; border-radius: 8px; background: #ffffff08; font-size: 12px; line-height: 1.5; }
+    .level-xp-list li + li { margin-top: 0; }
     .note { padding: 13px 15px; border: 1px solid #85efd226; border-left: 3px solid var(--mint); border-radius: 5px 12px 12px 5px; background: #85efd20c; }
     .table-wrap { overflow-x: auto; }
     .rewards-table { width: 100%; min-width: 550px; border-collapse: collapse; font-size: 13px; }
@@ -144,6 +147,7 @@
       .feature-nav a { padding: 7px 9px; font-size: 11px; }
       section { scroll-margin-top: 118px; border-radius: 18px; }
       .grid, .title-list { grid-template-columns: 1fr; }
+      .level-xp-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -252,13 +256,122 @@
       <p>Every mission contains <strong>10 questions</strong>. Enter a non-negative whole-number answer and submit it to continue. Division Level 2 also asks for a whole-number remainder, and Level 3 accepts decimal answers with up to two decimal places. Hints are available, and a new-mission button starts another challenge at the automatically selected difficulty.</p>
       <p>At the end, review each question, your submitted and correct answers, and how long each answer took. The result also shows accuracy, speed, a 0–100 rating, and zero to five stars.</p>
       <h3>How stars are calculated</h3>
-      <p>Accuracy contributes up to 80 rating points; average answer time contributes up to 20. The total maps to stars: 0–29 points = 0 stars, 30–44 = 1, 45–59 = 2, 60–74 = 3, 75–89 = 4, and 90–100 = 5.</p>
+      <p>The game calculates a rating out of 100 using all 10 answers:</p>
+      <ul>
+        <li><strong>Accuracy points:</strong> (correct answers ÷ 10) × 80.</li>
+        <li><strong>Speed points:</strong> max(0, 1 − average answer time ÷ 60 seconds) × 20. The average is the total time for all 10 answers divided by 10, so speed points decrease linearly from 20 to 0 as the average reaches 60 seconds; slower averages earn 0.</li>
+        <li><strong>Rating:</strong> accuracy points + speed points. The displayed rating is rounded to the nearest whole number, but stars use the unrounded rating.</li>
+      </ul>
+      <p>Stars are awarded by rating: below 30 = 0 stars, 30 to below 45 = 1, 45 to below 60 = 2, 60 to below 75 = 3, 75 to below 90 = 4, and 90 or higher = 5.</p>
     </section>
 
     <section id="pilot-progression">
       <h2>5. Pilot progress and levels</h2>
-      <p>Mission XP depends on accuracy and challenge difficulty, with a possible speed bonus for perfect missions. Pilot levels track overall progress and unlock title milestones; they do not set subject difficulty.</p>
-      <p>The next pilot level requires 150 more progress points per level number: Level 2 takes 150 total points, Level 3 takes 450 total, Level 4 takes 900 total, and Level 5 takes 1,500 total. In general, going from pilot Level <em>N</em> to <em>N + 1</em> costs <strong>150 × N additional points</strong>.</p>
+      <p>Mission XP depends on accuracy and challenge difficulty, with a possible speed bonus for perfect missions. It stays unclaimed until collected from Awards, and only claimed XP counts toward pilot levels. Pilot levels track overall progress and unlock title milestones; they do not set subject difficulty.</p>
+      <p>Reaching Level <em>N</em> takes <strong>75 × N × (N − 1) total XP</strong>. Going from Level <em>N</em> to Level <em>N + 1</em> costs <strong>150 × N additional XP</strong> (for example, Level 4 to Level 5 costs 600 XP). Here are the cumulative totals through Level 100:</p>
+      <h3>Cumulative XP required by level</h3>
+      <ul class="level-xp-list">
+        <li>Level 1: 0 XP</li>
+        <li>Level 2: 150 XP</li>
+        <li>Level 3: 450 XP</li>
+        <li>Level 4: 900 XP</li>
+        <li>Level 5: 1,500 XP</li>
+        <li>Level 6: 2,250 XP</li>
+        <li>Level 7: 3,150 XP</li>
+        <li>Level 8: 4,200 XP</li>
+        <li>Level 9: 5,400 XP</li>
+        <li>Level 10: 6,750 XP</li>
+        <li>Level 11: 8,250 XP</li>
+        <li>Level 12: 9,900 XP</li>
+        <li>Level 13: 11,700 XP</li>
+        <li>Level 14: 13,650 XP</li>
+        <li>Level 15: 15,750 XP</li>
+        <li>Level 16: 18,000 XP</li>
+        <li>Level 17: 20,400 XP</li>
+        <li>Level 18: 22,950 XP</li>
+        <li>Level 19: 25,650 XP</li>
+        <li>Level 20: 28,500 XP</li>
+        <li>Level 21: 31,500 XP</li>
+        <li>Level 22: 34,650 XP</li>
+        <li>Level 23: 37,950 XP</li>
+        <li>Level 24: 41,400 XP</li>
+        <li>Level 25: 45,000 XP</li>
+        <li>Level 26: 48,750 XP</li>
+        <li>Level 27: 52,650 XP</li>
+        <li>Level 28: 56,700 XP</li>
+        <li>Level 29: 60,900 XP</li>
+        <li>Level 30: 65,250 XP</li>
+        <li>Level 31: 69,750 XP</li>
+        <li>Level 32: 74,400 XP</li>
+        <li>Level 33: 79,200 XP</li>
+        <li>Level 34: 84,150 XP</li>
+        <li>Level 35: 89,250 XP</li>
+        <li>Level 36: 94,500 XP</li>
+        <li>Level 37: 99,900 XP</li>
+        <li>Level 38: 105,450 XP</li>
+        <li>Level 39: 111,150 XP</li>
+        <li>Level 40: 117,000 XP</li>
+        <li>Level 41: 123,000 XP</li>
+        <li>Level 42: 129,150 XP</li>
+        <li>Level 43: 135,450 XP</li>
+        <li>Level 44: 141,900 XP</li>
+        <li>Level 45: 148,500 XP</li>
+        <li>Level 46: 155,250 XP</li>
+        <li>Level 47: 162,150 XP</li>
+        <li>Level 48: 169,200 XP</li>
+        <li>Level 49: 176,400 XP</li>
+        <li>Level 50: 183,750 XP</li>
+        <li>Level 51: 191,250 XP</li>
+        <li>Level 52: 198,900 XP</li>
+        <li>Level 53: 206,700 XP</li>
+        <li>Level 54: 214,650 XP</li>
+        <li>Level 55: 222,750 XP</li>
+        <li>Level 56: 231,000 XP</li>
+        <li>Level 57: 239,400 XP</li>
+        <li>Level 58: 247,950 XP</li>
+        <li>Level 59: 256,650 XP</li>
+        <li>Level 60: 265,500 XP</li>
+        <li>Level 61: 274,500 XP</li>
+        <li>Level 62: 283,650 XP</li>
+        <li>Level 63: 292,950 XP</li>
+        <li>Level 64: 302,400 XP</li>
+        <li>Level 65: 312,000 XP</li>
+        <li>Level 66: 321,750 XP</li>
+        <li>Level 67: 331,650 XP</li>
+        <li>Level 68: 341,700 XP</li>
+        <li>Level 69: 351,900 XP</li>
+        <li>Level 70: 362,250 XP</li>
+        <li>Level 71: 372,750 XP</li>
+        <li>Level 72: 383,400 XP</li>
+        <li>Level 73: 394,200 XP</li>
+        <li>Level 74: 405,150 XP</li>
+        <li>Level 75: 416,250 XP</li>
+        <li>Level 76: 427,500 XP</li>
+        <li>Level 77: 438,900 XP</li>
+        <li>Level 78: 450,450 XP</li>
+        <li>Level 79: 462,150 XP</li>
+        <li>Level 80: 474,000 XP</li>
+        <li>Level 81: 486,000 XP</li>
+        <li>Level 82: 498,150 XP</li>
+        <li>Level 83: 510,450 XP</li>
+        <li>Level 84: 522,900 XP</li>
+        <li>Level 85: 535,500 XP</li>
+        <li>Level 86: 548,250 XP</li>
+        <li>Level 87: 561,150 XP</li>
+        <li>Level 88: 574,200 XP</li>
+        <li>Level 89: 587,400 XP</li>
+        <li>Level 90: 600,750 XP</li>
+        <li>Level 91: 614,250 XP</li>
+        <li>Level 92: 627,900 XP</li>
+        <li>Level 93: 641,700 XP</li>
+        <li>Level 94: 655,650 XP</li>
+        <li>Level 95: 669,750 XP</li>
+        <li>Level 96: 684,000 XP</li>
+        <li>Level 97: 698,400 XP</li>
+        <li>Level 98: 712,950 XP</li>
+        <li>Level 99: 727,650 XP</li>
+        <li>Level 100: 742,500 XP</li>
+      </ul>
       <p>Your profile progress bar shows progress through the current pilot level and how many points remain.</p>
     </section>
 
@@ -286,7 +399,7 @@
 
     <section id="coins">
       <h2>7. Mission rewards</h2>
-      <p>Each cell shows <strong>XP / coins</strong> before speed and achievement bonuses. Challenge levels available depend on the subject.</p>
+      <p>Each cell shows base <strong>XP / mission coins</strong> before speed bonuses. Mission XP, including speed XP, waits in Awards until claimed; mission coins are added automatically. Challenge levels available depend on the subject.</p>
       <div class="table-wrap">
         <table class="rewards-table">
           <thead><tr><th scope="col">Correct</th><th scope="col">Level 1</th><th scope="col">Level 2</th><th scope="col">Level 3</th><th scope="col">Level 4</th><th scope="col">Level 5</th></tr></thead>
@@ -299,25 +412,25 @@
           </tbody>
         </table>
       </div>
-      <p>For a perfect mission, the average answer time can add a speed bonus:</p>
+      <p>For a perfect mission, the average answer time can add a speed bonus. Any XP bonus also waits in Awards to be claimed; bonus coins are added automatically:</p>
       <ul>
         <li>Up to 5 seconds: +2 XP and +1 coin.</li>
         <li>Over 5 and up to 15 seconds: +1 XP.</li>
         <li>Over 15 seconds: no speed bonus.</li>
       </ul>
-      <p>Achievement coins are added separately. Missions no longer award random coin drops; previously earned XP, coins, and achievements are unchanged.</p>
+      <p>Achievement coins are claimed individually from Awards. Missions no longer award random coin drops; previously earned XP, coins, and achievements are unchanged.</p>
     </section>
 
     <section id="achievements">
       <h2>8. Achievements</h2>
       <ul>
-        <li><strong>First Mission:</strong> complete your first mission; 3 coins.</li>
-        <li><strong>Perfect Mission:</strong> answer all 10 correctly; 5 coins.</li>
-        <li><strong>Three-Day Streak:</strong> practice on three consecutive days; 8 coins.</li>
-        <li><strong>Mission Regular:</strong> complete 10 missions; 10 coins.</li>
-        <li><strong>Century Club:</strong> answer 100 questions correctly; 15 coins.</li>
+        <li><strong>First Mission:</strong> complete your first mission; claim 3 coins.</li>
+        <li><strong>Perfect Mission:</strong> answer all 10 correctly; claim 5 coins.</li>
+        <li><strong>Three-Day Streak:</strong> practice on three consecutive days; claim 8 coins.</li>
+        <li><strong>Mission Regular:</strong> complete 10 missions; claim 10 coins.</li>
+        <li><strong>Century Club:</strong> answer 100 questions correctly; claim 15 coins.</li>
       </ul>
-      <p>Unlocked awards and their coin rewards appear in the profile's Awards tab.</p>
+      <p>Unlocked awards have a one-time Claim button in the Awards tab. The same panel collects unclaimed mission XP. Awards unlocked before claimable rewards were introduced are treated as already claimed because their coins were previously granted.</p>
     </section>
 
     <section id="streaks">

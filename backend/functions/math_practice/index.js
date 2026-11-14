@@ -16,6 +16,7 @@ const sessions = db.collection("mathSessions");
 const challengeRecords = db.collection("mathChallengeRecords");
 const totalQuestions = 10;
 const progressionVersion = 2;
+const rewardClaimsVersion = 1;
 const luckyRollIntervalMs = 60 * 1000;
 const dailyChallengeAttemptLimit = 2;
 
@@ -103,7 +104,7 @@ async function getOrCreateProfile(decodedToken) {
 	const existing = await profileRef.get();
 	if (existing.exists) {
 		let data = existing.data();
-		if (data.progressionVersion !== progressionVersion) {
+		if (data.progressionVersion !== progressionVersion || data.rewardClaimsVersion !== rewardClaimsVersion) {
 			await db.runTransaction(async (transaction) => {
 				const profileSnapshot = await transaction.get(profileRef);
 				if (!profileSnapshot.exists) {
@@ -111,23 +112,27 @@ async function getOrCreateProfile(decodedToken) {
 				}
 
 				const current = profileSnapshot.data();
-				if (current.progressionVersion === progressionVersion) {
-					data = current;
-					return;
+				const updates = {};
+				if (current.progressionVersion !== progressionVersion) {
+					const previousXp = current.xp || 0;
+					const previousLevel = Math.max(current.level || 1, Math.floor(previousXp / 150) + 1);
+					const progressWithinLevel = Math.max(0, Math.min(149, previousXp - (previousLevel - 1) * 150));
+					// Keep existing pilots' level and in-level progress when changing the XP curve.
+					updates.xp = getXpForLevel(previousLevel) + progressWithinLevel;
+					updates.level = previousLevel;
+					updates.progressionVersion = progressionVersion;
 				}
-
-				const previousXp = current.xp || 0;
-				const previousLevel = Math.max(current.level || 1, Math.floor(previousXp / 150) + 1);
-				const progressWithinLevel = Math.max(0, Math.min(149, previousXp - (previousLevel - 1) * 150));
-				// Keep existing pilots' level and in-level progress when changing the XP curve.
-				const xp = getXpForLevel(previousLevel) + progressWithinLevel;
-				data = {...current, xp, level: previousLevel, progressionVersion};
-				transaction.update(profileRef, {
-					xp,
-					level: previousLevel,
-					progressionVersion,
-					updatedAt: FieldValue.serverTimestamp(),
-				});
+				if (current.rewardClaimsVersion !== rewardClaimsVersion) {
+					updates.rewardClaimsVersion = rewardClaimsVersion;
+					updates.unclaimedMissionXp = 0;
+					updates.claimedAchievementIds = current.achievementIds || [];
+				}
+				if (Object.keys(updates).length) {
+					data = {...current, ...updates};
+					transaction.update(profileRef, {...updates, updatedAt: FieldValue.serverTimestamp()});
+				} else {
+					data = current;
+				}
 			});
 		}
 		return {ref: profileRef, data};
@@ -171,6 +176,9 @@ async function getOrCreateProfile(decodedToken) {
 			longestStreak: 0,
 			lastStudyDate: null,
 			achievementIds: [],
+			claimedAchievementIds: [],
+			unclaimedMissionXp: 0,
+			rewardClaimsVersion,
 			friendUids: [],
 			inventory: {},
 			equippedTheme: null,
@@ -364,6 +372,8 @@ function getPublicProfile(profile) {
 		longestStreak: profile.longestStreak,
 		lastStudyDate: profile.lastStudyDate,
 		achievementIds: profile.achievementIds,
+		claimedAchievementIds: profile.claimedAchievementIds || [],
+		unclaimedMissionXp: profile.unclaimedMissionXp || 0,
 		friendUids: profile.friendUids,
 		inventory: profile.inventory,
 		equippedTheme: profile.equippedTheme || null,
@@ -567,9 +577,10 @@ async function completeMission(decodedToken, body, response) {
 		const newAchievements = getNewAchievements(profile, correct, currentStreak);
 		const rewards = getMissionRewards(correct, session.level, averageAnswerTime);
 		const xpEarned = rewards.baseXp + rewards.speedBonus.xp;
+		const unclaimedMissionXp = (profile.unclaimedMissionXp || 0) + xpEarned;
 		const achievementCoins = newAchievements.reduce((total, achievement) => total + achievement.coins, 0);
-		const coinsEarned = rewards.baseCoins + rewards.speedBonus.coins + achievementCoins;
-		const xp = (profile.xp || 0) + xpEarned;
+		const coinsEarned = rewards.baseCoins + rewards.speedBonus.coins;
+		const xp = profile.xp || 0;
 		const previousChallenge = profile.challengeProgress?.[session.operation] || {};
 		const isLatestCompletedChallenge = session.startedAtMs >= (previousChallenge.lastCompletedAtMs || 0);
 		const isLatestStartedChallenge = session.startedAtMs >= (previousChallenge.lastStartedAtMs || 0);
@@ -594,6 +605,8 @@ async function completeMission(decodedToken, body, response) {
 			elapsedMs,
 			stars,
 			xpEarned,
+			unclaimedMissionXp,
+			rewardClaimsVersion,
 			coinsEarned,
 			baseXp: rewards.baseXp,
 			baseCoins: rewards.baseCoins,
@@ -603,7 +616,7 @@ async function completeMission(decodedToken, body, response) {
 			variableReward: {type: "coins", amount: 0, label: "No random drop"},
 			newAchievements,
 			currentStreak,
-			playerLevel: getLevel(xp),
+			playerLevel: profile.level || getLevel(xp),
 			xp,
 			answers: session.questions.map((question, index) => ({
 				number: index + 1,
@@ -629,8 +642,7 @@ async function completeMission(decodedToken, body, response) {
 			});
 		}
 		transaction.update(profileRef, {
-			xp,
-			level: getLevel(xp),
+			unclaimedMissionXp,
 			[`challengeProgress.${session.operation}`]: challengeProgress,
 			coins: (profile.coins || 0) + coinsEarned,
 			totalSessions,
@@ -649,6 +661,79 @@ async function completeMission(decodedToken, body, response) {
 	});
 
 	response.status(200).json({success: true, result: missionResult});
+}
+
+async function claimMissionXp(decodedToken, response) {
+	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
+	let result;
+
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+
+		const profile = profileSnapshot.data();
+		const claimedXp = profile.unclaimedMissionXp || 0;
+		if (!Number.isSafeInteger(claimedXp) || claimedXp < 0) {
+			throw new Error("Unclaimed mission XP is invalid.");
+		}
+		const xp = (profile.xp || 0) + claimedXp;
+		const level = getLevel(xp);
+		if (claimedXp > 0) {
+			transaction.update(profileRef, {
+				xp,
+				level,
+				unclaimedMissionXp: 0,
+				updatedAt: FieldValue.serverTimestamp(),
+			});
+		}
+		result = {claimedXp, unclaimedMissionXp: 0, xp, level};
+	});
+
+	response.status(200).json({success: true, ...result});
+}
+
+async function claimAchievement(decodedToken, body, response) {
+	const achievement = achievementCatalog.find((entry) => entry.id === body.achievementId);
+	if (!achievement) {
+		sendError(response, 400, "Choose a valid achievement.");
+		return;
+	}
+
+	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
+	let result;
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+
+		const profile = profileSnapshot.data();
+		const earnedIds = new Set(profile.achievementIds || []);
+		if (!earnedIds.has(achievement.id)) {
+			throw Object.assign(new Error("This achievement has not been unlocked yet."), {status: 400});
+		}
+		const claimedIds = new Set(profile.claimedAchievementIds || []);
+		const alreadyClaimed = claimedIds.has(achievement.id);
+		const claimedCoins = alreadyClaimed ? 0 : achievement.coins;
+		if (!alreadyClaimed) {
+			claimedIds.add(achievement.id);
+			transaction.update(profileRef, {
+				coins: (profile.coins || 0) + claimedCoins,
+				claimedAchievementIds: [...claimedIds],
+				updatedAt: FieldValue.serverTimestamp(),
+			});
+		}
+		result = {
+			achievementId: achievement.id,
+			claimedCoins,
+			coins: (profile.coins || 0) + claimedCoins,
+			alreadyClaimed,
+		};
+	});
+
+	response.status(200).json({success: true, ...result});
 }
 
 async function rollLuckyTitle(decodedToken, response) {
@@ -885,6 +970,7 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				achievements: achievementCatalog.map((achievement) => ({
 					...achievement,
 					unlocked: (data.achievementIds || []).includes(achievement.id),
+					claimed: (data.claimedAchievementIds || []).includes(achievement.id),
 				})),
 				shop: shopCatalog,
 			});
@@ -905,6 +991,7 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				achievements: action === "achievements" ? achievementCatalog.map((achievement) => ({
 					...achievement,
 					unlocked: (data.achievementIds || []).includes(achievement.id),
+					claimed: (data.claimedAchievementIds || []).includes(achievement.id),
 				})) : undefined,
 			});
 			return;
@@ -932,6 +1019,14 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 		}
 		if (action === "completeMission") {
 			await completeMission(decodedToken, body, response);
+			return;
+		}
+		if (action === "claimMissionXp") {
+			await claimMissionXp(decodedToken, response);
+			return;
+		}
+		if (action === "claimAchievement") {
+			await claimAchievement(decodedToken, body, response);
 			return;
 		}
 		if (action === "rollLuckyTitle") {
