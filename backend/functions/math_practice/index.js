@@ -49,12 +49,30 @@ const levels = {
 };
 
 const achievementCatalog = [
-	{id: "first_mission", title: "First Mission", description: "Complete your first mission.", coins: 3},
-	{id: "perfect_mission", title: "Perfect Mission", description: "Answer all 10 questions correctly.", coins: 5},
+	{id: "first_mission", title: "Daily Bonus", description: "Unlocked by completing your first mission. Collect again 24 hours after each bonus.", coins: 3},
+	{id: "perfect_mission", title: "Perfect Mission", description: "Answer all 10 questions correctly in a single mission to unlock 5 coins.", coins: 5},
 	{id: "three_day_streak", title: "Three-Day Streak", description: "Visit Math Galaxy on three consecutive UTC days.", coins: 8},
-	{id: "ten_missions", title: "Mission Regular", description: "Complete 10 missions.", coins: 10},
-	{id: "hundred_correct", title: "Century Club", description: "Answer 100 questions correctly.", coins: 15},
+	{id: "ten_day_streak", title: "10-Day Streak", description: "Visit Math Galaxy on ten consecutive UTC days.", coins: 32},
+	{id: "thirty_day_streak", title: "30-Day Streak", description: "Visit Math Galaxy on thirty consecutive UTC days.", coins: 128},
+	{id: "one_eighty_day_streak", title: "180-Day Streak", description: "Visit Math Galaxy on 180 consecutive UTC days.", coins: 512},
+	{id: "three_sixty_day_streak", title: "360-Day Streak", description: "Visit Math Galaxy on 360 consecutive UTC days.", coins: 1024},
+	{id: "ten_missions", title: "Mission Regular", description: "Complete 10 missions.", coins: 20},
+	{id: "thirty_missions", title: "Mission Veteran", description: "Complete 30 missions.", coins: 60},
+	{id: "one_eighty_missions", title: "Mission Master", description: "Complete 180 missions.", coins: 320},
+	{id: "three_sixty_missions", title: "Mission Legend", description: "Complete 360 missions.", coins: 640},
+	{id: "ten_correct", title: "Answer Ace", description: "Answer 10 questions correctly.", coins: 5},
+	{id: "thirty_correct", title: "Problem Solver", description: "Answer 30 questions correctly.", coins: 20},
+	{id: "one_eighty_correct", title: "Math Whiz", description: "Answer 180 questions correctly.", coins: 80},
+	{id: "three_sixty_correct", title: "Math Master", description: "Answer 360 questions correctly.", coins: 320},
 ];
+
+const streakAchievementDays = {
+	three_day_streak: 3,
+	ten_day_streak: 10,
+	thirty_day_streak: 30,
+	one_eighty_day_streak: 180,
+	three_sixty_day_streak: 360,
+};
 
 const shopCatalog = [
 	{id: "comet_trail", name: "Comet Trail", type: "profile_theme", price: 50},
@@ -363,15 +381,32 @@ function getNewAchievements(profile, correct, newStreak) {
 	const earned = new Set(profile.achievementIds || []);
 	const sessionsCompleted = (profile.totalSessions || 0) + 1;
 	const totalCorrect = (profile.totalCorrect || 0) + correct;
-	const conditions = {
+	const conditions = Object.fromEntries(
+		Object.entries(streakAchievementDays).map(([id, days]) => [id, newStreak >= days]),
+	);
+	Object.assign(conditions, {
 		first_mission: sessionsCompleted >= 1,
 		perfect_mission: correct === totalQuestions,
-		three_day_streak: newStreak >= 3,
 		ten_missions: sessionsCompleted >= 10,
-		hundred_correct: totalCorrect >= 100,
-	};
+		thirty_missions: sessionsCompleted >= 30,
+		one_eighty_missions: sessionsCompleted >= 180,
+		three_sixty_missions: sessionsCompleted >= 360,
+		ten_correct: totalCorrect >= 10,
+		thirty_correct: totalCorrect >= 30,
+		one_eighty_correct: totalCorrect >= 180,
+		three_sixty_correct: totalCorrect >= 360,
+	});
 	return achievementCatalog.filter((achievement) =>
 		conditions[achievement.id] && !earned.has(achievement.id)
+	);
+}
+
+function getNewStreakAchievements(profile, currentStreak) {
+	const earned = new Set(profile.achievementIds || []);
+	return achievementCatalog.filter((achievement) =>
+		Number.isInteger(streakAchievementDays[achievement.id]) &&
+		currentStreak >= streakAchievementDays[achievement.id] &&
+		!earned.has(achievement.id)
 	);
 }
 
@@ -699,15 +734,15 @@ async function recordVisit(decodedToken, response) {
 		const alreadyRecorded = profile.lastStudyDate === today;
 		const {currentStreak, longestStreak} = getStreakForDate(profile, today);
 		const achievementIds = new Set(profile.achievementIds || []);
-		const unlockedThreeDayStreak = currentStreak >= 3 && !achievementIds.has("three_day_streak");
-		if (unlockedThreeDayStreak) achievementIds.add("three_day_streak");
+		const newAchievements = getNewStreakAchievements(profile, currentStreak);
+		newAchievements.forEach(({id}) => achievementIds.add(id));
 
-		if (!alreadyRecorded || unlockedThreeDayStreak) {
+		if (!alreadyRecorded || newAchievements.length) {
 			transaction.update(profileRef, {
 				currentStreak,
 				longestStreak,
 				lastStudyDate: today,
-				...(unlockedThreeDayStreak ? {achievementIds: [...achievementIds]} : {}),
+				...(newAchievements.length ? {achievementIds: [...achievementIds]} : {}),
 				updatedAt: FieldValue.serverTimestamp(),
 			});
 		}
@@ -717,9 +752,7 @@ async function recordVisit(decodedToken, response) {
 			longestStreak,
 			lastStudyDate: today,
 			alreadyRecorded,
-			newAchievements: unlockedThreeDayStreak
-				? achievementCatalog.filter(({id}) => id === "three_day_streak")
-				: [],
+			newAchievements,
 		};
 	});
 
@@ -783,7 +816,7 @@ async function claimAchievement(decodedToken, body, response) {
 		const firstMission = achievement.id === "first_mission";
 		if (firstMission && Number.isFinite(profile.firstMissionClaimedAt) &&
 				claimedAt < profile.firstMissionClaimedAt + firstMissionCooldownMs) {
-			throw Object.assign(new Error("First Mission will be ready again after 24 hours."), {status: 429});
+			throw Object.assign(new Error("Daily Bonus will be ready again after 24 hours."), {status: 429});
 		}
 		const claimedCoins = firstMission || !alreadyClaimed ? achievement.coins : 0;
 		if (!alreadyClaimed || firstMission) {

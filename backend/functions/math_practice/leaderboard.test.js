@@ -196,8 +196,12 @@ test("mission rewards match the accuracy and difficulty matrix", async () => {
 		for (let level = 1; level <= 5; level += 1) {
 			const uid = `reward-${correct}-${level}`;
 			addSession(uid, uid, "addition", level, Date.now());
-			documents.get(`mathProfiles/${uid}`).achievementIds =
-				["first_mission", "perfect_mission", "three_day_streak", "ten_missions", "hundred_correct"];
+			documents.get(`mathProfiles/${uid}`).achievementIds = [
+				"first_mission", "perfect_mission", "three_day_streak", "ten_day_streak",
+				"thirty_day_streak", "one_eighty_day_streak", "three_sixty_day_streak",
+				"ten_missions", "thirty_missions", "one_eighty_missions", "three_sixty_missions",
+				"ten_correct", "thirty_correct", "one_eighty_correct", "three_sixty_correct",
+			];
 			const response = await request(uid, {
 				action: "completeMission", sessionId: uid,
 				answers: Array.from({length: 10}, (_, index) => index < correct ? index + 1 : 0),
@@ -254,8 +258,8 @@ test("mission XP and achievement coins can be claimed once", async () => {
 		answerTimes: Array(10).fill(16000),
 	};
 	const result = (await request(uid, body)).body.result;
-	assert.deepEqual(result.newAchievements.map(({coins}) => coins), [3, 5, 8, 10, 15]);
-	assert.equal(result.achievementCoins, 41);
+	assert.deepEqual(result.newAchievements.map(({coins}) => coins), [3, 5, 8, 20, 5, 20]);
+	assert.equal(result.achievementCoins, 61);
 	assert.equal(result.coinsEarned, 4);
 	assert.equal(result.unclaimedMissionXp, 16);
 	const profile = documents.get(`mathProfiles/${uid}`);
@@ -294,6 +298,65 @@ test("mission XP and achievement coins can be claimed once", async () => {
 	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "unknown"})).status, 400);
 });
 
+test("mission-count and correct-answer milestones unlock their configured rewards", async () => {
+	const missionMilestones = [
+		{threshold: 30, id: "thirty_missions", coins: 60},
+		{threshold: 180, id: "one_eighty_missions", coins: 320},
+		{threshold: 360, id: "three_sixty_missions", coins: 640},
+	];
+	const correctMilestones = [
+		{threshold: 10, id: "ten_correct", coins: 5},
+		{threshold: 30, id: "thirty_correct", coins: 20},
+		{threshold: 180, id: "one_eighty_correct", coins: 80},
+		{threshold: 360, id: "three_sixty_correct", coins: 320},
+	];
+	const baselineAchievements = [
+		"first_mission", "perfect_mission", "three_day_streak", "ten_day_streak",
+		"thirty_day_streak", "one_eighty_day_streak", "three_sixty_day_streak",
+	];
+	const cases = [
+		...missionMilestones.map((award, index) => ({
+			...award,
+			type: "missions",
+			priorIds: ["ten_missions", ...missionMilestones.slice(0, index).map(({id}) => id)],
+		})),
+		...correctMilestones.map((award, index) => ({
+			...award,
+			type: "correct",
+			priorIds: correctMilestones.slice(0, index).map(({id}) => id),
+		})),
+	];
+
+	for (const award of cases) {
+		const uid = `progress-award-${award.id}`;
+		addSession(uid, uid, "addition", 1, Date.now() - 1);
+		const profile = documents.get(`mathProfiles/${uid}`);
+		Object.assign(profile, {
+			coins: 0,
+			totalSessions: award.type === "missions" ? award.threshold - 1 : 0,
+			totalCorrect: award.type === "correct" ? award.threshold - 10 : 0,
+			currentStreak: 1,
+			longestStreak: 1,
+			achievementIds: [...baselineAchievements, ...award.priorIds],
+			claimedAchievementIds: [],
+		});
+		const correctThisMission = award.type === "correct" ? 10 : 0;
+		const completion = await request(uid, {
+			action: "completeMission",
+			sessionId: uid,
+			answers: Array.from({length: 10}, (_, index) =>
+				index < correctThisMission ? index + 1 : 0
+			),
+			answerTimes: Array(10).fill(16000),
+		});
+
+		assert.deepEqual(completion.body.result.newAchievements.map(({id}) => id), [award.id]);
+		const claim = await request(uid, {action: "claimAchievement", achievementId: award.id});
+		assert.equal(claim.body.claimedCoins, award.coins);
+		assert.equal(profile.coins, completion.body.result.coinsEarned + award.coins);
+	}
+});
+
 test("signed-in visits advance streaks once per UTC day without a mission", async () => {
 	const uid = "daily-page-visit";
 	const today = new Date().toISOString().slice(0, 10);
@@ -322,7 +385,45 @@ test("signed-in visits advance streaks once per UTC day without a mission", asyn
 	assert.equal(profile.totalSessions, undefined);
 });
 
-test("First Mission reward can be collected again after 24 hours", async () => {
+test("streak visits unlock and award the 10, 30, 180, and 360 day rewards", async () => {
+	const milestones = [
+		{days: 3, id: "three_day_streak", coins: 8},
+		{days: 10, id: "ten_day_streak", coins: 32},
+		{days: 30, id: "thirty_day_streak", coins: 128},
+		{days: 180, id: "one_eighty_day_streak", coins: 512},
+		{days: 360, id: "three_sixty_day_streak", coins: 1024},
+	];
+	const today = new Date().toISOString().slice(0, 10);
+	const yesterdayDate = new Date(`${today}T00:00:00.000Z`);
+	yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+	const yesterday = yesterdayDate.toISOString().slice(0, 10);
+
+	for (const [index, milestone] of milestones.entries()) {
+		const uid = `streak-reward-${milestone.days}`;
+		const profile = {
+			uid, username: uid, progressionVersion: 2, rewardClaimsVersion: 1,
+			xp: 0, level: 1, coins: 0, currentStreak: milestone.days - 1,
+			longestStreak: milestone.days - 1, lastStudyDate: yesterday,
+			achievementIds: milestones.slice(0, index).map(({id}) => id),
+			claimedAchievementIds: [],
+		};
+		documents.set(`mathProfiles/${uid}`, profile);
+
+		const visit = await request(uid, {action: "recordVisit"});
+		assert.equal(visit.body.currentStreak, milestone.days);
+		assert.deepEqual(visit.body.newAchievements.map(({id, coins}) => [id, coins]), [
+			[milestone.id, milestone.coins],
+		]);
+
+		const claim = await request(uid, {action: "claimAchievement", achievementId: milestone.id});
+		assert.equal(claim.body.claimedCoins, milestone.coins);
+		assert.equal(profile.coins, milestone.coins);
+		assert.equal((await request(uid, {action: "claimAchievement", achievementId: milestone.id}))
+			.body.claimedCoins, 0);
+	}
+});
+
+test("Daily Bonus can be collected again after 24 hours", async () => {
 	const uid = "daily-first-mission";
 	const profile = {
 		uid, username: uid, progressionVersion: 2, rewardClaimsVersion: 1,
@@ -336,6 +437,7 @@ test("First Mission reward can be collected again after 24 hours", async () => {
 		.find(({id}) => id === "first_mission");
 	assert.equal(available.unlocked, true);
 	assert.equal(available.claimed, false);
+	assert.equal(available.title, "Daily Bonus");
 
 	const result = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
 	assert.equal(result.status, 200);

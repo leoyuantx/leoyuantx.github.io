@@ -662,6 +662,17 @@ body[data-profile-theme="nebula_theme"] .mouse-trail-diamond[data-tone="2"] { ba
   font-size: 12px;
   font-weight: 800;
 }
+.feature-guide-link {
+  position: relative;
+  z-index: 1;
+  display: table;
+  margin: 15px auto 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  text-underline-offset: 4px;
+}
+.feature-guide-link:hover { color: #ffe28a; }
 
 .section-heading {
   display: flex;

@@ -433,6 +433,20 @@ function renderAchievements(container, achievements = []) {
     clearInterval(firstMissionTimer);
     firstMissionTimer = null;
   }
+  const streakAchievementIds = [
+    "three_day_streak",
+    "ten_day_streak",
+    "thirty_day_streak",
+    "one_eighty_day_streak",
+    "three_sixty_day_streak",
+  ];
+  const visibleAchievements = achievements.filter((achievement) => {
+    const streakIndex = streakAchievementIds.indexOf(achievement.id);
+    if (streakIndex < 1 || achievement.unlocked) return true;
+    return achievements.some((previousAchievement) =>
+      previousAchievement.id === streakAchievementIds[streakIndex - 1] && previousAchievement.unlocked
+    );
+  });
   const list = makeElement("div", "achievement-list");
   if (!achievements.length) {
     list.append(makeElement("p", "account-empty", "Achievements will appear here as you complete missions."));
@@ -468,7 +482,7 @@ function renderAchievements(container, achievements = []) {
   missionReward.append(missionClaimButton);
   list.append(missionReward);
 
-  achievements.forEach((achievement) => {
+  visibleAchievements.forEach((achievement) => {
     const item = makeElement("article", `achievement-item${achievement.unlocked ? " is-unlocked" : ""}`);
     const description = makeElement("span", "", achievement.description);
     item.append(
@@ -507,8 +521,8 @@ function renderAchievements(container, achievements = []) {
         claimButton.disabled = coolingDown;
         claimButton.textContent = coolingDown ? `Go in ${formatCooldown(remainingMs)}` : "Go!";
         cooldownStatus.textContent = coolingDown
-          ? `Completed ${formatCooldown(firstMissionCooldownMs - remainingMs)} ago · ready in ${formatCooldown(remainingMs)}.`
-          : claimedAt ? "Ready to go again!" : "Complete your first mission to unlock this reward.";
+          ? `Collected ${formatCooldown(firstMissionCooldownMs - remainingMs)} ago · ready in ${formatCooldown(remainingMs)}.`
+          : claimedAt ? "Daily Bonus is ready again!" : "Your first mission unlocked this bonus. Ready to collect!";
       };
       const claimButton = makeElement(
         "button",
