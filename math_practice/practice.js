@@ -1,4 +1,4 @@
-import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} from "./account.js?v=4";
+import {authReady, formatDuration, mathApi, openAccountDialog, refreshProfile} from "./account.js?v=5";
 
 (async () => {
   const totalQuestions = 10;

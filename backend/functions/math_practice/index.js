@@ -17,6 +17,7 @@ const challengeRecords = db.collection("mathChallengeRecords");
 const totalQuestions = 10;
 const progressionVersion = 2;
 const rewardClaimsVersion = 1;
+const firstMissionCooldownMs = 24 * 60 * 60 * 1000;
 const luckyRollIntervalMs = 60 * 1000;
 const dailyChallengeAttemptLimit = 2;
 
@@ -50,7 +51,7 @@ const levels = {
 const achievementCatalog = [
 	{id: "first_mission", title: "First Mission", description: "Complete your first mission.", coins: 3},
 	{id: "perfect_mission", title: "Perfect Mission", description: "Answer all 10 questions correctly.", coins: 5},
-	{id: "three_day_streak", title: "Three-Day Streak", description: "Practice on three consecutive days.", coins: 8},
+	{id: "three_day_streak", title: "Three-Day Streak", description: "Visit Math Galaxy on three consecutive UTC days.", coins: 8},
 	{id: "ten_missions", title: "Mission Regular", description: "Complete 10 missions.", coins: 10},
 	{id: "hundred_correct", title: "Century Club", description: "Answer 100 questions correctly.", coins: 15},
 ];
@@ -89,6 +90,19 @@ function getPreviousDate(dateString) {
 	return getUtcDate(date);
 }
 
+function getStreakForDate(profile, today) {
+	const lastStudyDate = profile.lastStudyDate;
+	const currentStreak = lastStudyDate === today
+		? profile.currentStreak || 1
+		: lastStudyDate === getPreviousDate(today)
+			? (profile.currentStreak || 0) + 1
+			: 1;
+	return {
+		currentStreak,
+		longestStreak: Math.max(profile.longestStreak || 0, currentStreak),
+	};
+}
+
 function normalizeUsername(value) {
 	return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
@@ -104,7 +118,11 @@ async function getOrCreateProfile(decodedToken) {
 	const existing = await profileRef.get();
 	if (existing.exists) {
 		let data = existing.data();
-		if (data.progressionVersion !== progressionVersion || data.rewardClaimsVersion !== rewardClaimsVersion) {
+		const needsFirstMissionClaimTimestamp =
+			(data.claimedAchievementIds || []).includes("first_mission") &&
+			!Number.isFinite(data.firstMissionClaimedAt);
+		if (data.progressionVersion !== progressionVersion || data.rewardClaimsVersion !== rewardClaimsVersion ||
+				needsFirstMissionClaimTimestamp) {
 			await db.runTransaction(async (transaction) => {
 				const profileSnapshot = await transaction.get(profileRef);
 				if (!profileSnapshot.exists) {
@@ -126,6 +144,13 @@ async function getOrCreateProfile(decodedToken) {
 					updates.rewardClaimsVersion = rewardClaimsVersion;
 					updates.unclaimedMissionXp = 0;
 					updates.claimedAchievementIds = current.achievementIds || [];
+				}
+				const claimedIds = current.rewardClaimsVersion !== rewardClaimsVersion
+					? current.achievementIds
+					: current.claimedAchievementIds;
+				if ((claimedIds || []).includes("first_mission") &&
+						!Number.isFinite(current.firstMissionClaimedAt)) {
+					updates.firstMissionClaimedAt = Date.now();
 				}
 				if (Object.keys(updates).length) {
 					data = {...current, ...updates};
@@ -373,6 +398,7 @@ function getPublicProfile(profile) {
 		lastStudyDate: profile.lastStudyDate,
 		achievementIds: profile.achievementIds,
 		claimedAchievementIds: profile.claimedAchievementIds || [],
+		firstMissionClaimedAt: profile.firstMissionClaimedAt || null,
 		unclaimedMissionXp: profile.unclaimedMissionXp || 0,
 		friendUids: profile.friendUids,
 		inventory: profile.inventory,
@@ -567,12 +593,7 @@ async function completeMission(decodedToken, body, response) {
 						: missionRating >= 30 ? 1
 							: 0;
 		const today = getUtcDate();
-		const lastStudyDate = profile.lastStudyDate;
-		const currentStreak = lastStudyDate === today
-			? profile.currentStreak || 1
-			: lastStudyDate === getPreviousDate(today)
-				? (profile.currentStreak || 0) + 1
-				: 1;
+		const {currentStreak, longestStreak} = getStreakForDate(profile, today);
 		const totalSessions = (profile.totalSessions || 0) + 1;
 		const newAchievements = getNewAchievements(profile, correct, currentStreak);
 		const rewards = getMissionRewards(correct, session.level, averageAnswerTime);
@@ -648,7 +669,7 @@ async function completeMission(decodedToken, body, response) {
 			totalSessions,
 			totalCorrect: (profile.totalCorrect || 0) + correct,
 			currentStreak,
-			longestStreak: Math.max(profile.longestStreak || 0, currentStreak),
+			longestStreak,
 			lastStudyDate: today,
 			achievementIds: [...earnedIds],
 			updatedAt: FieldValue.serverTimestamp(),
@@ -661,6 +682,48 @@ async function completeMission(decodedToken, body, response) {
 	});
 
 	response.status(200).json({success: true, result: missionResult});
+}
+
+async function recordVisit(decodedToken, response) {
+	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
+	const today = getUtcDate();
+	let result;
+
+	await db.runTransaction(async (transaction) => {
+		const profileSnapshot = await transaction.get(profileRef);
+		if (!profileSnapshot.exists) {
+			throw Object.assign(new Error("Player profile not found."), {status: 404});
+		}
+
+		const profile = profileSnapshot.data();
+		const alreadyRecorded = profile.lastStudyDate === today;
+		const {currentStreak, longestStreak} = getStreakForDate(profile, today);
+		const achievementIds = new Set(profile.achievementIds || []);
+		const unlockedThreeDayStreak = currentStreak >= 3 && !achievementIds.has("three_day_streak");
+		if (unlockedThreeDayStreak) achievementIds.add("three_day_streak");
+
+		if (!alreadyRecorded || unlockedThreeDayStreak) {
+			transaction.update(profileRef, {
+				currentStreak,
+				longestStreak,
+				lastStudyDate: today,
+				...(unlockedThreeDayStreak ? {achievementIds: [...achievementIds]} : {}),
+				updatedAt: FieldValue.serverTimestamp(),
+			});
+		}
+
+		result = {
+			currentStreak,
+			longestStreak,
+			lastStudyDate: today,
+			alreadyRecorded,
+			newAchievements: unlockedThreeDayStreak
+				? achievementCatalog.filter(({id}) => id === "three_day_streak")
+				: [],
+		};
+	});
+
+	response.status(200).json({success: true, ...result});
 }
 
 async function claimMissionXp(decodedToken, response) {
@@ -702,6 +765,7 @@ async function claimAchievement(decodedToken, body, response) {
 	}
 
 	const {ref: profileRef} = await getOrCreateProfile(decodedToken);
+	const claimedAt = Date.now();
 	let result;
 	await db.runTransaction(async (transaction) => {
 		const profileSnapshot = await transaction.get(profileRef);
@@ -716,20 +780,28 @@ async function claimAchievement(decodedToken, body, response) {
 		}
 		const claimedIds = new Set(profile.claimedAchievementIds || []);
 		const alreadyClaimed = claimedIds.has(achievement.id);
-		const claimedCoins = alreadyClaimed ? 0 : achievement.coins;
-		if (!alreadyClaimed) {
+		const firstMission = achievement.id === "first_mission";
+		if (firstMission && Number.isFinite(profile.firstMissionClaimedAt) &&
+				claimedAt < profile.firstMissionClaimedAt + firstMissionCooldownMs) {
+			throw Object.assign(new Error("First Mission will be ready again after 24 hours."), {status: 429});
+		}
+		const claimedCoins = firstMission || !alreadyClaimed ? achievement.coins : 0;
+		if (!alreadyClaimed || firstMission) {
 			claimedIds.add(achievement.id);
-			transaction.update(profileRef, {
+			const updates = {
 				coins: (profile.coins || 0) + claimedCoins,
 				claimedAchievementIds: [...claimedIds],
 				updatedAt: FieldValue.serverTimestamp(),
-			});
+			};
+			if (firstMission) updates.firstMissionClaimedAt = claimedAt;
+			transaction.update(profileRef, updates);
 		}
 		result = {
 			achievementId: achievement.id,
 			claimedCoins,
 			coins: (profile.coins || 0) + claimedCoins,
-			alreadyClaimed,
+			alreadyClaimed: alreadyClaimed && !firstMission,
+			...(firstMission ? {claimedAt} : {}),
 		};
 	});
 
@@ -990,6 +1062,10 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 	try {
 		const body = request.body || {};
 		const action = body.action;
+		if (action === "recordVisit") {
+			await recordVisit(decodedToken, response);
+			return;
+		}
 		if (action === "profile") {
 			const {data} = await getOrCreateProfile(decodedToken);
 			response.status(200).json({
@@ -1004,7 +1080,13 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				achievements: achievementCatalog.map((achievement) => ({
 					...achievement,
 					unlocked: (data.achievementIds || []).includes(achievement.id),
-					claimed: (data.claimedAchievementIds || []).includes(achievement.id),
+					claimed: achievement.id === "first_mission"
+						? Number.isFinite(data.firstMissionClaimedAt) &&
+							Date.now() < data.firstMissionClaimedAt + firstMissionCooldownMs
+						: (data.claimedAchievementIds || []).includes(achievement.id),
+					...(achievement.id === "first_mission"
+						? {claimedAt: data.firstMissionClaimedAt || null}
+						: {}),
 				})),
 				shop: shopCatalog,
 			});
@@ -1025,7 +1107,13 @@ export const mathPracticeApi = onRequest(async (request, response) => {
 				achievements: action === "achievements" ? achievementCatalog.map((achievement) => ({
 					...achievement,
 					unlocked: (data.achievementIds || []).includes(achievement.id),
-					claimed: (data.claimedAchievementIds || []).includes(achievement.id),
+					claimed: achievement.id === "first_mission"
+						? Number.isFinite(data.firstMissionClaimedAt) &&
+							Date.now() < data.firstMissionClaimedAt + firstMissionCooldownMs
+						: (data.claimedAchievementIds || []).includes(achievement.id),
+					...(achievement.id === "first_mission"
+						? {claimedAt: data.firstMissionClaimedAt || null}
+						: {}),
 				})) : undefined,
 			});
 			return;

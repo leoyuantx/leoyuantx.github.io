@@ -29,6 +29,7 @@ let luckyRollInProgress = false;
 let titleToastQueue = [];
 let titleToastShowing = false;
 let challengeEntryUpdate = 0;
+let firstMissionTimer = null;
 
 const pilotTitles = [
   {level: 1, title: "Cadet in training"},
@@ -428,6 +429,10 @@ function renderProgression(container, profile) {
 }
 
 function renderAchievements(container, achievements = []) {
+  if (firstMissionTimer !== null) {
+    clearInterval(firstMissionTimer);
+    firstMissionTimer = null;
+  }
   const list = makeElement("div", "achievement-list");
   if (!achievements.length) {
     list.append(makeElement("p", "account-empty", "Achievements will appear here as you complete missions."));
@@ -465,26 +470,66 @@ function renderAchievements(container, achievements = []) {
 
   achievements.forEach((achievement) => {
     const item = makeElement("article", `achievement-item${achievement.unlocked ? " is-unlocked" : ""}`);
+    const description = makeElement("span", "", achievement.description);
     item.append(
       makeElement("span", "achievement-mark", achievement.unlocked ? "★" : "☆"),
       makeElement("span", "achievement-copy"),
     );
     item.lastElementChild.append(
       makeElement("strong", "", achievement.title),
-      makeElement("span", "", achievement.description),
+      description,
     );
     item.append(makeElement("span", "achievement-reward", `+${achievement.coins} ◈`));
     if (achievement.unlocked) {
-      const claimButton = makeElement("button", "button button-primary achievement-claim", achievement.claimed ? "Claimed" : "Claim");
+      const isFirstMission = achievement.id === "first_mission";
+      const claimedAt = isFirstMission ? achievement.claimedAt : null;
+      const cooldownStatus = isFirstMission ? makeElement("span", "", "") : null;
+      if (cooldownStatus) description.after(cooldownStatus);
+      const firstMissionCooldownMs = 24 * 60 * 60 * 1000;
+      const formatCooldown = (durationMs) => {
+        const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [hours ? `${hours}h` : "", minutes ? `${minutes}m` : "", `${seconds}s`]
+          .filter(Boolean)
+          .join(" ");
+      };
+      const updateFirstMissionStatus = () => {
+        const remainingMs = Number.isFinite(claimedAt)
+          ? Math.max(0, claimedAt + firstMissionCooldownMs - Date.now())
+          : 0;
+        const coolingDown = remainingMs > 0;
+        if (!coolingDown && firstMissionTimer !== null) {
+          clearInterval(firstMissionTimer);
+          firstMissionTimer = null;
+        }
+        claimButton.disabled = coolingDown;
+        claimButton.textContent = coolingDown ? `Go in ${formatCooldown(remainingMs)}` : "Go!";
+        cooldownStatus.textContent = coolingDown
+          ? `Completed ${formatCooldown(firstMissionCooldownMs - remainingMs)} ago · ready in ${formatCooldown(remainingMs)}.`
+          : claimedAt ? "Ready to go again!" : "Complete your first mission to unlock this reward.";
+      };
+      const claimButton = makeElement(
+        "button",
+        "button button-primary achievement-claim",
+        isFirstMission ? "Go!" : achievement.claimed ? "Claimed" : "Claim",
+      );
       claimButton.type = "button";
-      claimButton.disabled = Boolean(achievement.claimed);
-      if (!achievement.claimed) {
+      if (isFirstMission) {
+        updateFirstMissionStatus();
+        if (Number.isFinite(claimedAt) && claimedAt + firstMissionCooldownMs > Date.now()) {
+          firstMissionTimer = window.setInterval(updateFirstMissionStatus, 1000);
+        }
+      } else {
+        claimButton.disabled = Boolean(achievement.claimed);
+      }
+      if (isFirstMission || !achievement.claimed) {
         claimButton.addEventListener("click", async () => {
           claimButton.disabled = true;
-          claimButton.textContent = "Claiming…";
+          claimButton.textContent = isFirstMission ? "Going…" : "Claiming…";
           try {
             await mathApi("claimAchievement", {achievementId: achievement.id});
-            claimButton.textContent = "Claimed";
             await refreshProfile();
           } catch (error) {
             claimButton.textContent = error.message;
@@ -600,6 +645,10 @@ async function renderTab(tab, scope = "global") {
   activeTab = tab;
   const pane = document.querySelector("#account-pane");
   if (!pane || !profileData) return;
+  if (tab !== "achievements" && firstMissionTimer !== null) {
+    clearInterval(firstMissionTimer);
+    firstMissionTimer = null;
+  }
   pane.replaceChildren();
   document.querySelectorAll("[data-account-tab]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.accountTab === tab);
@@ -787,7 +836,16 @@ function installAccountUI() {
     }
     resolveAuthReady(user);
     window.dispatchEvent(new CustomEvent("math-auth-changed", {detail: {user}}));
-    if (user) await refreshProfile();
+    if (user) {
+      try {
+        await mathApi("recordVisit");
+      } catch (error) {
+        const status = document.querySelector("#account-status");
+        if (status) status.textContent = `Could not record today's visit: ${error.message}`;
+        console.error("Could not record the Math Galaxy daily visit:", error);
+      }
+      await refreshProfile();
+    }
   });
 }
 

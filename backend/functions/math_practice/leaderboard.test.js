@@ -259,6 +259,9 @@ test("mission XP and achievement coins can be claimed once", async () => {
 	assert.equal(result.coinsEarned, 4);
 	assert.equal(result.unclaimedMissionXp, 16);
 	const profile = documents.get(`mathProfiles/${uid}`);
+	const visit = await request(uid, {action: "recordVisit"});
+	assert.equal(visit.body.alreadyRecorded, true);
+	assert.equal(visit.body.currentStreak, profile.currentStreak);
 	assert.equal(profile.coins, 4);
 	assert.equal(profile.xp, 0);
 	assert.equal(profile.unclaimedMissionXp, 16);
@@ -284,12 +287,62 @@ test("mission XP and achievement coins can be claimed once", async () => {
 	assert.equal(achievementClaim.body.claimedCoins, 3);
 	assert.equal(profile.coins, 7);
 	const repeatedClaim = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
-	assert.equal(repeatedClaim.body.claimedCoins, 0);
-	assert.equal(repeatedClaim.body.alreadyClaimed, true);
+	assert.equal(repeatedClaim.status, 429);
 	assert.equal(profile.coins, 7);
 	assert.equal((await request(uid, {action: "profile"})).body.achievements
 		.find(({id}) => id === "first_mission").claimed, true);
 	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "unknown"})).status, 400);
+});
+
+test("signed-in visits advance streaks once per UTC day without a mission", async () => {
+	const uid = "daily-page-visit";
+	const today = new Date().toISOString().slice(0, 10);
+	const yesterdayDate = new Date(`${today}T00:00:00.000Z`);
+	yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+	const yesterday = yesterdayDate.toISOString().slice(0, 10);
+	const profile = {
+		uid, username: uid, progressionVersion: 2, rewardClaimsVersion: 1,
+		xp: 0, level: 1, coins: 0, currentStreak: 2, longestStreak: 4,
+		lastStudyDate: yesterday, achievementIds: [], claimedAchievementIds: [],
+	};
+	documents.set(`mathProfiles/${uid}`, profile);
+
+	const result = await request(uid, {action: "recordVisit"});
+	assert.equal(result.status, 200);
+	assert.equal(result.body.currentStreak, 3);
+	assert.equal(result.body.longestStreak, 4);
+	assert.deepEqual(result.body.newAchievements.map(({id}) => id), ["three_day_streak"]);
+	assert.equal(profile.lastStudyDate, today);
+	assert.deepEqual(profile.achievementIds, ["three_day_streak"]);
+
+	const repeatVisit = await request(uid, {action: "recordVisit"});
+	assert.equal(repeatVisit.body.alreadyRecorded, true);
+	assert.equal(repeatVisit.body.currentStreak, 3);
+	assert.deepEqual(repeatVisit.body.newAchievements, []);
+	assert.equal(profile.totalSessions, undefined);
+});
+
+test("First Mission reward can be collected again after 24 hours", async () => {
+	const uid = "daily-first-mission";
+	const profile = {
+		uid, username: uid, progressionVersion: 2, rewardClaimsVersion: 1,
+		xp: 0, level: 1, coins: 3, achievementIds: ["first_mission"],
+		claimedAchievementIds: ["first_mission"],
+		firstMissionClaimedAt: Date.now() - 24 * 60 * 60 * 1000 - 1,
+	};
+	documents.set(`mathProfiles/${uid}`, profile);
+
+	const available = (await request(uid, {action: "profile"})).body.achievements
+		.find(({id}) => id === "first_mission");
+	assert.equal(available.unlocked, true);
+	assert.equal(available.claimed, false);
+
+	const result = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
+	assert.equal(result.status, 200);
+	assert.equal(result.body.claimedCoins, 3);
+	assert.equal(profile.coins, 6);
+	assert.ok(profile.firstMissionClaimedAt > Date.now() - 1000);
+	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "first_mission"})).status, 429);
 });
 
 test("previously awarded achievement coins are not claimable again", async () => {
@@ -303,8 +356,9 @@ test("previously awarded achievement coins are not claimable again", async () =>
 	assert.equal(profileResult.body.profile.unclaimedMissionXp, 0);
 	assert.deepEqual(profileResult.body.profile.claimedAchievementIds, ["first_mission"]);
 	assert.equal(profileResult.body.achievements.find(({id}) => id === "first_mission").claimed, true);
+	assert.ok(Number.isFinite(documents.get(`mathProfiles/${uid}`).firstMissionClaimedAt));
 	const achievementClaim = await request(uid, {action: "claimAchievement", achievementId: "first_mission"});
-	assert.equal(achievementClaim.body.claimedCoins, 0);
+	assert.equal(achievementClaim.status, 429);
 	assert.equal(documents.get(`mathProfiles/${uid}`).coins, 100);
 	assert.equal((await request(uid, {action: "claimAchievement", achievementId: "perfect_mission"})).status, 400);
 	const xpClaim = await request(uid, {action: "claimMissionXp"});
